@@ -55,6 +55,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApuSourceResponse'
 
+  '/apus/{apuId}/reimport':
+    patch:
+      tags:
+        - Transfagent      
+      summary: Mark apu for reimport
+      description: Mark apu fo reimport in database      
+      operationId: reimportApu
+      parameters:
+        - $ref: '#/components/parameters/apuId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApuSourceDef'
 
 components:
 
@@ -105,8 +121,17 @@ components:
           format: int32
       required: [items, totalCount]
     
-  parameters:                      
-                                   
+  parameters:
+  
+    apuId:
+      in: path
+      name: apuId
+      description: id apu
+      required: true
+      schema:
+        type: integer
+        format: int64
+
     uuidOptional:                  
       in: query                    
       name: uuid                   

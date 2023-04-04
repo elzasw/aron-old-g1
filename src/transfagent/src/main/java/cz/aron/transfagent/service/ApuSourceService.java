@@ -7,24 +7,29 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import cz.aron.api.rest.model.ApuSourceDef;
 import cz.aron.api.rest.model.ApuSourceResponse;
-import cz.aron.api.rest.model.ApuSourceType;
+import cz.aron.transfagent.controller.vo.ApuSourceDefVO;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.SourceType;
 import cz.aron.transfagent.repository.ApuSourceRepository;
 
 @Service
 public class ApuSourceService {
+    
+    private static final Logger log = LoggerFactory.getLogger(ApuSourceService.class);
 		
 	private final ApuSourceRepository apuSourceRepository;
 	
@@ -78,38 +83,8 @@ public class ApuSourceService {
             addApuSourcePredicate(cq, cb, root, datadir, uuid);
             List<ApuSource> rows = em.createQuery(cq).setFirstResult(page* pageSize)
                     .setMaxResults(pageSize).getResultList();
-            rows.stream().forEach(apu -> {
-                var as = new ApuSourceDef();
-                as.setApusourceId(apu.getId().longValue());
-                as.setDataDir(apu.getDataDir());
-                as.setDeleted(apu.isDeleted());
-                as.setImported(apu.getDateImported().toOffsetDateTime());
-                as.setReimport(apu.isReimport());
-                switch(apu.getSourceType()) {
-                case ARCH_DESCS:
-                    as.setSourceType(ApuSourceType.ARCH_DESCS);
-                    break;
-                case ARCH_ENTITY:
-                    as.setSourceType(ApuSourceType.ARCH_ENTITY);
-                    break;
-                case COLLECTION:
-                    as.setSourceType(ApuSourceType.COLLECTION);
-                    break;
-                case DIRECT:
-                    as.setSourceType(ApuSourceType.DIRECT);
-                    break;
-                case FINDING_AID:
-                    as.setSourceType(ApuSourceType.FINDING_AID);
-                    break;
-                case FUND:
-                    as.setSourceType(ApuSourceType.FUND);
-                    break;
-                case INSTITUTION:
-                    as.setSourceType(ApuSourceType.INSTITUTION);
-                    break;
-                }
-                as.setUuid(apu.getUuid().toString());
-                items.add(as);
+            rows.stream().forEach(apu -> {                
+                items.add(new ApuSourceDefVO(apu));
             });
         }
         return new ApuSourceResponse(items, totalItems.intValue());
@@ -129,4 +104,19 @@ public class ApuSourceService {
         }        
         cq.where(p);
     }
+    
+    public ApuSourceDef reimportApuSource(int apuSourceId) {
+        var apuSource = apuSourceRepository.findById(apuSourceId).orElseThrow(() -> {
+            log.error("Fail to reimport apu source id={}, not exist", apuSourceId);
+            return new EntityNotFoundException();
+        });
+        if (!apuSource.isReimport()) {
+            apuSource.setReimport(true);
+            log.info("Reimport apu source id={}", apuSourceId);
+        } else {
+            log.warn("Apu source id={}, already marked for reimport", apuSourceId);
+        }
+        return new ApuSourceDefVO(apuSource);
+    }
+    
 }
