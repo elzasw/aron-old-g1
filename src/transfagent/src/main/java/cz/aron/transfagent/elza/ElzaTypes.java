@@ -678,13 +678,13 @@ public abstract class ElzaTypes {
     
     public static Map<String, String> APPLIED_ACCESS_RESTRICT_MAP = new HashMap<>();
     static {
-        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_DAO","nepřístupný digitální archivní objekt");
-        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_ZP2015_APPLIED_RESTRICTION_DAO_INPERS_ONLY","digitální archivní objekt přístupný jen v badatelně");
-        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_ARCHMAT","nepřístupný originál analogové archiválie");
-        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_ARCHMAT2","nepřístupná analogová archiválie a její analogová kopie");
-        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_ABSTRACT","nepřístupný prvek obsah");
-        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_LIMITED","použití prvků s omezením");
-        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_ARCHENTITY","nepřístupné vztahy mezi jednotkou popisu a entitami");
+        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_DAO","Digitální archivní objekt není přístupný k nahlížení.");
+        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_ZP2015_APPLIED_RESTRICTION_DAO_INPERS_ONLY","Digitální archivní objekt je přístupný k nahlížení pouze v prostorách badatelny.");
+        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_ARCHMAT","Originál archiválie není přístupný k nahlížení. K nahlížení je přístupná pouze kopie archiválie.");
+        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_ARCHMAT2","Archiválie a její kopie v analogové podobě nejsou přístupné k nahlížení.");
+        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_ABSTRACT","Obsah nezveřejněn z důvodu omezení přístupnosti.");
+        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_LIMITED","Uplatněno omezení přístupnosti - zobrazený archivní popis není úplný.");
+        APPLIED_ACCESS_RESTRICT_MAP.put("ZP2015_APPLIED_RESTRICTION_ARCHENTITY","Uplatněno omezení přístupnosti - zobrazený archivní popis není úplný.");
     }
 
 }

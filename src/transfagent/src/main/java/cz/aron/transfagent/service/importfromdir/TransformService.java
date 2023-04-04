@@ -160,7 +160,7 @@ public class TransformService {
 		var filesToMove = new HashMap<String, Path>();
 
 		// mapovani (nazev souboru,typ transformace)->pridelene uuid
-		var filesToTransformAsync = getExistingMappings(daoUuid);
+		var filesToTransformAsync = getExistingMappings(daoUuid, false);
 
 		var pos = 1;
 		for (Path file : files) {
@@ -209,7 +209,7 @@ public class TransformService {
 			});
 		}
 
-		scheduleAsyncTransforms(daoUuid, filesToTransformAsync);
+		scheduleAsyncTransforms(daoUuid, filesToTransformAsync, false);
 		return true;
 	}
 	
@@ -226,7 +226,7 @@ public class TransformService {
         Files.createDirectories(filesDir);
 
         // mapovani (nazev souboru,typ transformace)->pridelene uuid
-        var filesToTransformAsync = getExistingMappings(daoUuid);
+        var filesToTransformAsync = getExistingMappings(daoUuid, true);
 
         DaoBuilder daoBuilder = new DaoBuilder();
         daoBuilder.setUuid(daoUuid);
@@ -245,7 +245,7 @@ public class TransformService {
             marshaller.marshal(daoBuilder.build(), os);
         }
 
-        scheduleAsyncTransforms(daoUuid, filesToTransformAsync);
+        scheduleAsyncTransforms(daoUuid, filesToTransformAsync, true);
         return true;
     }
 
@@ -262,7 +262,7 @@ public class TransformService {
             name = url.substring(lastSlash+1);
         }        
         
-        var existingUuid = filesToTransformAsync.get(new FileTransformKey(name, TRANSFORM_IDENTITY));
+        var existingUuid = filesToTransformAsync.get(new FileTransformKey(url, TRANSFORM_IDENTITY));
         var daoFile = DaoBuilder.createDaoFile(name, 0l, pos, "text/plain", existingUuid);
         var uuid = daoFile.getUuid();
         DaoBuilder.addReferenceFlag(daoFile);
@@ -273,11 +273,11 @@ public class TransformService {
         }
     }
 
-	private void scheduleAsyncTransforms(String daoUuid, Map<FileTransformKey, String> filesToTransformAsync) {
+	private void scheduleAsyncTransforms(String daoUuid, Map<FileTransformKey, String> filesToTransformAsync, boolean forceGetMappings) {
 		// plan async transforms
 		if (!filesToTransformAsync.isEmpty()) {
 			transactionTemplate.executeWithoutResult(c -> {
-				var existingTransforms = getExistingMappings(daoUuid);
+				var existingTransforms = getExistingMappings(daoUuid, forceGetMappings);
 				for (var entry : filesToTransformAsync.entrySet()) {
 					var existing = existingTransforms.get(entry.getKey());
 					if (existing == null) {
@@ -346,12 +346,13 @@ public class TransformService {
 	 * Precte z databaze existujici mapovani (file,transform_type)->uuid
 	 * 
 	 * @param daoUuid
+	 * @param force pokud je true vrati vzdy jinak pouze pokud je neco async
 	 * @return Map<FileTransformKey, String>
 	 */
-	private Map<FileTransformKey, String> getExistingMappings(String daoUuid) {
+	private Map<FileTransformKey, String> getExistingMappings(String daoUuid, boolean force) {
 		// mapovani nazev souboru->pridelene uuid
 		var filesToTransformAsync = new HashMap<FileTransformKey, String>();
-		if (tileAsync || thumbnailAsync) {
+		if (tileAsync || thumbnailAsync || force) {
 			var transforms = transformRepository.findAllByDaoUuid(UUID.fromString(daoUuid));
 			for (var transform : transforms) {
 				filesToTransformAsync.put(new FileTransformKey(transform.getFile(), transform.getType()),

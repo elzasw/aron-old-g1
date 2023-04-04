@@ -14,6 +14,6 @@ public interface ArchDescLevelDaoImporter {
      * @param daoRefReg rozhrani pro registraci vytvorenych dao pro dalsi zpracovani
      * @return pocet vytvorenych dao 
      */
-    int importDaos(Level lvl, Apu apu, ContextDataProvider dataProvider, DaoRefRegistration daoRefReg);
+    int importDaos(String institutionCode, int fundCode, Level lvl, Apu apu, ContextDataProvider dataProvider, DaoRefRegistration daoRefReg);
     
 }
