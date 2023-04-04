@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import './index.css'
 
-const serverContextPath = "";
+const serverContextPath = window.serverContextPath;
 
 const router = createBrowserRouter(
     [

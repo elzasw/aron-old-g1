@@ -2,9 +2,12 @@ import {
     ActionBar,
     ActionButton,
     ActionsContainer,
+    Button,
+    CancelButton,
     DarkListHeader,
     ListContainer,
     ListItem,
+    StyledInput,
 } from "jareco/dist/common-ui-elements";
 import { Pagination } from "jareco/dist/pagination";
 import {
@@ -12,10 +15,12 @@ import {
     ItemProps,
     ResizableColumnsGrid,
 } from "jareco/dist/resizable-columns-grid";
-import { useState } from "react";
-import { FaPlus } from "react-icons/fa";
-import { useIntl } from "react-intl";
+import { useEffect, useState } from "react";
+import { FaFileImport, FaFilter, FaPlus } from "react-icons/fa";
+import { FormattedMessage, useIntl } from "react-intl";
 import styled from "styled-components";
+import { Api, ApuSourceDef } from "../api";
+import { columnInfo } from "./columnMap";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -23,42 +28,60 @@ const TableCell = styled.div`
     text-overflow: ellipsis;
 `;
 
-export const ordersColumns = [
-    {
-        code: "id",
-        width: 150,
-        sortable: false,
-    },
-    {
-        code: "archiveName",
-        width: 300,
-        sortable: false,
-    },
-];
-
-const fakeData = [
-    { id: 1, archiveName: "Test1" },
-    { id: 2, archiveName: "Test2" },
+const fakeData: ApuSourceDef[] = [
+    { apusourceId: 1, uuid: "123456" },
+    { apusourceId: 2, uuid: "abcdef" },
 ];
 
 export const ItemsList = () => {
+    const pageSize = 200;
     const { formatMessage } = useIntl();
-    const [items, setItems] =
-        useState<{ id: number; archiveName: string }[]>(fakeData);
 
-    const getChildId = (index: number) => items[index].id;
+    const [filterFulltext, setFilterFulltext] = useState("");
+    const [filterFulltextInput, setFilterFulltextInput] = useState("");
+    const [page, setPage] = useState(1);
+    const [items, setItems] = useState<ApuSourceDef[]>([]);
+    const [totalCount, setTotalCount] = useState<number>(0);
+
+    const requestData = async () => {
+        if (page >= 1) {
+            Api.transfagent
+                .getApus({
+                    datadir: undefined,
+                    uuid: filterFulltext || undefined,
+                    page: page - 1,
+                    pageSize: pageSize,
+                })
+                .then((result) => {
+                    if (result.items) {
+                        setItems(result.items);
+                        setTotalCount(result.totalCount || 0);
+                    }
+                }).catch((err) => {
+                    console.log("Došlo k chybě",err);
+                });
+        }
+    };
+
+    useEffect(() => {
+        requestData();
+    }, [page, filterFulltext]);
+
+    const getChildId = (index: number) => items[index].apusourceId || 1;
 
     const renderHeader = (props: RCGHeaderP) => {
         return (
             <DarkListHeader style={{ flexGrow: 1 }}>
-                {ordersColumns[props.columnIndex].code}
+                {formatMessage({
+                    id: "column." + columnInfo[props.columnIndex].code,
+                })}
             </DarkListHeader>
         );
     };
 
     const renderItem = (props: ItemProps) => {
         const item = items[props.rowIndex];
-        const propCode = ordersColumns[props.columnIndex].code;
+        const propCode = columnInfo[props.columnIndex].code;
         const isEven = props.rowIndex % 2 === 0;
         return (
             <ListItem
@@ -71,19 +94,106 @@ export const ItemsList = () => {
         );
     };
 
-    const getCellContent = (item: any, propCode: string) => item[propCode];
+    const goToPage = (pageNumber: number) => setPage(pageNumber);
+
+    const isFilterActive = () => filterFulltext !== "";
+
+    const handleClearFilter = () => {
+        setFilterFulltextInput("");
+        setFilterFulltext("");
+    };
+
+    const handleConfirmFilter = (e: React.FormEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setFilterFulltext(filterFulltextInput);
+        setPage(1);
+    };
+
+    const handleFilterFulltextChange = (
+        e: React.FormEvent<HTMLInputElement>
+    ) => {
+        setFilterFulltextInput(e.currentTarget.value);
+    };
+
+    const getCellContent = (item: any, propCode: string) => {
+        if (propCode === "imported") {
+            return item.imported && new Date(item.imported).toLocaleString('cs-CZ')
+        } else if (propCode === "actions") {
+            return renderActions(item);
+        }
+        return item[propCode];
+    };
+
+    const renderActions = (item: ApuSourceDef) => {
+        return (
+            <div style={{ display: "inline-flex" }}>
+                {!item.reimport && (
+                    <Button
+                        onClick={() => doReImport(item)}
+                        iconOnly={true}
+                        title={formatMessage({id: "reimport"})}
+                    >
+                        <FaFileImport />
+                    </Button>
+                )}
+            </div>
+        );
+    };
+
+    const doReImport = (item: ApuSourceDef) => {
+        console.log("Reimport");
+    }
+
     return (
         <ListContainer style={{ height: "100%" }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
-                    <ActionButton id="button">
-                        <FaPlus />
-                        &nbsp;
-                        {formatMessage({ id: "btn" })}
-                    </ActionButton>
+                    <Pagination
+                        pageCount={Math.ceil(totalCount / pageSize) || 1}
+                        pageFull={items.length === pageSize}
+                        onChange={goToPage}
+                        currentPage={page}
+                    />
                 </ActionsContainer>
                 <ActionsContainer>
-                    <Pagination pageCount={1} pageFull={true} currentPage={1} />
+                    <form
+                        onSubmit={handleConfirmFilter}
+                        style={{
+                            display: "flex",
+                            margin: "0",
+                            padding: "0",
+                        }}
+                    >
+                        <StyledInput
+                            color="dark"
+                            value={filterFulltextInput}
+                            placeholder={formatMessage({
+                                id: "filter.placeholder",
+                            })}
+                            onChange={handleFilterFulltextChange}
+                        />
+                        <Button
+                            type="submit"
+                            id="order.filter"
+                            title={formatMessage({ id: "filter" })}
+                        >
+                            <FaFilter />
+                        </Button>
+                        {isFilterActive() && (
+                            <CancelButton
+                                onClick={handleClearFilter}
+                                id="order.filter.clear"
+                                title={formatMessage({
+                                    id: "filter.clear",
+                                })}
+                            >
+                                <FaFilter />
+                                &nbsp;
+                                <FormattedMessage id="filter.clear" />
+                            </CancelButton>
+                        )}
+                    </form>
                 </ActionsContainer>
             </ActionBar>
             <div id="list" style={{ height: "100%" }}>
@@ -91,11 +201,11 @@ export const ItemsList = () => {
                     itemCount={items.length}
                     renderHeader={renderHeader}
                     renderItem={renderItem}
-                    columnCount={ordersColumns.length}
-                    columnInfo={ordersColumns}
+                    columnCount={columnInfo.length}
+                    columnInfo={columnInfo}
                     getItemId={getChildId}
                     rowHeight={32}
-                    noItemsText={"Žádné záznamy"}
+                    noItemsText={formatMessage({ id: "noItems" })}
                 />
             </div>
         </ListContainer>

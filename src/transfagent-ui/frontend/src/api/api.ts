@@ -6,4 +6,3 @@ export const Api = {
 };
 
 export * from "../generated/api/main";
-export { urls } from "./ApiConfig";
