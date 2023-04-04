@@ -19,6 +19,7 @@
       <plugin>
         <groupId>org.openapitools</groupId>
         <artifactId>openapi-generator-maven-plugin</artifactId>
+        <version>6.5.0</version>
         <executions>
           <execution>
             <id>transfagent-api-typescript</id>
@@ -30,7 +31,6 @@
                 <generatorName>typescript-fetch</generatorName>
                 <inputSpec>../transfagent/src/main/resources/openapi/transfagent-api.yaml</inputSpec>
                 <output>${project.basedir}/frontend/src/generated/api/main</output>
-                <addCompileSourceRoot>false</addCompileSourceRoot>
             </configuration>
           </execution>
         </executions>
