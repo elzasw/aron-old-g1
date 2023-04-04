@@ -76,7 +76,7 @@ public class ApuSourceService {
             CriteriaQuery<ApuSource> cq = cb.createQuery(ApuSource.class);
             Root<ApuSource> root = cq.from(ApuSource.class);
             addApuSourcePredicate(cq, cb, root, datadir, uuid);
-            List<ApuSource> rows = em.createQuery(cq).setFirstResult((page-1)* pageSize)
+            List<ApuSource> rows = em.createQuery(cq).setFirstResult(page* pageSize)
                     .setMaxResults(pageSize).getResultList();
             rows.stream().forEach(apu -> {
                 var as = new ApuSourceDef();
