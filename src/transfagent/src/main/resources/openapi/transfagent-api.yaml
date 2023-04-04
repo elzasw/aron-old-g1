@@ -79,7 +79,7 @@ components:
           type: integer
           format: int64
         sourceType:
-          $ref: '#/components/schemas/ApuType'          
+          $ref: '#/components/schemas/ApuSourceType'          
         uuid:
           type: string 
         dataDir:
