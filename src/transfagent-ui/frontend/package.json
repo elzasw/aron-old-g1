@@ -1,0 +1,33 @@
+{
+    "name": "transfagent",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "jareco": "^0.4.10",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-hotkeys": "^2.0.0",
+        "react-icons": "^4.8.0",
+        "react-intl": "^6.3.2",
+        "react-is": "^18.2.0",
+        "react-router-dom": "^6.9.0",
+        "react-virtualized": "^9.22.3",
+        "styled-components": "^5.3.9"
+    },
+    "devDependencies": {
+        "@types/react": "^18.0.28",
+        "@types/react-dom": "^18.0.11",
+        "@types/react-icons": "^3.0.0",
+        "@types/react-virtualized": "^9.21.21",
+        "@types/styled-components": "^5.1.26",
+        "@vitejs/plugin-react": "^3.1.0",
+        "typescript": "^4.9.3",
+        "vite": "^4.2.0"
+    }
+}

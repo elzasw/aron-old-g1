@@ -1,0 +1,32 @@
+openapi: 3.0.2
+info:
+  version: 1.0.0
+  title: Transfagent Service API
+servers:
+  - url: 'https://localhost:3000/'
+tags:
+  - name: Transfagent
+    description:
+
+paths:
+  /archives:
+    get:
+      tags:
+        - Transfagent
+      summary: Returns list of archives
+      description: ''
+      operationId: getArchives
+      parameters:
+        - in: query
+          name: name
+          description: Name of archive
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string

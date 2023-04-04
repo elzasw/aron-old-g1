@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.lightcomp.nda</groupId>
+    <artifactId>dependencies</artifactId>
+    <version>1.7-SNAPSHOT</version>
+	<relativePath/>
+  </parent>
+
+  <artifactId>transfagent</artifactId>
+  <name>Transfagent</name>
+  <version>1.0.0</version>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.openapitools</groupId>
+        <artifactId>openapi-generator-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>transfagent-api-typescript</id>
+            <phase>generate-sources</phase>
+            <goals>
+                <goal>generate</goal>
+            </goals>
+            <configuration>
+                <generatorName>typescript-fetch</generatorName>
+                <inputSpec>../transfagent/src/main/resources/openapi/transfagent-api.yaml</inputSpec>
+                <output>${project.basedir}/frontend/src/generated/api/main</output>
+                <addCompileSourceRoot>false</addCompileSourceRoot>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
