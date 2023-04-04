@@ -47,6 +47,11 @@
 			<artifactId>spring-boot-starter-jetty</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.7.0</version>
+		</dependency>		
+		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
@@ -307,6 +312,7 @@
 								<source>${project.build.directory}/generated-sources/cxf</source>
 								<source>${project.build.directory}/generated-sources/jaxb</source>
 								<source>${project.build.directory}/generated-sources/ead3</source>
+								<source>${project.build.directory}/generated-sources/api/rest</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -469,6 +475,36 @@
 						<goals>
 							<goal>wsdl2java</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>6.5.0</version>
+				<executions>
+					<execution>
+						<id>discard-statistics-api</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<generatorName>spring</generatorName>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/transfagent-api.yaml</inputSpec>
+							<output>${project.build.directory}/generated-sources/api/rest</output>
+							<generateSupportingFiles>false</generateSupportingFiles>
+							<skipValidateSpec>true</skipValidateSpec>
+							<configOptions>
+								<sourceFolder>/</sourceFolder>
+								<apiPackage>cz.aron.api.rest</apiPackage>
+								<modelPackage>cz.aron.api.rest.model</modelPackage>
+								<interfaceOnly>true</interfaceOnly>
+								<skipDefaultInterface>true</skipDefaultInterface>
+								<openApiNullable>false</openApiNullable>
+								<useTags>true</useTags>
+							</configOptions>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
