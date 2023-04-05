@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import cz.aron.api.rest.TransfagentApi;
 import cz.aron.api.rest.model.ApuSourceDef;
 import cz.aron.api.rest.model.ApuSourceResponse;
+import cz.aron.api.rest.model.DaoDef;
 import cz.aron.api.rest.model.DaosResponse;
 import cz.aron.transfagent.service.ApuSourceService;
 import cz.aron.transfagent.service.DaoImportService;
@@ -51,6 +52,11 @@ public class TransformAgentController implements TransfagentApi {
                                                 @Min(1) @Max(1000) @Valid Integer pageSize) {
         
         return ResponseEntity.ok(daoImportService.getDaos(uuid, page, pageSize));
+    }
+
+    @Override
+    public ResponseEntity<DaoDef> reimportDao(Long daoId) {        
+        return ResponseEntity.ok(daoImportService.reimportDao(daoId.intValue()));
     }
 
 }

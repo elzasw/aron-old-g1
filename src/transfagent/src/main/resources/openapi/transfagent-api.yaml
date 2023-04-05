@@ -92,6 +92,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/DaosResponse'
 
+  '/daos/{daoId}/reimport':
+    patch:
+      tags:
+        - Transfagent      
+      summary: Mark dao for reimport
+      description: Mark apu fo reimport in database      
+      operationId: reimportDao
+      parameters:
+        - $ref: '#/components/parameters/daoId'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DaoDef'
 
 components:
 
@@ -191,6 +207,15 @@ components:
       in: path
       name: apuId
       description: id apu
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    daoId:
+      in: path
+      name: daoId
+      description: id of dao
       required: true
       schema:
         type: integer

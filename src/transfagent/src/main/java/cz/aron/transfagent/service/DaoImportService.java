@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -28,12 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import cz.aron.api.rest.model.ApuSourceDef;
-import cz.aron.api.rest.model.ApuSourceResponse;
 import cz.aron.api.rest.model.DaoDef;
 import cz.aron.api.rest.model.DaosResponse;
 import cz.aron.transfagent.config.ConfigDao;
-import cz.aron.transfagent.controller.vo.ApuSourceDefVO;
 import cz.aron.transfagent.controller.vo.DaoDefVO;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.Dao;
@@ -348,4 +346,20 @@ public class DaoImportService implements ImportProcessor  {
         cq.where(p);
     }
     
+    @Transactional
+    public DaoDef reimportDao(int daoId) {                        
+        var dao = daoRepository.findById(daoId).orElseThrow(() -> {
+            log.error("Fail to reimport dao id={}, not exist", daoId);
+            return new EntityNotFoundException();
+        });        
+        if (dao.getState()!=DaoState.READY) {
+            log.error("Cannot mark dao id={} to be reimported. Current state {}", daoId, dao.getState());
+            throw new RuntimeException();
+        }
+        dao.setState(DaoState.ACCESSIBLE);
+        dao.setTransferred(false);        
+        return new DaoDefVO(dao);
+    }
+
+
 }
