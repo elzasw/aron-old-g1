@@ -1,7 +1,16 @@
 package cz.aron.transfagent.service;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
@@ -9,7 +18,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import cz.aron.api.rest.model.FundDef;
+import cz.aron.api.rest.model.FundsResponse;
 import cz.aron.apux.ApuSourceBuilder;
+import cz.aron.transfagent.controller.vo.FundDefVO;
 import cz.aron.transfagent.domain.CoreQueue;
 import cz.aron.transfagent.domain.Fund;
 import cz.aron.transfagent.domain.Institution;
@@ -32,14 +44,18 @@ public class FundService {
 	private final CoreQueueRepository coreQueueRepository;
 	
 	private final AttachmentService attachmentService;
+	
+	private final EntityManager em;
 
 	public FundService(ApuSourceService apuSourceService, ApuSourceRepository apuSourceRepository,
-			FundRepository fundRepository, CoreQueueRepository coreQueueRepository, AttachmentService attachmentService) {
+			FundRepository fundRepository, CoreQueueRepository coreQueueRepository, AttachmentService attachmentService,
+			EntityManager em) {
 		this.apuSourceService = apuSourceService;
 		this.apuSourceRepository = apuSourceRepository;
 		this.fundRepository = fundRepository;
 		this.coreQueueRepository = coreQueueRepository;
 		this.attachmentService = attachmentService;
+		this.em = em;
 	}
 
 	/**
@@ -106,5 +122,48 @@ public class FundService {
 		}
 		log.info("Fund updated code={}, uuid={}, original data dir {}", fund.getCode(), fund.getUuid(), oldDir);
 	}
+	
+	
+	@Transactional
+    public FundsResponse getFunds(String code, String uuid, int page, int pageSize) {
+	    CriteriaBuilder cbCount = em.getCriteriaBuilder();
+        CriteriaQuery<Long> cqCount = cbCount.createQuery(Long.class);
+        Root<Fund> rootCount = cqCount.from(Fund.class);
+        cqCount.select(cbCount.count(rootCount));
+        addFundPredicate(cqCount, cbCount, rootCount, code, uuid);
+        Long totalItems = 0l;
+        try {
+            totalItems = em.createQuery(cqCount).getSingleResult();
+        } catch (NoResultException nrEx) {
+            // ignore
+        }
+        var items = new ArrayList<FundDef>();
+        if (totalItems > 0) {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Fund> cq = cb.createQuery(Fund.class);
+            Root<Fund> root = cq.from(Fund.class);
+            addFundPredicate(cq, cb, root, code, uuid);
+            List<Fund> rows = em.createQuery(cq).setFirstResult(page* pageSize)
+                    .setMaxResults(pageSize).getResultList();
+            rows.stream().forEach(apu -> {                
+                items.add(new FundDefVO(apu));
+            });
+        }
+        return new FundsResponse(items, totalItems.intValue());
+	}
 
+	private <T> void addFundPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<Fund> root, String code, String uuid) {        
+        if (code==null && uuid==null) {
+            // no filter
+            return;
+        }
+        Predicate p = cb.conjunction();
+        if (code!=null) {
+            p = cb.and(p, cb.like(root.get("code"), "%"+code+"%"));
+        }
+        if (uuid!=null) {
+            p = cb.and(p, cb.equal(root.get("uuid"), uuid));
+        }        
+        cq.where(p);
+    }
 }

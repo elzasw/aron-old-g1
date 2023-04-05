@@ -13,8 +13,10 @@ import cz.aron.api.rest.model.ApuSourceDef;
 import cz.aron.api.rest.model.ApuSourceResponse;
 import cz.aron.api.rest.model.DaoDef;
 import cz.aron.api.rest.model.DaosResponse;
+import cz.aron.api.rest.model.FundsResponse;
 import cz.aron.transfagent.service.ApuSourceService;
 import cz.aron.transfagent.service.DaoImportService;
+import cz.aron.transfagent.service.FundService;
 
 @RestController
 @RequestMapping("/api")
@@ -24,9 +26,12 @@ public class TransformAgentController implements TransfagentApi {
     
     private final DaoImportService daoImportService;
     
-    public TransformAgentController(ApuSourceService apuSourceService, DaoImportService daoImportService) {
+    private final FundService fundService;
+    
+    public TransformAgentController(ApuSourceService apuSourceService, DaoImportService daoImportService, FundService fundService) {
         this.apuSourceService = apuSourceService;
         this.daoImportService = daoImportService;
+        this.fundService = fundService;
     }
 
     @Override
@@ -57,6 +62,12 @@ public class TransformAgentController implements TransfagentApi {
     @Override
     public ResponseEntity<DaoDef> reimportDao(Long daoId) {        
         return ResponseEntity.ok(daoImportService.reimportDao(daoId.intValue()));
+    }
+
+    @Override
+    public ResponseEntity<FundsResponse> getFunds(@Valid String code, @Valid String uuid, @Min(0) @Valid Integer page,
+                                                  @Min(1) @Max(1000) @Valid Integer pageSize) {
+        return ResponseEntity.ok(fundService.getFunds(code, uuid, page, pageSize));
     }
 
 }

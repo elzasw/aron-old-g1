@@ -108,6 +108,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DaoDef'
+                
+  '/funds':
+    get:
+      tags:
+        - Transfagent
+      summary: Return list of funds
+      description: Return list of daos filtered by required criteria
+      operationId: getFunds
+      parameters:
+        - in: query
+          name: code
+          description: fund code
+          required: false
+          schema:
+            type: string      
+        - $ref: '#/components/parameters/uuidOptional'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'      
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundsResponse'
+
 
 components:
 
@@ -196,6 +222,39 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DaoDef'
+        totalCount:
+          type: integer
+          format: int32
+      required: [items, totalCount]
+    
+    FundDef:
+      description: Dao
+      type: object
+      properties:
+        fundId:
+          type: integer
+          format: int64
+        uuid:
+          type: string
+        code:
+          type: string 
+        source:
+          type: string
+        apusourceId:
+          type: integer
+          format: int64
+        institutionId:
+          type: integer
+          format: int64
+    
+    FundsResponse:
+      description: Returned list of funds
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FundDef'
         totalCount:
           type: integer
           format: int32
