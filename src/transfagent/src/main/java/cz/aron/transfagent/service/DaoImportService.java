@@ -2,6 +2,7 @@ package cz.aron.transfagent.service;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,15 +13,28 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import cz.aron.api.rest.model.ApuSourceDef;
+import cz.aron.api.rest.model.ApuSourceResponse;
+import cz.aron.api.rest.model.DaoDef;
+import cz.aron.api.rest.model.DaosResponse;
 import cz.aron.transfagent.config.ConfigDao;
+import cz.aron.transfagent.controller.vo.ApuSourceDefVO;
+import cz.aron.transfagent.controller.vo.DaoDefVO;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.Dao;
 import cz.aron.transfagent.domain.DaoState;
@@ -48,12 +62,13 @@ public class DaoImportService implements ImportProcessor  {
 	
 	private final Map<String,DaoImporter> daoImporters;
 	
+	private final EntityManager em;
+	
 	private Set<String> reportedMissingImporter;
 
 	public DaoImportService(ApuSourceRepository apuSourceRepository, ConfigDao configDao,
 			FileImportService importService, DaoRepository daoRepository, StorageService storageService,
-			TransactionTemplate transactionTemplate, List<DaoImporter> daoImporters) {
-		super();
+			TransactionTemplate transactionTemplate, List<DaoImporter> daoImporters, EntityManager em) {
 		this.apuSourceRepository = apuSourceRepository;
 		this.configDao = configDao;
 		this.importService = importService;
@@ -69,6 +84,7 @@ public class DaoImportService implements ImportProcessor  {
 			}
 		}
 		this.daoImporters = importersMap;
+		this.em = em;
 	}
 
     @PostConstruct
@@ -291,5 +307,45 @@ public class DaoImportService implements ImportProcessor  {
     	public void importDaoFile(Dao dao, Path daoDir);    		
     	
     }
-
+    
+    @Transactional
+    public DaosResponse getDaos(String uuid, int page, int pageSize) {
+        CriteriaBuilder cbCount = em.getCriteriaBuilder();
+        CriteriaQuery<Long> cqCount = cbCount.createQuery(Long.class);
+        Root<Dao> rootCount = cqCount.from(Dao.class);
+        cqCount.select(cbCount.count(rootCount));
+        addDaosPredicate(cqCount, cbCount, rootCount, uuid);
+        Long totalItems = 0l;
+        try {
+            totalItems = em.createQuery(cqCount).getSingleResult();
+        } catch (NoResultException nrEx) {
+            // ignore
+        }
+        var items = new ArrayList<DaoDef>();
+        if (totalItems > 0) {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Dao> cq = cb.createQuery(Dao.class);
+            Root<Dao> root = cq.from(Dao.class);
+            addDaosPredicate(cq, cb, root, uuid);
+            List<Dao> rows = em.createQuery(cq).setFirstResult(page * pageSize)
+                    .setMaxResults(pageSize).getResultList();
+            rows.stream().forEach(dao -> {
+                items.add(new DaoDefVO(dao));
+            });
+        }
+        return new DaosResponse(items, totalItems.intValue());
+    }
+    
+    private <T> void addDaosPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<Dao> root, String uuid) {
+        if (uuid == null) {
+            // no filter
+            return;
+        }
+        Predicate p = cb.conjunction();
+        if (uuid != null) {
+            p = cb.and(p, cb.equal(root.get("uuid"), uuid));
+        }
+        cq.where(p);
+    }
+    
 }

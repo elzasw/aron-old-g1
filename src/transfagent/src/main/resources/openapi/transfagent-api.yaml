@@ -71,6 +71,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApuSourceDef'
+                
+                
+  '/daos':
+    get:
+      tags:
+        - Transfagent
+      summary: Return list of daos
+      description: Return list of daos filtered by required criteria
+      operationId: getDaos
+      parameters:
+        - $ref: '#/components/parameters/uuidOptional'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'      
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DaosResponse'
+
 
 components:
 
@@ -88,7 +109,7 @@ components:
         - ARCH_ENTITY
       
     ApuSourceDef:
-      description: pocet SIPu rizeni archiv, puvodce
+      description: ApuSource
       type: object
       properties:
         apusourceId:
@@ -109,13 +130,56 @@ components:
           format: date-time
 
     ApuSourceResponse:
-      description: Vraceny seznam priloh
+      description: Returned list of ApuSources
       type: object
       properties:
         items:
           type: array
           items:
             $ref: '#/components/schemas/ApuSourceDef'
+        totalCount:
+          type: integer
+          format: int32
+      required: [items, totalCount]
+      
+    DaoStateDef:
+      type: string
+      enum: &DAO_STATE
+        - READY
+        - ACCESSIBLE
+        - INACCESSIBLE
+      
+    DaoDef:
+      description: Dao
+      type: object
+      properties:
+        daoId:
+          type: integer
+          format: int64
+        uuid:
+          type: string 
+        handle:
+          type: string
+        apusourceId:
+          type: integer
+          format: int64
+        state:
+          $ref: '#/components/schemas/DaoStateDef'
+        transferred:
+          type: boolean
+        dataDir:
+          type: string
+        source:
+          type: string
+
+    DaosResponse:
+      description: Returned list of Daos
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DaoDef'
         totalCount:
           type: integer
           format: int32
