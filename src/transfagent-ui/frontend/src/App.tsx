@@ -1,37 +1,45 @@
-import styled, { ThemeProvider } from 'styled-components';
+import { ThemeProvider } from 'styled-components';
 import { theme } from './theme';
-import { ItemsList } from "./components/ItemList";
-import { IntlProvider } from "react-intl";
+import { FormattedMessage, IntlProvider } from "react-intl";
 import locale from "./locale";
+import { LayoutWrapper, PageWrapper, NavButton, Navigation } from './styles';
 
-const LayoutWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    background-color: ${(props) => props.theme.colors.base};
-    font-size: 14px;
-`;
-
-const PageWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    overflow: auto;
-    padding: 50px;
-`;
-
-function App() {
+function App(){
   return (
     <ThemeProvider theme={theme}>
         <IntlProvider locale={locale.cs.locale} messages={locale.cs.messages}>
         <LayoutWrapper>
+            {renderNavigation()}
             <PageWrapper>
-                <ItemsList />
             </PageWrapper>
         </LayoutWrapper>
         </IntlProvider>
     </ThemeProvider>
   )
 }
+
+function renderNavigation() {
+    const navLeft: JSX.Element[] = [];
+    navLeft.push(
+        <NavButton key="sources" to="/sources">
+            <FormattedMessage id="navigation.sources" />
+        </NavButton>
+    )
+    navLeft.push(
+        <NavButton key="daos" to="/daos">
+            <FormattedMessage id="navigation.daos" />
+        </NavButton>
+    )
+    navLeft.push(
+        <NavButton key="funds" to="/funds">
+            <FormattedMessage id="navigation.funds" />
+        </NavButton>
+    )   
+    return (
+        <Navigation>
+            {navLeft}
+        </Navigation>
+    )
+};
 
 export default App

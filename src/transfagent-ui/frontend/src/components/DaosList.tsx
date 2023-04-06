@@ -1,6 +1,5 @@
 import {
     ActionBar,
-    ActionButton,
     ActionsContainer,
     Button,
     CancelButton,
@@ -19,8 +18,8 @@ import { useEffect, useState } from "react";
 import { FaFileImport, FaFilter, FaPlus } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
 import styled from "styled-components";
-import { Api, ApuSourceDef } from "../api";
-import { columnInfo } from "./columnMap";
+import { Api, DaoDef } from "../api";
+import { cInfoDaos } from "./columnMap";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -28,26 +27,21 @@ const TableCell = styled.div`
     text-overflow: ellipsis;
 `;
 
-const fakeData: ApuSourceDef[] = [
-    { apusourceId: 1, uuid: "123456" },
-    { apusourceId: 2, uuid: "abcdef" },
-];
 
-export const ItemsList = () => {
+export const DaosList = () => {
     const pageSize = 200;
     const { formatMessage } = useIntl();
 
     const [filterFulltext, setFilterFulltext] = useState("");
     const [filterFulltextInput, setFilterFulltextInput] = useState("");
     const [page, setPage] = useState(1);
-    const [items, setItems] = useState<ApuSourceDef[]>([]);
+    const [items, setItems] = useState<DaoDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
 
     const requestData = async () => {
         if (page >= 1) {
             Api.transfagent
-                .getApus({
-                    datadir: undefined,
+                .getDaos({
                     uuid: filterFulltext || undefined,
                     page: page - 1,
                     pageSize: pageSize,
@@ -73,7 +67,7 @@ export const ItemsList = () => {
         return (
             <DarkListHeader style={{ flexGrow: 1 }}>
                 {formatMessage({
-                    id: "column." + columnInfo[props.columnIndex].code,
+                    id: "column." + cInfoDaos[props.columnIndex].code,
                 })}
             </DarkListHeader>
         );
@@ -81,7 +75,7 @@ export const ItemsList = () => {
 
     const renderItem = (props: ItemProps) => {
         const item = items[props.rowIndex];
-        const propCode = columnInfo[props.columnIndex].code;
+        const propCode = cInfoDaos[props.columnIndex].code;
         const isEven = props.rowIndex % 2 === 0;
         return (
             <ListItem
@@ -117,20 +111,19 @@ export const ItemsList = () => {
     };
 
     const getCellContent = (item: any, propCode: string) => {
-        if (propCode === "imported") {
-            return item.imported && new Date(item.imported).toLocaleString('cs-CZ')
-        } else if (propCode === "actions") {
+        if (propCode === "actions") {
             return renderActions(item);
         }
         return item[propCode];
     };
 
-    const renderActions = (item: ApuSourceDef) => {
+    const renderActions = (item: DaoDef) => {
+        const daoId = item.daoId;
         return (
             <div style={{ display: "inline-flex" }}>
-                {!item.reimport && (
+                {daoId && (
                     <Button
-                        onClick={() => doReImport(item)}
+                        onClick={() => doReImport(daoId)}
                         iconOnly={true}
                         title={formatMessage({id: "reimport"})}
                     >
@@ -141,8 +134,12 @@ export const ItemsList = () => {
         );
     };
 
-    const doReImport = (item: ApuSourceDef) => {
-        console.log("Reimport");
+    const doReImport = (daoId: number) => {
+        Api.transfagent.reimportDao({daoId}).then((res) => {
+            requestData();
+        }).catch((err) => {
+            console.log("Došlo k chybě",err);
+        })
     }
 
     return (
@@ -201,8 +198,8 @@ export const ItemsList = () => {
                     itemCount={items.length}
                     renderHeader={renderHeader}
                     renderItem={renderItem}
-                    columnCount={columnInfo.length}
-                    columnInfo={columnInfo}
+                    columnCount={cInfoDaos.length}
+                    columnInfo={cInfoDaos}
                     getItemId={getChildId}
                     rowHeight={32}
                     noItemsText={formatMessage({ id: "noItems" })}
