@@ -100,11 +100,12 @@ public class ApuSourceService {
             p = cb.and(p, cb.like(root.get("dataDir"), "%"+datadir+"%"));
         }
         if (uuid!=null) {
-            p = cb.and(p, cb.equal(root.get("uuid"), uuid));
+            p = cb.and(p, cb.equal(root.get("uuid"), UUID.fromString(uuid)));
         }        
         cq.where(p);
     }
     
+    @Transactional
     public ApuSourceDef reimportApuSource(int apuSourceId) {
         var apuSource = apuSourceRepository.findById(apuSourceId).orElseThrow(() -> {
             log.error("Fail to reimport apu source id={}, not exist", apuSourceId);

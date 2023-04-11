@@ -162,7 +162,7 @@ public class FundService {
             p = cb.and(p, cb.like(root.get("code"), "%"+code+"%"));
         }
         if (uuid!=null) {
-            p = cb.and(p, cb.equal(root.get("uuid"), uuid));
+            p = cb.and(p, cb.equal(root.get("uuid"), UUID.fromString(uuid)));
         }        
         cq.where(p);
     }

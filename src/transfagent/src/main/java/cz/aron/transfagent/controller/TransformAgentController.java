@@ -5,6 +5,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,6 +19,7 @@ import cz.aron.transfagent.service.ApuSourceService;
 import cz.aron.transfagent.service.DaoImportService;
 import cz.aron.transfagent.service.FundService;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/api")
 public class TransformAgentController implements TransfagentApi {
