@@ -2,7 +2,7 @@ export default {
   cs: {
     locale: "cs",
     messages: {
-        "navigation.sources" : "Apu zdroje",
+        "navigation.sources" : "Apus",
         "navigation.daos" : "Daos",
         "navigation.funds" : "Fondy",
 

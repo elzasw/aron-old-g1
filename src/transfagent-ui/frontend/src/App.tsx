@@ -1,45 +1,30 @@
-import { ThemeProvider } from 'styled-components';
-import { theme } from './theme';
-import { FormattedMessage, IntlProvider } from "react-intl";
-import locale from "./locale";
-import { LayoutWrapper, PageWrapper, NavButton, Navigation } from './styles';
+import {
+    Navigate,
+    Route,
+    RouterProvider,
+    createBrowserRouter,
+    createRoutesFromElements,
+} from "react-router-dom";
+import RootLayout from "./RootLayout";
+import { DaosList, FundsList, SourcesList } from "./components";
 
-function App(){
-  return (
-    <ThemeProvider theme={theme}>
-        <IntlProvider locale={locale.cs.locale} messages={locale.cs.messages}>
-        <LayoutWrapper>
-            {renderNavigation()}
-            <PageWrapper>
-            </PageWrapper>
-        </LayoutWrapper>
-        </IntlProvider>
-    </ThemeProvider>
-  )
+//@ts-ignore
+const serverContextPath = window.serverContextPath;
+
+const router = createBrowserRouter(
+    createRoutesFromElements(
+        <Route path="/" element={<RootLayout />}>
+            <Route path="/sources" element={<SourcesList />} />
+            <Route path="/" element={<Navigate replace to="/sources" />} />
+            <Route path="/daos" element={<DaosList />} />
+            <Route path="/funds" element={<FundsList />} />
+        </Route>
+    ),
+    {
+        basename: serverContextPath.startsWith("http") ? "" : serverContextPath,
+    }
+);
+
+export default function App() {
+    return <RouterProvider router={router} />;
 }
-
-function renderNavigation() {
-    const navLeft: JSX.Element[] = [];
-    navLeft.push(
-        <NavButton key="sources" to="/sources">
-            <FormattedMessage id="navigation.sources" />
-        </NavButton>
-    )
-    navLeft.push(
-        <NavButton key="daos" to="/daos">
-            <FormattedMessage id="navigation.daos" />
-        </NavButton>
-    )
-    navLeft.push(
-        <NavButton key="funds" to="/funds">
-            <FormattedMessage id="navigation.funds" />
-        </NavButton>
-    )   
-    return (
-        <Navigation>
-            {navLeft}
-        </Navigation>
-    )
-};
-
-export default App
