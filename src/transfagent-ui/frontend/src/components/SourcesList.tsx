@@ -1,6 +1,5 @@
 import {
     ActionBar,
-    ActionButton,
     ActionsContainer,
     Button,
     CancelButton,
@@ -11,12 +10,12 @@ import {
 } from "jareco/dist/common-ui-elements";
 import { Pagination } from "jareco/dist/pagination";
 import {
-    HeaderProps as RCGHeaderP,
     ItemProps,
+    HeaderProps as RCGHeaderP,
     ResizableColumnsGrid,
 } from "jareco/dist/resizable-columns-grid";
 import { useEffect, useState } from "react";
-import { FaFileImport, FaFilter, FaPlus } from "react-icons/fa";
+import { FaCheck, FaFileImport, FaFilter, FaTrashAlt } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
 import styled from "styled-components";
 import { Api, ApuSourceDef } from "../api";
@@ -27,7 +26,6 @@ const TableCell = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
 `;
-
 
 export const SourcesList = () => {
     const pageSize = 200;
@@ -43,8 +41,8 @@ export const SourcesList = () => {
         if (page >= 1) {
             Api.transfagent
                 .getApus({
-                    datadir: undefined,
-                    uuid: filterFulltext || undefined,
+                    datadir: filterFulltext || undefined,
+                    uuid: undefined,
                     page: page - 1,
                     pageSize: pageSize,
                 })
@@ -53,32 +51,13 @@ export const SourcesList = () => {
                         setItems(result.items);
                         setTotalCount(result.totalCount || 0);
                     }
-                }).catch((err) => {
-                    console.log("Došlo k chybě",err);
-                });
-        }
-    };
-/*
-    const requestDaosData = async () => {
-        console.log
-        if (page >= 1) {
-            Api.transfagent
-                .getDaos({
-                    uuid: filterFulltext || undefined,
-                    page: page - 1,
-                    pageSize: pageSize,
                 })
-                .then((result) => {
-                    if (result.items) {
-                        setItems(result.items);
-                        setTotalCount(result.totalCount || 0);
-                    }
-                }).catch((err) => {
-                    console.log("Došlo k chybě",err);
+                .catch((err) => {
+                    console.log("Došlo k chybě", err);
                 });
         }
     };
-*/
+
     useEffect(() => {
         requestData();
     }, [page, filterFulltext]);
@@ -89,7 +68,7 @@ export const SourcesList = () => {
         return (
             <DarkListHeader style={{ flexGrow: 1 }}>
                 {formatMessage({
-                    id: "column." + columnInfo[props.columnIndex].code,
+                    id: "apuColumn." + columnInfo[props.columnIndex].code,
                 })}
             </DarkListHeader>
         );
@@ -134,9 +113,13 @@ export const SourcesList = () => {
 
     const getCellContent = (item: any, propCode: string) => {
         if (propCode === "imported") {
-            return item.imported && new Date(item.imported).toLocaleString('cs-CZ')
+            return (
+                item.imported && new Date(item.imported).toLocaleString("cs-CZ")
+            );
         } else if (propCode === "actions") {
             return renderActions(item);
+        } else if (propCode === "deleted" || propCode === "reimport") {
+            return item[propCode] && <FaCheck />;
         }
         return item[propCode];
     };
@@ -145,13 +128,24 @@ export const SourcesList = () => {
         const apuId = item.apusourceId;
         return (
             <div style={{ display: "inline-flex" }}>
-                {!item.reimport && apuId && (
+                {apuId && (
                     <Button
                         onClick={() => doReImport(apuId)}
                         iconOnly={true}
-                        title={formatMessage({id: "reimport"})}
+                        title={formatMessage({ id: "reimport" })}
+                        disabled={item.reimport === true}
                     >
                         <FaFileImport />
+                    </Button>
+                )}
+                {apuId && (
+                    <Button
+                        onClick={() => doDelete(apuId)}
+                        iconOnly={true}
+                        title={formatMessage({ id: "delete" })}
+                        disabled={true /*item.deleted === true*/}
+                    >
+                        <FaTrashAlt />
                     </Button>
                 )}
             </div>
@@ -159,12 +153,19 @@ export const SourcesList = () => {
     };
 
     const doReImport = (apuId: number) => {
-        Api.transfagent.reimportApu({apuId}).then((res) => {
-            requestData();
-        }).catch((err) => {
-            console.log("Došlo k chybě",err);
-        })
-    }
+        Api.transfagent
+            .reimportApu({ apuId })
+            .then((res) => {
+                requestData();
+            })
+            .catch((err) => {
+                console.log("Došlo k chybě", err);
+            });
+    };
+
+    const doDelete = (apuId: number) => {
+        console.log("DELETE action");
+    };
 
     return (
         <ListContainer style={{ height: "100%" }}>
@@ -193,6 +194,7 @@ export const SourcesList = () => {
                                 id: "filter.placeholder",
                             })}
                             onChange={handleFilterFulltextChange}
+                            size={40}
                         />
                         <Button
                             type="submit"

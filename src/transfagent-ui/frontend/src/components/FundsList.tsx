@@ -10,12 +10,12 @@ import {
 } from "jareco/dist/common-ui-elements";
 import { Pagination } from "jareco/dist/pagination";
 import {
-    HeaderProps as RCGHeaderP,
     ItemProps,
+    HeaderProps as RCGHeaderP,
     ResizableColumnsGrid,
 } from "jareco/dist/resizable-columns-grid";
 import { useEffect, useState } from "react";
-import { FaFileImport, FaFilter, FaPlus } from "react-icons/fa";
+import { FaFileImport, FaFilter } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
 import styled from "styled-components";
 import { Api, FundDef } from "../api";
@@ -26,7 +26,6 @@ const TableCell = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
 `;
-
 
 export const FundsList = () => {
     const pageSize = 200;
@@ -42,7 +41,8 @@ export const FundsList = () => {
         if (page >= 1) {
             Api.transfagent
                 .getFunds({
-                    uuid: filterFulltext || undefined,
+                    code: filterFulltext || undefined,
+                    uuid: undefined,
                     page: page - 1,
                     pageSize: pageSize,
                 })
@@ -51,8 +51,9 @@ export const FundsList = () => {
                         setItems(result.items);
                         setTotalCount(result.totalCount || 0);
                     }
-                }).catch((err) => {
-                    console.log("Došlo k chybě",err);
+                })
+                .catch((err) => {
+                    console.log("Došlo k chybě", err);
                 });
         }
     };
@@ -61,13 +62,13 @@ export const FundsList = () => {
         requestData();
     }, [page, filterFulltext]);
 
-    const getChildId = (index: number) => items[index].apusourceId || 1;
+    const getChildId = (index: number) => items[index].fundId || 1;
 
     const renderHeader = (props: RCGHeaderP) => {
         return (
             <DarkListHeader style={{ flexGrow: 1 }}>
                 {formatMessage({
-                    id: "column." + cInfoFunds[props.columnIndex].code,
+                    id: "fundColumn." + cInfoFunds[props.columnIndex].code,
                 })}
             </DarkListHeader>
         );
@@ -125,7 +126,7 @@ export const FundsList = () => {
                     <Button
                         onClick={() => doReImport(fundId)}
                         iconOnly={true}
-                        title={formatMessage({id: "reimport"})}
+                        title={formatMessage({ id: "reimport" })}
                     >
                         <FaFileImport />
                     </Button>
@@ -142,7 +143,7 @@ export const FundsList = () => {
             console.log("Došlo k chybě",err);
         })
         */
-    }
+    };
 
     return (
         <ListContainer style={{ height: "100%" }}>
@@ -171,6 +172,7 @@ export const FundsList = () => {
                                 id: "filter.placeholder",
                             })}
                             onChange={handleFilterFulltextChange}
+                            size={40}
                         />
                         <Button
                             type="submit"

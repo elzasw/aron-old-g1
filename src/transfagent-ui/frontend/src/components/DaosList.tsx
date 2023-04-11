@@ -10,12 +10,12 @@ import {
 } from "jareco/dist/common-ui-elements";
 import { Pagination } from "jareco/dist/pagination";
 import {
-    HeaderProps as RCGHeaderP,
     ItemProps,
+    HeaderProps as RCGHeaderP,
     ResizableColumnsGrid,
 } from "jareco/dist/resizable-columns-grid";
 import { useEffect, useState } from "react";
-import { FaFileImport, FaFilter, FaPlus } from "react-icons/fa";
+import { FaCheck, FaFileImport, FaFilter } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
 import styled from "styled-components";
 import { Api, DaoDef } from "../api";
@@ -26,7 +26,6 @@ const TableCell = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
 `;
-
 
 export const DaosList = () => {
     const pageSize = 200;
@@ -51,8 +50,9 @@ export const DaosList = () => {
                         setItems(result.items);
                         setTotalCount(result.totalCount || 0);
                     }
-                }).catch((err) => {
-                    console.log("Došlo k chybě",err);
+                })
+                .catch((err) => {
+                    console.log("Došlo k chybě", err);
                 });
         }
     };
@@ -61,13 +61,13 @@ export const DaosList = () => {
         requestData();
     }, [page, filterFulltext]);
 
-    const getChildId = (index: number) => items[index].apusourceId || 1;
+    const getChildId = (index: number) => items[index].daoId || 1;
 
     const renderHeader = (props: RCGHeaderP) => {
         return (
             <DarkListHeader style={{ flexGrow: 1 }}>
                 {formatMessage({
-                    id: "column." + cInfoDaos[props.columnIndex].code,
+                    id: "daoColumn." + cInfoDaos[props.columnIndex].code,
                 })}
             </DarkListHeader>
         );
@@ -113,6 +113,8 @@ export const DaosList = () => {
     const getCellContent = (item: any, propCode: string) => {
         if (propCode === "actions") {
             return renderActions(item);
+        } else if (propCode === "transferred") {
+            return item[propCode] && <FaCheck />;
         }
         return item[propCode];
     };
@@ -125,7 +127,7 @@ export const DaosList = () => {
                     <Button
                         onClick={() => doReImport(daoId)}
                         iconOnly={true}
-                        title={formatMessage({id: "reimport"})}
+                        title={formatMessage({ id: "reimport" })}
                     >
                         <FaFileImport />
                     </Button>
@@ -135,12 +137,15 @@ export const DaosList = () => {
     };
 
     const doReImport = (daoId: number) => {
-        Api.transfagent.reimportDao({daoId}).then((res) => {
-            requestData();
-        }).catch((err) => {
-            console.log("Došlo k chybě",err);
-        })
-    }
+        Api.transfagent
+            .reimportDao({ daoId })
+            .then((res) => {
+                requestData();
+            })
+            .catch((err) => {
+                console.log("Došlo k chybě", err);
+            });
+    };
 
     return (
         <ListContainer style={{ height: "100%" }}>
@@ -169,6 +174,7 @@ export const DaosList = () => {
                                 id: "filter.placeholder",
                             })}
                             onChange={handleFilterFulltextChange}
+                            size={40}
                         />
                         <Button
                             type="submit"

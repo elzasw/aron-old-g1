@@ -1,8 +1,7 @@
 export const columnInfo = [
     {
         code: "actions",
-        fixedWidth: true,
-        width: 50,
+        width: 80,
     },
     {
         code: "apusourceId",
@@ -18,11 +17,19 @@ export const columnInfo = [
     },
     {
         code: "dataDir",
-        width: 170,
+        width: 300,
+    },
+    {
+        code: "deleted",
+        width: 150,
+    },
+    {
+        code: "reimport",
+        width: 150,
     },
     {
         code: "imported",
-        width: 170,
+        width: 300,
     },
 ]
 
