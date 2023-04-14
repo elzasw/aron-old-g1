@@ -127,6 +127,7 @@ export const FundsList = () => {
                         onClick={() => doReImport(fundId)}
                         iconOnly={true}
                         title={formatMessage({ id: "reimport" })}
+                        disabled={true}
                     >
                         <FaFileImport />
                     </Button>

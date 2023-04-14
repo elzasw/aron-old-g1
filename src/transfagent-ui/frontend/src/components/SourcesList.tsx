@@ -17,6 +17,7 @@ import {
 import { useEffect, useState } from "react";
 import { FaCheck, FaFileImport, FaFilter, FaTrashAlt } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
+import { toast } from "react-toastify";
 import styled from "styled-components";
 import { Api, ApuSourceDef } from "../api";
 import { columnInfo } from "./columnMap";
@@ -156,6 +157,7 @@ export const SourcesList = () => {
         Api.transfagent
             .reimportApu({ apuId })
             .then((res) => {
+                toast.success(formatMessage({ id: "reimport.success" }));
                 requestData();
             })
             .catch((err) => {

@@ -40,6 +40,7 @@ export default {
         "fundColumn.institutionId" : "Id instituce",
 
         "reimport" : "Znovu odeslat",
+        "reimport.success" : "Reimport úspěšně naplánován",
         "delete" : "Smazat",
     },
   },

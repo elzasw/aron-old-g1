@@ -1,5 +1,7 @@
 import { FormattedMessage } from "react-intl";
 import { Outlet } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { LayoutWrapper, NavButton, Navigation, PageWrapper } from "./styles";
 
 export default function RootLayout() {
@@ -9,6 +11,7 @@ export default function RootLayout() {
             <PageWrapper>
                 <Outlet />
             </PageWrapper>
+            <ToastContainer theme="colored" />
         </LayoutWrapper>
     );
 }
