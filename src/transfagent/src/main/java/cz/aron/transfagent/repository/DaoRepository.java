@@ -1,5 +1,6 @@
 package cz.aron.transfagent.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -7,7 +8,9 @@ import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.Dao;
@@ -37,5 +40,9 @@ public interface DaoRepository extends JpaRepository<Dao, Integer> {
     List<Dao> findByApuSource(ApuSource apuSource);
 
     List<Dao> findTop1000ByStateOrderById(DaoState state);
+    
+    @Query("UPDATE Dao d SET d.state='ACCESSIBLE', d.transferred=false WHERE d.uuid IN (:uuids) ")
+    @Modifying
+    int markForReimport(@Param("uuids") Collection<String> uuids);
 
 }

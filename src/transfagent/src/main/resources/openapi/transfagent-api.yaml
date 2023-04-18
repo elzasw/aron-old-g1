@@ -108,6 +108,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DaoDef'
+
+  '/daos/reimport':
+    post:
+      tags:
+        - Transfagent      
+      summary: Mark dao for reimport
+      description: Mark apu fo reimport in database      
+      operationId: reimportDaos
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Success
                 
   '/funds':
     get:

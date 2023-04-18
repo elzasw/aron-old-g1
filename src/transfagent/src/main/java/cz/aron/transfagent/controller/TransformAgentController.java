@@ -1,9 +1,15 @@
 package cz.aron.transfagent.controller;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
+import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -70,6 +76,16 @@ public class TransformAgentController implements TransfagentApi {
     public ResponseEntity<FundsResponse> getFunds(@Valid String code, @Valid String uuid, @Min(0) @Valid Integer page,
                                                   @Min(1) @Max(1000) @Valid Integer pageSize) {
         return ResponseEntity.ok(fundService.getFunds(code, uuid, page, pageSize));
+    }
+
+    @Override
+    public ResponseEntity<Void> reimportDaos(Resource body) {
+        try (var is = body.getInputStream()) {
+            IOUtils.readLines(is, StandardCharsets.UTF_8).stream().map(s->s.trim());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return ResponseEntity.ok().build();
     }
 
 }

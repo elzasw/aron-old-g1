@@ -341,7 +341,7 @@ public class DaoImportService implements ImportProcessor  {
         }
         Predicate p = cb.conjunction();
         if (uuid != null) {
-            p = cb.and(p, cb.equal(root.get("uuid"), uuid));
+            p = cb.and(p, cb.equal(root.get("uuid"), UUID.fromString(uuid)));
         }
         cq.where(p);
     }
@@ -357,9 +357,15 @@ public class DaoImportService implements ImportProcessor  {
             throw new RuntimeException();
         }
         dao.setState(DaoState.ACCESSIBLE);
-        dao.setTransferred(false);        
+        dao.setTransferred(false);
+        log.info("Dao id={}, marked for reimport", daoId);
         return new DaoDefVO(dao);
     }
 
+    public int reimportDaos(Collection<String> uuids) {
+        int ret = daoRepository.markForReimport(uuids);
+        log.info("Daos uuids in {}, marked for reimport", uuids);
+        return ret;
+    }
 
 }

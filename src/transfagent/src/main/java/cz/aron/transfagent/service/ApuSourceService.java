@@ -95,6 +95,14 @@ public class ApuSourceService {
             // no filter
             return;
         }
+        if (uuid==null) {
+            try {
+                uuid = UUID.fromString(datadir).toString();
+                datadir=null;
+            } catch (Exception e) {
+                // ignore
+            }
+        }        
         Predicate p = cb.conjunction();
         if (datadir!=null) {
             p = cb.and(p, cb.like(root.get("dataDir"), "%"+datadir+"%"));
