@@ -37,3 +37,9 @@ export const NavButton = styled(NavLink)`
         color: ${(props) => props.theme.colors.accentInvert};
     }
 `;
+
+export const TableCell = styled.div`
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;

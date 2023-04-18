@@ -1,11 +1,14 @@
 import {
     ActionBar,
+    ActionButton,
     ActionsContainer,
     Button,
     CancelButton,
     DarkListHeader,
     ListContainer,
     ListItem,
+    Spacer,
+    Spinner,
     StyledInput,
 } from "jareco/dist/common-ui-elements";
 import { Pagination } from "jareco/dist/pagination";
@@ -14,18 +17,18 @@ import {
     HeaderProps as RCGHeaderP,
     ResizableColumnsGrid,
 } from "jareco/dist/resizable-columns-grid";
+import Upload from "rc-upload";
 import { useEffect, useState } from "react";
-import { FaCheck, FaFileImport, FaFilter } from "react-icons/fa";
+import { FaCheck, FaFileImport, FaFilter, FaUpload } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
-import styled from "styled-components";
+import { toast } from "react-toastify";
 import { Api, DaoDef } from "../api";
+import { TableCell } from "../styles";
 import { cInfoDaos } from "./columnMap";
 
-const TableCell = styled.div`
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-`;
+export interface IRcFile extends File {
+    uid: string;
+}
 
 export const DaosList = () => {
     const pageSize = 200;
@@ -36,6 +39,8 @@ export const DaosList = () => {
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<DaoDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
+    const [operationInProgress, setOperationInProgress] =
+        useState<boolean>(false);
 
     const requestData = async () => {
         if (page >= 1) {
@@ -147,6 +152,22 @@ export const DaosList = () => {
             });
     };
 
+    const handleFileUpload = async (file: IRcFile, fileList: IRcFile[]) =>
+        new Promise<void>((resolve, reject) => {
+            console.log(file, fileList);
+            setOperationInProgress(true);
+            Api.transfagent
+                .reimportDaos({ body: file })
+                .then(() => {
+                    toast.success(formatMessage({ id: "uploadFile.success" }));
+                })
+                .catch((err) => {
+                    console.log("Error:", err);
+                })
+                .finally(() => setOperationInProgress(false));
+            reject();
+        });
+
     return (
         <ListContainer style={{ height: "100%" }}>
             <ActionBar marginBottom={10}>
@@ -198,6 +219,26 @@ export const DaosList = () => {
                         )}
                     </form>
                 </ActionsContainer>
+                <ActionsContainer>
+                    <Upload
+                        component={ActionButton}
+                        beforeUpload={handleFileUpload}
+                        // accept={".csv, .txt"}
+                    >
+                        <FaUpload />
+                        &nbsp;
+                        <FormattedMessage id="upload" />
+                    </Upload>
+                </ActionsContainer>
+                <Spacer />
+                {operationInProgress && (
+                    <>
+                        <Spinner />
+                        &nbsp;&nbsp;
+                        <FormattedMessage id="operationInProgress" />
+                        &nbsp;
+                    </>
+                )}
             </ActionBar>
             <div id="list" style={{ height: "100%" }}>
                 <ResizableColumnsGrid

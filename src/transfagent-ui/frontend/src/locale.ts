@@ -42,6 +42,9 @@ export default {
         "reimport" : "Znovu odeslat",
         "reimport.success" : "Reimport úspěšně naplánován",
         "delete" : "Smazat",
+        "upload" : "Nahrát...",
+        "uploadFile.success" : "Soubor úspěšně nahrán",
+        "operationInProgress": "Probíhá operace",
     },
   },
 };

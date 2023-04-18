@@ -10,6 +10,7 @@
     },
     "dependencies": {
         "jareco": "^0.4.10",
+        "rc-upload": "^4.3.4",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-hotkeys": "^2.0.0",
