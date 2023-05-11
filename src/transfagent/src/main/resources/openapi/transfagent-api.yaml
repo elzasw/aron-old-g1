@@ -151,6 +151,55 @@ paths:
               schema:
                 $ref: '#/components/schemas/FundsResponse'
 
+  '/findingaids':
+    get:
+      tags:
+        - Transfagent
+      summary: Return list of finding aids
+      description: Return list of finding aids filtered by required criteria
+      operationId: getFindingAids
+      parameters:
+        - in: query
+          name: code
+          description: fund code
+          required: false
+          schema:
+            type: string      
+        - $ref: '#/components/parameters/uuidOptional'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'      
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FindingAidsResponse'
+
+  '/entities':
+    get:
+      tags:
+        - Transfagent
+      summary: Return list of entities
+      description: Return list of entities filtered by required criteria
+      operationId: getEntities
+      parameters:
+        - in: query
+          name: code
+          description: fund code
+          required: false
+          schema:
+            type: string      
+        - $ref: '#/components/parameters/uuidOptional'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'      
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntitiesResponse'
 
 components:
 
@@ -276,6 +325,81 @@ components:
           type: integer
           format: int32
       required: [items, totalCount]
+
+    FindingAidDef:
+      description: Fnding aid
+      type: object
+      properties:
+        findingAidId:
+          type: integer
+          format: int64
+        uuid:
+          type: string
+        code:
+          type: string 
+        apusourceId:
+          type: integer
+          format: int64
+        institutionId:
+          type: integer
+          format: int64
+
+    FindingAidsResponse:
+      description: Returned list of finding aids
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FindingAidDef'
+        totalCount:
+          type: integer
+          format: int32
+      required: [items, totalCount]
+
+    EntityStateDef:
+      type: string
+      enum: &ENTITY_STATE
+        - ACCESSIBLE
+        - AVAILABLE
+        - NOT_ACCESSIBLE
+        - NOT_AVAILABLE
+
+    EntityDef:
+      description: Entity
+      type: object
+      properties:
+        entityId:
+          type: integer
+          format: int64
+        uuid:
+          type: string
+        elzaId:
+          type: string
+        parentId:
+          type: string 
+        apusourceId:
+          type: integer
+          format: int64
+        entityClass:
+          type: integer
+          format: int64
+        state:
+          $ref: '#/components/schemas/EntityStateDef'
+
+    EntitiesResponse:
+      description: Returned list of entities
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityDef'
+        totalCount:
+          type: integer
+          format: int32
+      required: [items, totalCount]
+
     
   parameters:
   

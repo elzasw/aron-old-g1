@@ -20,6 +20,8 @@ import cz.aron.api.rest.model.ApuSourceDef;
 import cz.aron.api.rest.model.ApuSourceResponse;
 import cz.aron.api.rest.model.DaoDef;
 import cz.aron.api.rest.model.DaosResponse;
+import cz.aron.api.rest.model.EntitiesResponse;
+import cz.aron.api.rest.model.FindingAidsResponse;
 import cz.aron.api.rest.model.FundsResponse;
 import cz.aron.transfagent.service.ApuSourceService;
 import cz.aron.transfagent.service.DaoImportService;
@@ -86,6 +88,22 @@ public class TransformAgentController implements TransfagentApi {
             throw new UncheckedIOException(e);
         }
         return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<EntitiesResponse> getEntities(@Valid String code, @Valid String uuid,
+                                                        @Min(0) @Valid Integer page,
+                                                        @Min(1) @Max(1000) @Valid Integer pageSize) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<FindingAidsResponse> getFindingAids(@Valid String code, @Valid String uuid,
+                                                              @Min(0) @Valid Integer page,
+                                                              @Min(1) @Max(1000) @Valid Integer pageSize) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
