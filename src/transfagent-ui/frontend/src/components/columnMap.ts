@@ -104,3 +104,67 @@ export const cInfoFunds = [
         width: 170,
     },
 ]
+
+export const cInfoEntities = [
+    {
+        code: "actions",
+        fixedWidth: true,
+        width: 50,
+    },
+    {
+        code: "entityId",
+        width: 120,
+    },
+    {
+        code: "uuid",
+        width: 300,
+    },
+    {
+        code: "elzaId",
+        width: 300,
+    },
+    {
+        code: "parentId",
+        width: 170,
+    },
+    {
+        code: "apusourceId",
+        width: 170,
+    },
+    {
+        code: "entityClass",
+        width: 170,
+    },
+    {
+        code: "state",
+        width: 300,
+    },
+]
+
+export const cInfoAids = [
+    {
+        code: "actions",
+        fixedWidth: true,
+        width: 50,
+    },
+    {
+        code: "findingAidId",
+        width: 120,
+    },
+    {
+        code: "uuid",
+        width: 300,
+    },
+    {
+        code: "code",
+        width: 300,
+    },
+    {
+        code: "apusourceId",
+        width: 170,
+    },
+    {
+        code: "institutionId",
+        width: 170,
+    },
+]

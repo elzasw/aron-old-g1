@@ -5,6 +5,8 @@ export default {
         "navigation.sources" : "Apus",
         "navigation.daos" : "Daos",
         "navigation.funds" : "Fondy",
+        "navigation.aids" : "Pomůcky",
+        "navigation.entities" : "Entity",
 
         "btn" : "Button",
         "filter" : "Filtrovat",
@@ -38,6 +40,22 @@ export default {
         "fundColumn.source" : "Zdroj dat",
         "fundColumn.apusourceId" : "Apusrc id",
         "fundColumn.institutionId" : "Id instituce",
+
+        "entityColumn.actions" : " ",
+        "entityColumn.entityId" : "Id",
+        "entityColumn.uuid" : "UUID",
+        "entityColumn.elzaId" : "Elza id",
+        "entityColumn.parentId" : "Rodič id",
+        "entityColumn.apusourceId" : "Apusrc id",
+        "entityColumn.entityClass" : "Třída entity",
+        "entityColumn.state" : "Stav",
+
+        "aidColumn.actions" : " ",
+        "aidColumn.findingAidId" : "Id",
+        "aidColumn.uuid" : "UUID",
+        "aidColumn.code" : "Fond",
+        "aidColumn.apusourceId" : "Apusrc id",
+        "aidColumn.institutionId" : "Id instituce",
 
         "reimport" : "Znovu odeslat",
         "reimport.success" : "Reimport úspěšně naplánován",

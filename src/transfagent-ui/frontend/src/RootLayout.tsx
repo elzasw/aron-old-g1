@@ -33,5 +33,15 @@ function renderNavigation() {
             <FormattedMessage id="navigation.funds" />
         </NavButton>
     );
+    navLeft.push(
+        <NavButton key="aids" to="aids">
+            <FormattedMessage id="navigation.aids" />
+        </NavButton>
+    );
+    navLeft.push(
+        <NavButton key="entities" to="entities">
+            <FormattedMessage id="navigation.entities" />
+        </NavButton>
+    );
     return <Navigation>{navLeft}</Navigation>;
 }
