@@ -13,13 +13,23 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import cz.aron.api.rest.model.EntitiesResponse;
+import cz.aron.api.rest.model.EntityDef;
 import cz.aron.transfagent.common.BulkOperation;
+import cz.aron.transfagent.controller.vo.EntityDefVO;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.ArchivalEntity;
 import cz.aron.transfagent.domain.CoreQueue;
@@ -43,14 +53,17 @@ public class ArchivalEntityService {
 	
 	private final ApuSourceService apuSourceService;
 	
+	private final EntityManager em;
+	
 	public ArchivalEntityService(ArchivalEntityRepository archivalEntityRepository,
 			EntitySourceRepository entitySourceRepository, CoreQueueRepository coreQueueRepository,
-			ApuSourceService apuSourceService) {
+			ApuSourceService apuSourceService, EntityManager em) {
 		super();
 		this.archivalEntityRepository = archivalEntityRepository;
 		this.entitySourceRepository = entitySourceRepository;
 		this.coreQueueRepository = coreQueueRepository;
 		this.apuSourceService = apuSourceService;
+		this.em = em;
 	}
 	
 	@Transactional
@@ -269,5 +282,50 @@ public class ArchivalEntityService {
 			log.error("Fail to set entity {} to NOT_AVAILABLE state. Entity not exist", uuid);
 		});
 	}
+
+    @Transactional
+    public EntitiesResponse getEntities(String code, String uuid,
+                                        Integer page, Integer pageSize) {
+        CriteriaBuilder cbCount = em.getCriteriaBuilder();
+        CriteriaQuery<Long> cqCount = cbCount.createQuery(Long.class);
+        Root<ArchivalEntity> rootCount = cqCount.from(ArchivalEntity.class);
+        cqCount.select(cbCount.count(rootCount));
+        addArchivalEntityPredicate(cqCount, cbCount, rootCount, code, uuid);
+        Long totalItems = 0l;
+        try {
+            totalItems = em.createQuery(cqCount).getSingleResult();
+        } catch (NoResultException nrEx) {
+            // ignore
+        }
+        var items = new ArrayList<EntityDef>();
+        if (totalItems > 0) {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<ArchivalEntity> cq = cb.createQuery(ArchivalEntity.class);
+            Root<ArchivalEntity> root = cq.from(ArchivalEntity.class);
+            addArchivalEntityPredicate(cq, cb, root, code, uuid);
+            List<ArchivalEntity> rows = em.createQuery(cq).setFirstResult(page * pageSize)
+                    .setMaxResults(pageSize).getResultList();
+            rows.stream().forEach(apu -> {
+                items.add(new EntityDefVO(apu));
+            });
+        }
+        return new EntitiesResponse(items, totalItems.intValue());
+    }
+
+    private <T> void addArchivalEntityPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<ArchivalEntity> root,
+                                                String code, String uuid) {
+        if (code == null && uuid == null) {
+            // no filter
+            return;
+        }
+        Predicate p = cb.conjunction();
+        if (code != null) {
+            p = cb.and(p, cb.like(root.get("code"), "%" + code + "%"));
+        }
+        if (uuid != null) {
+            p = cb.and(p, cb.equal(root.get("uuid"), UUID.fromString(uuid)));
+        }
+        cq.where(p);
+    }
 
 }

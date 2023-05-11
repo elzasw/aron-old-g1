@@ -24,7 +24,9 @@ import cz.aron.api.rest.model.EntitiesResponse;
 import cz.aron.api.rest.model.FindingAidsResponse;
 import cz.aron.api.rest.model.FundsResponse;
 import cz.aron.transfagent.service.ApuSourceService;
+import cz.aron.transfagent.service.ArchivalEntityService;
 import cz.aron.transfagent.service.DaoImportService;
+import cz.aron.transfagent.service.FindingAidService;
 import cz.aron.transfagent.service.FundService;
 
 @CrossOrigin
@@ -38,10 +40,18 @@ public class TransformAgentController implements TransfagentApi {
     
     private final FundService fundService;
     
-    public TransformAgentController(ApuSourceService apuSourceService, DaoImportService daoImportService, FundService fundService) {
+    private final FindingAidService findingAidService;
+    
+    private final ArchivalEntityService archivalEntityService;
+    
+    public TransformAgentController(ApuSourceService apuSourceService, DaoImportService daoImportService,
+                                    FundService fundService,
+                                    FindingAidService findingAidService, ArchivalEntityService archivalEntityService) {
         this.apuSourceService = apuSourceService;
         this.daoImportService = daoImportService;
         this.fundService = fundService;
+        this.findingAidService = findingAidService;
+        this.archivalEntityService = archivalEntityService;
     }
 
     @Override
@@ -93,17 +103,15 @@ public class TransformAgentController implements TransfagentApi {
     @Override
     public ResponseEntity<EntitiesResponse> getEntities(@Valid String code, @Valid String uuid,
                                                         @Min(0) @Valid Integer page,
-                                                        @Min(1) @Max(1000) @Valid Integer pageSize) {
-        // TODO Auto-generated method stub
-        return null;
+                                                        @Min(1) @Max(1000) @Valid Integer pageSize) {        
+        return ResponseEntity.ok(archivalEntityService.getEntities(code, uuid, page, pageSize));
     }
 
     @Override
     public ResponseEntity<FindingAidsResponse> getFindingAids(@Valid String code, @Valid String uuid,
                                                               @Min(0) @Valid Integer page,
                                                               @Min(1) @Max(1000) @Valid Integer pageSize) {
-        // TODO Auto-generated method stub
-        return null;
+        return ResponseEntity.ok(findingAidService.getFindingAids(code, uuid, page, pageSize));
     }
 
 }

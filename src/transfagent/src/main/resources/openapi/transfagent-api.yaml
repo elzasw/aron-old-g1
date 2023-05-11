@@ -377,13 +377,13 @@ components:
         elzaId:
           type: string
         parentId:
-          type: string 
+          type: integer
+          format: int64
         apusourceId:
           type: integer
           format: int64
         entityClass:
-          type: integer
-          format: int64
+          type: string
         state:
           $ref: '#/components/schemas/EntityStateDef'
 
