@@ -7,10 +7,13 @@ public class InstitutionInfo {
     private final UUID uuid;
 
     private final String name;
+    
+    private final String shortName;
 
-    public InstitutionInfo(UUID uuid, String name) {
+    public InstitutionInfo(UUID uuid, String name, String shortName) {
         this.uuid = uuid;
         this.name = name;
+        this.shortName = shortName;
     }
 
     public UUID getUuid() {
@@ -20,5 +23,9 @@ public class InstitutionInfo {
     public String getName() {
         return name;
     }
+
+	public String getShortName() {
+		return shortName;
+	}    
 
 }

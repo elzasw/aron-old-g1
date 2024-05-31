@@ -2,9 +2,9 @@ package cz.aron.core.integration;
 
 import cz.aron.core.ft.handling.TransferType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

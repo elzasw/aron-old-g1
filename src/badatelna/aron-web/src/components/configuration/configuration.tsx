@@ -1,15 +1,22 @@
 import React, { FC, useContext, createContext } from 'react';
-import { AppHeaderItemCode, SearchOption, Message } from '../../enums';
+import { AppHeaderItemCode, SearchOption, Message, ApuType } from '../../enums';
 import { DaoNamePlacement } from '../../enums/dao-name-placement';
 
 interface DaoFooterDef {
-  copyrightText?: string;
-  links?: DaoFooterLinkDef[];
+    copyrightText?: string;
+    links?: DaoFooterLinkDef[];
 }
 
 interface DaoFooterLinkDef {
-  text?: string;
-  url?: string;
+    text?: string;
+    url?: string;
+}
+
+interface OtherSource {
+    icon?: string;
+    url?: string;
+    label?: string;
+    tooltip?: string;
 }
 
 export interface ConfigurationType {
@@ -22,6 +29,8 @@ export interface ConfigurationType {
     showShareButtons?: boolean;
     showStandalonePartName?: boolean;
     showMainPageBreadcrumb?: boolean;
+    showFindRecordsInFundButton?: boolean;
+    showCitationFor?: ApuType[];
     headerItems?: AppHeaderItemCode[];
     searchOptions?: SearchOption[];
     localeCookieName?: string;
@@ -34,10 +43,13 @@ export interface ConfigurationType {
     hideThumbnails?: boolean;
     newsUrl?: string;
     helpUrl?: string;
+    orderResultsByScore?: boolean;
+    showIncrementalTree?: boolean;
+    otherSources?: OtherSource[];
 }
 
 
-const defaultConfiguration:ConfigurationType = {
+const defaultConfiguration: ConfigurationType = {
     allowDetailExpand: true,
     alternativeItemLabel: false,
     compactAppHeader: false,
@@ -47,6 +59,15 @@ const defaultConfiguration:ConfigurationType = {
     showShareButtons: false,
     showStandalonePartName: true,
     showMainPageBreadcrumb: true,
+    showFindRecordsInFundButton: false,
+    showCitationFor: [
+        // ApuType.FINDING_AID,
+        // ApuType.FUND,
+        // ApuType.ENTITY,
+        // ApuType.ARCH_DESC,
+        // ApuType.COLLECTION,
+        // ApuType.INSTITUTION,
+    ],
     disableDownloads: false,
     // localeCookieName: "pll_language",
     headerItems: [
@@ -79,26 +100,29 @@ const defaultConfiguration:ConfigurationType = {
     treeHorizontalScroll: false,
     daoNamePlacement: DaoNamePlacement.TOP_RIGHT,
     hideThumbnails: false,
+    showIncrementalTree: true,
     // newsUrl: 'https://www.seznam.cz',
     // helpUrl: 'https://www.google.cz',
+    orderResultsByScore: true,
+    otherSources: undefined,
 }
 
 const ConfigurationContext = createContext<ConfigurationType>(defaultConfiguration)
 
 export const useConfiguration = () => useContext(ConfigurationContext)
 
-export const ConfigurationProvider:FC = ({
+export const ConfigurationProvider: FC = ({
     children
 }) => {
-let configuration = {...defaultConfiguration}
-    try{
+    let configuration = { ...defaultConfiguration }
+    try {
         configuration = {
             ...configuration,
             //@ts-ignore load configuration from global variable
             ...(_configuration ? _configuration : {})
         }
     } catch {
-        configuration = {...defaultConfiguration}
+        configuration = { ...defaultConfiguration }
     }
     return <ConfigurationContext.Provider value={configuration}>
         {children}

@@ -29,12 +29,24 @@ public class ImportInstitution {
 
 	private UUID apRefUuid;
 	
+	private String fullName;
+	
+	private String shortName;
+	
 	public ImportInstitution() {
 		
 	}
 	
 	public UUID getApRefUuid() {
 		return apRefUuid;
+	}	
+
+	public String getFullName() {
+		return fullName;
+	}
+
+	public String getShortName() {
+		return shortName;
 	}
 
 	public static void main(String[] args) {
@@ -107,7 +119,7 @@ public class ImportInstitution {
 			throw new IllegalStateException("Institution without name: "+instCode);
 		}
 		// add name
-		String fullName = ElzaXmlReader.getFullName(prefName);
+		fullName = ElzaXmlReader.getFullName(prefName);
 		
 		apu = apusBuilder.createApu(fullName, ApuType.INSTITUTION, instUuid);
 		
@@ -115,7 +127,8 @@ public class ImportInstitution {
 		Part infoPart = apusBuilder.addPart(apu, "PT_INST_INFO");
 		apusBuilder.addString(infoPart, "INST_CODE", instCode);
 		if (acronymName!=null) {
-			apusBuilder.addString(infoPart, "INST_SHORT_NAME", ElzaXmlReader.getFullName(acronymName));
+			shortName = ElzaXmlReader.getFullName(acronymName);
+			apusBuilder.addString(infoPart, "INST_SHORT_NAME", shortName);
 		}
 		
 		// odkaz na entitu

@@ -1,8 +1,9 @@
 import { get } from 'lodash';
 
-import { DateFormat } from '../enums';
+import { DateFormat, Message } from '../enums';
+import { IntlShape } from 'react-intl';
 
-const locale = 'cs'
+// const locale = 'cs'
 
 export const getISOStringFromYear = (year: number) =>
   new Date(year, 1).toISOString();
@@ -10,42 +11,42 @@ export const getISOStringFromYear = (year: number) =>
 export const getYearFromISOString = (ISO: string) =>
   new Date(ISO).getFullYear();
 
-export const formatDate = (dateString: string) =>
+export const formatDate = (dateString: string, { locale }: IntlShape) =>
   new Date(dateString).toLocaleDateString(locale)
 
-export const formatDateTime = (dateString: string) =>
+export const formatDateTime = (dateString: string, { locale }: IntlShape) =>
   new Date(dateString).toLocaleString(locale, {
-    year: 'numeric', 
-    month: 'numeric', 
-    day: 'numeric', 
-    hour: 'numeric', 
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
     minute: 'numeric',
   })
 
 export const formatYear = (dateString: string) =>
   new Date(dateString).getFullYear().toString()
 
-export const formatYearMonth = (dateString: string) =>
+export const formatYearMonth = (dateString: string, { locale }: IntlShape) =>
   new Date(dateString).toLocaleDateString(locale, {
-    month: 'numeric', 
+    month: 'long',
     year: 'numeric'
   })
 
-export const formatCentury = (dateString: string) =>
-  `${Math.ceil(new Date(dateString).getFullYear() / 100)}. století`;
+export const formatCentury = (dateString: string, { formatMessage }: IntlShape) =>
+  formatMessage({ id: Message.CENTURY }, { century: Math.ceil(new Date(dateString).getFullYear() / 100) });
 
-const formatUnitDatePart = (value: string, format: string) => {
+const formatUnitDatePart = (value: string, format: string, intl: IntlShape) => {
   switch (format) {
     case DateFormat.D:
-      return formatDate(value);
+      return formatDate(value, intl);
     case DateFormat.YM:
-      return formatYearMonth(value);
+      return formatYearMonth(value, intl);
     case DateFormat.Y:
       return formatYear(value);
     case DateFormat.C:
-      return formatCentury(value);
+      return formatCentury(value, intl);
     default:
-      return formatDateTime(value);
+      return formatDateTime(value, intl);
   }
 };
 
@@ -54,7 +55,7 @@ const defaultUnitDateFormat = (format: any) => format || DateFormat.D;
 const applyEstimated = (value: string, estimated: boolean) =>
   `${estimated ? '[' : ''}${value}${estimated ? ']' : ''}`;
 
-export const formatUnitDate = (value: string) => {
+export const formatUnitDate = (value: string, intl: IntlShape) => {
   try {
     const parsed = JSON.parse(value);
 
@@ -74,11 +75,11 @@ export const formatUnitDate = (value: string) => {
     }
 
     const fromText = applyEstimated(
-      formatUnitDatePart(from, format1),
+      formatUnitDatePart(from, format1, intl),
       valueFromEstimated
     );
     const toText = applyEstimated(
-      formatUnitDatePart(to, format2),
+      formatUnitDatePart(to, format2, intl),
       valueToEstimated
     );
 

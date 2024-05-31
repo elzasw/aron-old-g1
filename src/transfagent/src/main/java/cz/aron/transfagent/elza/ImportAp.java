@@ -39,6 +39,7 @@ import cz.tacr.elza.schema.v2.DescriptionItemAPRef;
 import cz.tacr.elza.schema.v2.DescriptionItemUriRef;
 import cz.tacr.elza.schema.v2.Fragment;
 import cz.tacr.elza.schema.v2.Fragments;
+import cz.tacr.elza.schema.v2.Level;
 
 public class ImportAp implements EdxItemCovertContext {
 
@@ -231,6 +232,9 @@ public class ImportAp implements EdxItemCovertContext {
             break;
         case "ET_JOB":
             typePart = "PT_AE_JOB";
+            break;
+        case "ET_AWARD":
+            typePart = "PT_AE_AWARD";
             break;
         default:
             throw new IllegalStateException("Unknown event class: " + eventClass);
@@ -448,6 +452,9 @@ public class ImportAp implements EdxItemCovertContext {
         case "PEVA":
         case "RUIAN":
         case "ARCHNUM":
+        case "CLO_ID":
+        case "VIAF":
+        case "LCNAF":
             // ignored idents
             return;
         case "IC":        
@@ -535,7 +542,7 @@ public class ImportAp implements EdxItemCovertContext {
     }
 
     private void importName(Apu apu, Fragment frg) {
-        String fullName = nameBuilder.createFullName(frg, entityClass);
+        String fullName = nameBuilder.createFullName(frg, entityClass, false);
         // add name
         if (apu.getName() == null) {
             apu.setName(fullName);
@@ -570,12 +577,22 @@ public class ImportAp implements EdxItemCovertContext {
     public Apu getActiveApu() {
         return apu;
     }
-
-    @Override
-    public void addArchEntityRef(ArchEntityInfo aei) {        
-    }
     
-    /**
+    @Override
+	public Level getProcessedLevel() {
+		return null;
+	}
+
+	@Override
+    public void addArchEntityRef(ArchEntityInfo aei) {        
+    }		
+    
+    @Override
+	public boolean isArchEntityReferenced(UUID uuid) {
+		return false;
+	}
+
+	/**
      * Vyhodit tuto vyjimku pokud dojde k chybe kterou 
      */
     public static class MarkAsNonAvailableException extends RuntimeException {

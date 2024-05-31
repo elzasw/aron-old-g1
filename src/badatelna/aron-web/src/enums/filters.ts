@@ -1,4 +1,5 @@
 export enum FacetType {
+  CONSTANT = 'CONSTANT',
   FULLTEXT = 'FULLTEXT',
   FULLTEXTF = 'FULLTEXTF',
   ENUM = 'ENUM',

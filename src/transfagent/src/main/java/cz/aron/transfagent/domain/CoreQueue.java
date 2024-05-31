@@ -17,7 +17,7 @@ public class CoreQueue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "core_queue_id")
-    private Integer id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "apusource_id", nullable = false)
@@ -26,11 +26,11 @@ public class CoreQueue {
     @Column(name = "error_message")
     private String errorMessage;
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

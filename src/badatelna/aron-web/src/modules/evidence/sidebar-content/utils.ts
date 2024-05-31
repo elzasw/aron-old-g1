@@ -4,6 +4,7 @@ import { useApiListSimple } from '../../../common-utils';
 import { Filter } from '../../../types';
 import { ApiFilterOperation } from '@eas/common-web';
 import { DEFAULT_RANGE } from '../../../enums';
+import { InputFilterType } from '.';
 
 export const toStrRange = (numberRange: [number, number]): [string, string] => [
   numberRange[0].toString(),
@@ -52,9 +53,15 @@ export const useGetCountInput = (
   field: string,
   value: string,
   apiFilters: Filter[], 
-  foldedFilter?: boolean,
+  filterType?: InputFilterType,
 ) => {
-  const operation = foldedFilter ? ApiFilterOperation.FTXF : ApiFilterOperation.CONTAINS;
+
+  const operation = 
+    filterType===InputFilterType.FULLTEXT?ApiFilterOperation.FTX:
+    filterType===InputFilterType.FULLTEXT_FIELD?ApiFilterOperation.FTXF:
+    filterType===InputFilterType.CONSTANT?ApiFilterOperation.EQ
+    : ApiFilterOperation.CONTAINS;
+
   const filter = apiFilters.find((item) => item.field === field);
   return useApiListSimple({
       size: 0,

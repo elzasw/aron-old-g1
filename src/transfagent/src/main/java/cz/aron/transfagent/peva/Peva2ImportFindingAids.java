@@ -187,26 +187,27 @@ public class Peva2ImportFindingAids extends Peva2Downloader {
         }
     }
 
-    @Override
-    protected boolean processCommand(Path path, Peva2CodeListProvider codeListProvider) {
-        var fileName = path.getFileName().toString();
-        String id;
-        if (fileName.startsWith(institutionPrefix)) {
-            id = fileName.substring(institutionPrefix.length());
-        } else if (peva2.isMainConnection() && fileName.startsWith(PREFIX_DASH)) {
-            id = fileName.substring(PREFIX_DASH.length());
-        } else {
-            // not my command
-            return false;
-        }        
-        var gfaReq = new GetFindingAidRequest();
-        gfaReq.setId(id);
-        var gfaResp = peva2.getPeva().getFindingAid(gfaReq);
-        var attMap = initAttachments();
-        patchFindingAidsBatch(Collections.singletonList(gfaResp.getFindingAid()), codeListProvider.getCodeLists(),
-                              attMap);
-        return true;
-    }
+	@Override
+	protected boolean processCommand(Path path, Peva2CodeListProvider codeListProvider) {
+		var fileName = path.getFileName().toString();
+		String id;
+		if (fileName.startsWith(institutionPrefix)) {
+			id = fileName.substring(institutionPrefix.length());
+		} else if (peva2.isMainConnection() && fileName.startsWith(PREFIX_DASH)
+				&& fileName.length() == (PREFIX_DASH.length() + 36)) {
+			id = fileName.substring(PREFIX_DASH.length());
+		} else {
+			// not my command
+			return false;
+		}
+		var gfaReq = new GetFindingAidRequest();
+		gfaReq.setId(id);
+		var gfaResp = peva2.getPeva().getFindingAid(gfaReq);
+		var attMap = initAttachments();
+		patchFindingAidsBatch(Collections.singletonList(gfaResp.getFindingAid()), codeListProvider.getCodeLists(),
+				attMap);
+		return true;
+	}
 
     @Override
     protected String getName() {

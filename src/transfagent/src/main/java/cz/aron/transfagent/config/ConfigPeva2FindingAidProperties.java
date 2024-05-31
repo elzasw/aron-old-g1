@@ -5,6 +5,9 @@ public class ConfigPeva2FindingAidProperties {
 	// nazev pomucky slozi z [nazevarchivu],[nazevfondu],[datace]
     private boolean composedFindingAidName;
     
+    // nazev pomucky slozi z [kratky_nazevarchivu],[nazevfondu],[datace]
+    private boolean composedShortFindingAidName;
+    
     // neodesila pomucku do arona, pouze ji nacte
     private boolean dontSend;
     
@@ -55,6 +58,14 @@ public class ConfigPeva2FindingAidProperties {
 
 	public void setImportMissingFund(boolean importMissingFund) {
 		this.importMissingFund = importMissingFund;
-	}	
+	}
+
+	public boolean isComposedShortFindingAidName() {
+		return composedShortFindingAidName;
+	}
+
+	public void setComposedShortFindingAidName(boolean composedShortFindingAidName) {
+		this.composedShortFindingAidName = composedShortFindingAidName;
+	}
 
 }

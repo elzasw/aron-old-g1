@@ -8,9 +8,11 @@ import cz.tacr.elza.schema.v2.DescriptionItemUndefined;
 import cz.tacr.elza.schema.v2.DescriptionItemUriRef;
 
 public class EdxLinkConvertor implements EdxItemConvertor {
+	
+	private static final String ELZA_NODE = "elza-node";
     
-    final private String targetTypeRef;
-    final private String targetTypeLink;
+    private final String targetTypeRef;
+    private final String targetTypeLink;
 
     public EdxLinkConvertor(final String targetTypeRef,
                             final String targetTypeLink) {
@@ -26,11 +28,11 @@ public class EdxLinkConvertor implements EdxItemConvertor {
         ApuSourceBuilder apusBuilder = ctx.getApusBuilder();
         
         DescriptionItemUriRef uriRef = (DescriptionItemUriRef)item;
-        if("elza-node".equals(uriRef.getSchm())) {
+        if(ELZA_NODE.equals(uriRef.getSchm())) {
             // link to another apu
-            String uuid = uriRef.getUri().substring(9);
-            if(uuid.startsWith("//")) {
-                uuid = uuid.substring(2);
+            String uuid = uriRef.getUri().substring(ELZA_NODE.length());
+            if(uuid.startsWith("://")) {
+                uuid = uuid.substring(3);
             }
             apusBuilder.addApuRef(ctx.getActivePart(), targetTypeRef, UUID.fromString(uuid));
         } else {

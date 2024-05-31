@@ -20,5 +20,7 @@ public interface ContextDataProvider {
     List<ArchEntityInfo> getArchivalEntityWithParentsByUuid(UUID apUuid);
 
     UUID getDao(String daoHandle);
+    
+    List<ArchEntitySourceInfo> getArchEntityApuSources(List<UUID> uuids, String entityClass);
 
 }

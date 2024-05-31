@@ -105,6 +105,14 @@ itemTypes:
     name: Zdroj informací
     type: LINK
     indexed: true
+  - code: DAO_LINK
+    name: Odkaz na digitalizát
+    type: LINK
+    indexed: true
+  - code: RELATED_UNITS_LINK
+    name: Odkazy na příbuzné dokumenty
+    type: LINK
+    indexed: true    
   # Archivy
   - code: INST_CODE
     name: Kód archivu
@@ -599,6 +607,10 @@ itemTypes:
     name: Seznam archiválií v archivním souboru
     type: APU_REF
     indexed: true
+  - code: ARCHDESC_FLAG
+    name: Archivní popis
+    type: ENUM
+    indexed: true
   - code: INST_REF
     name: Instituce
     type: APU_REF
@@ -861,6 +873,10 @@ itemTypes:
     name: Omezení přístupu
     type: ENUM
     indexed: true
+  - code: UNIT_RESTRICTION_TEXT
+    name: Omezení přístupu
+    type: STRING
+    indexed: true
   - code: UNIT_CURRENT_STATUS
     name: Fyzický stav
     type: STRING
@@ -1002,6 +1018,11 @@ itemTypes:
     indexed: false
   - code: STORAGE_ID
     name: Ukládací číslo
+    type: STRING
+    indexed: true
+    indexFolding: false
+  - code: STORAGE
+    name: Uložení
     type: STRING
     indexed: true
     indexFolding: false
@@ -1409,6 +1430,30 @@ itemTypes:
     name: sekundární klasifikace
     type: APU_REF
     indexed: true
+  - code: ENTITY_ROLE_84
+    name: opisovač
+    type: APU_REF
+    indexed: true
+  - code: ENTITY_ROLE_85
+    name: vlastník
+    type: APU_REF
+    indexed: true
+  - code: ENTITY_ROLE_86
+    name: místo fotografování
+    type: APU_REF
+    indexed: true
+  - code: ENTITY_ROLE_87
+    name: odborná spolupráce
+    type: APU_REF
+    indexed: true
+  - code: ENTITY_ROLE_88
+    name: místo předání
+    type: APU_REF
+    indexed: true
+  - code: ENTITY_ROLE_89
+    name: obrazově a/nebo zvukově zachycená entita
+    type: APU_REF
+    indexed: true
   - code: ROLE
     name: Role
     type: ENUM
@@ -1481,6 +1526,10 @@ itemTypes:
   - code: REG_TERM_REF
     name: Rejstřík obecných pojmů
     type: APU_REF
+    indexed: true
+  - code: ENTITY_NOTE
+    name: Poznámka
+    type: STRING
     indexed: true
 
 itemGroups:
@@ -1572,6 +1621,12 @@ itemGroups:
       - ENTITY_ROLE_81
       - ENTITY_ROLE_82
       - ENTITY_ROLE_83
+      - ENTITY_ROLE_84
+      - ENTITY_ROLE_85
+      - ENTITY_ROLE_86
+      - ENTITY_ROLE_87
+      - ENTITY_ROLE_88
+      - ENTITY_ROLE_89
   # vztahy u archivních entit
   - code: AE_VIRT_REF
     items:

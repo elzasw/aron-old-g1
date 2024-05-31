@@ -1,5 +1,6 @@
 package cz.aron.transfagent.elza;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,7 @@ import cz.tacr.elza.schema.v2.Fragment;
 public class ElzaNameBuilder {
     
     private static final Map<String, SupplementBuilder> SUPPLEMENT_BUILDERS = new HashMap<>();
+    private static final Map<String, SupplementBuilder> SUPPLEMENT_BUILDERS_NO_PRIV = new HashMap<>();
     
     private static final SupplementBuilder DEFAULT_SUPPLEMENT_BUILDER;
     
@@ -57,15 +59,37 @@ public class ElzaNameBuilder {
         SUPPLEMENT_BUILDERS.put("ARTWORK", new SupplementBuilder(NM_SUPS_ARTWORK));
         SUPPLEMENT_BUILDERS.put("TERM", new SupplementBuilder(NM_SUPS_TERM));
         DEFAULT_SUPPLEMENT_BUILDER = new SupplementBuilder(ElzaTypes.NM_SUPS);
+                
+        SUPPLEMENT_BUILDERS_NO_PRIV.put("PERSON", new SupplementBuilder(removePriv(NM_SUPS_PERSON)));
+        SUPPLEMENT_BUILDERS_NO_PRIV.put("PARTY_GROUP", new SupplementBuilder(removePriv(NM_SUPS_PARTY)));
+        SUPPLEMENT_BUILDERS_NO_PRIV.put("DYNASTY", new SupplementBuilder(removePriv(NM_SUPS_DYNASTY)));
+        SUPPLEMENT_BUILDERS_NO_PRIV.put("FAMILY", new SupplementBuilderWithPrefix(removePriv(NM_SUPS_DYNASTY),"rod/rodina"));
+        SUPPLEMENT_BUILDERS_NO_PRIV.put("FAMILY_BRANCH", new SupplementBuilderWithPrefix(removePriv(NM_SUPS_DYNASTY),"větev rodu"));
+        SUPPLEMENT_BUILDERS_NO_PRIV.put("FICTIVE_DYNASTY", new SupplementBuilderWithPrefix(removePriv(NM_SUPS_DYNASTY),"fiktivní rod/rodina"));
+        SUPPLEMENT_BUILDERS_NO_PRIV.put("EVENT", new SupplementBuilder(removePriv(NM_SUPS_EVENT)));
+        SUPPLEMENT_BUILDERS_NO_PRIV.put("GEO", new SupplementBuilder(removePriv(NM_SUPS_GEO)));
+        SUPPLEMENT_BUILDERS_NO_PRIV.put("ARTWORK", new SupplementBuilder(removePriv(NM_SUPS_ARTWORK)));
+        SUPPLEMENT_BUILDERS_NO_PRIV.put("TERM", new SupplementBuilder(removePriv(NM_SUPS_TERM)));
     }
     
+	private static String[] removePriv(String[] orig) {
+		return Arrays.stream(orig).filter(i -> !ElzaTypes.NM_SUP_PRIV.equals(i)).toArray(String[]::new);
+	}
+
     private final ApTypeService typeService;
 
     public ElzaNameBuilder(ApTypeService typeService) {
         this.typeService = typeService;
     }
     
-    public String createFullName(Fragment frg, String entityClass) {
+    /**
+     * Vytvori plny nazev entity
+     * @param frg
+     * @param entityClass
+     * @param noPriv true - nepouzije NM_SUP_PRIV, false - pouzije ho
+     * @return String
+     */
+    public String createFullName(Fragment frg, String entityClass, boolean noPriv) {
         var sb = new StringBuilder();
         sb.append(ElzaXmlReader.getStringType(frg, ElzaTypes.NM_MAIN));
         
@@ -89,13 +113,20 @@ public class ElzaNameBuilder {
             sb.append(String.join(", ", sbTitules));
         }
         
-        var supplementBuilder = SUPPLEMENT_BUILDERS.get(entityClass);
+        Map<String,SupplementBuilder> builders;
+        if (noPriv) {
+        	builders = SUPPLEMENT_BUILDERS_NO_PRIV;
+        } else {
+        	builders = SUPPLEMENT_BUILDERS;
+        }
+        
+        var supplementBuilder = builders.get(entityClass);
         if (supplementBuilder == null) {
             var parentEntityClass = typeService.getParentCode(entityClass);
             if (parentEntityClass == null) {
                 supplementBuilder = DEFAULT_SUPPLEMENT_BUILDER;
             } else {
-                supplementBuilder = SUPPLEMENT_BUILDERS.get(parentEntityClass);
+                supplementBuilder = builders.get(parentEntityClass);
                 if (supplementBuilder == null) {
                     supplementBuilder = DEFAULT_SUPPLEMENT_BUILDER;
                 }

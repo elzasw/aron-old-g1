@@ -1,5 +1,8 @@
 package cz.aron.core.model;
 
+import java.time.LocalDateTime;
+
+import lombok.extern.slf4j.Slf4j;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +11,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@Slf4j
 public class UniversalDate {
     private String from;
 
@@ -46,4 +50,27 @@ public class UniversalDate {
      * @see <a href="https://frnk.lightcomp.cz/download/cam/modely/index.html?goto=9:3:1:308">TimeInterval#fmt</a>
      */
     private String format;
+
+    public static boolean isLower(String d1, String d2) {
+        try {
+            var i1 = LocalDateTime.parse(d1);
+            var i2 = LocalDateTime.parse(d2);
+            return i1.compareTo(i2) < 0;
+        } catch (NumberFormatException nfEx) {
+            log.error("Fail to parse date, d1={}, d2={}", d1, d2);
+        }
+        return false;
+    }
+
+    public static boolean isHigher(String d1, String d2) {
+        try {
+            var i1 = LocalDateTime.parse(d1);
+            var i2 = LocalDateTime.parse(d2);
+            return i1.compareTo(i2) > 0;
+        } catch (NumberFormatException nfEx) {
+            log.error("Fail to parse date, d1={}, d2={}", d1, d2);
+        }
+        return false;
+    }
+
 }

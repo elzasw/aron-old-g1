@@ -24,8 +24,7 @@ public class DigitalObject extends DomainObject<DigitalObject> {
     private int order;
 
     @OneToMany(mappedBy = "digitalObject", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SELECT)
-    @BatchSize(size = 100)
+    @Fetch(FetchMode.JOIN)
     private List<DigitalObjectFile> files = new ArrayList<>();
 
     @ManyToOne

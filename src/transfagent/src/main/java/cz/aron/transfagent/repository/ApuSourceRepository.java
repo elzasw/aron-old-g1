@@ -37,4 +37,10 @@ public interface ApuSourceRepository extends JpaRepository<ApuSource, Integer> {
 			+ "WHERE fu.apusource_id = a.apusource_id AND fu.institution_id = :id")
 	void reimportFundAidByInstitution(@Param("id") Integer id);
     
+    @Modifying
+    @Query(nativeQuery=true, value="UPDATE apu_source AS a "
+    		+ "SET last_sent=:lastSent "
+    		+ "WHERE a.apusource_id=:apuSourceId")
+    void setLastSent(@Param("apuSourceId") int apuSourceId, @Param("lastSent") long lastSent);
+    
 }

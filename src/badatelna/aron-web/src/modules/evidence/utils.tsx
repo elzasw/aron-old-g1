@@ -28,6 +28,7 @@ import {
   RelationshipFilter,
   yearInISO,
 } from './sidebar-content';
+import { InputFilterType } from "./sidebar-content"
 
 export const findApuParts = <EntityItem extends {type: string}>(items: EntityItem[], code: string) =>
   items.filter(({ type }) => type === code);
@@ -45,11 +46,13 @@ export const FilterComponent = (props: any) => {
     case FacetType.UNITDATE:
       CFilter = RangeFilter;
       break;
+    case FacetType.CONSTANT:
+      return <InputFilter filterType={InputFilterType.CONSTANT} {...props} />;
     case FacetType.FULLTEXT:
       CFilter = InputFilter;
       break;
     case FacetType.FULLTEXTF:
-      return <InputFilter foldedFilter={true} {...props} />;
+      return <InputFilter filterType={InputFilterType.FULLTEXT_FIELD} {...props} />;
     case FacetType.MULTI_REF:
       CFilter = AutocompleteFilter;
       break;

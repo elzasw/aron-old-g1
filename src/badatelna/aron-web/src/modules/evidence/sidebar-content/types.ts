@@ -27,9 +27,15 @@ export interface RangeFilterProps extends GenericFilterProps {
   interval: [number, number];
 }
 
+export enum InputFilterType {
+   FULLTEXT = 'FULLTEXT',
+   FULLTEXT_FIELD = 'FULLTEXT_FIELD',
+   CONSTANT = 'CONSTANT',
+}
+
 export interface InputFilterProps extends GenericFilterProps {
   value: string;
-  foldedFilter?: boolean;
+  filterType?: InputFilterType;
 }
 
 export interface AutocompleteFilterProps extends GenericFilterProps {

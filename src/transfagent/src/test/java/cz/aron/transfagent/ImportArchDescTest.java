@@ -12,8 +12,6 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import cz.aron.apux.ApuSourceBuilder;
@@ -48,7 +46,7 @@ public class ImportArchDescTest {
     public void testImportArchDesc() throws IOException, JAXBException {
         Path inputFile = Path.of(ARCHDESC_DIR, ARCHDESC_FILE);
 
-        ImportArchDesc iad = new ImportArchDesc(new ApTypeService(),null,null,null,new ConfigElzaArchDesc(), Collections.emptyList());
+        ImportArchDesc iad = new ImportArchDesc(new ApTypeService(),null,null,new ConfigElzaArchDesc(), Collections.emptyList(),null);
         ApuSourceBuilder builder = iad.importArchDesc(inputFile, ARCHDESC_DIR + "/" + PROPERTIES_FILE);
 
         Path outputPath = Path.of(ARCHDESC_DIR, APUSRC_XML);

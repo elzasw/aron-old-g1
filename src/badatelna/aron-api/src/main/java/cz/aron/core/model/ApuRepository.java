@@ -75,7 +75,7 @@ public class ApuRepository extends DomainRepository<
     }
 
     private void fillIncomingRels(ApuEntity targetApu) {
-        List<String> relationTypesByTarget = relationStore.findRelationTypesByTarget(targetApu.getId());
+        Set<String> relationTypesByTarget = new HashSet(relationStore.findRelationTypesByTarget(targetApu.getId()));
         Set<String> relationGroupsByTarget = new HashSet<>();
         for (String relationType : relationTypesByTarget) {
             relationGroupsByTarget.addAll(typesHolder.getItemGroupsForItemType(relationType));

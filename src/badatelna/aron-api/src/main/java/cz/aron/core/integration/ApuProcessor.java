@@ -12,6 +12,8 @@ import cz.aron.core.relation.Relation;
 import cz.aron.core.relation.RelationRepository;
 import cz.aron.core.relation.RelationStore;
 import cz.inqool.eas.common.domain.store.DomainObject;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.tomcat.util.http.fileupload.util.Streams;
@@ -51,7 +53,7 @@ public class ApuProcessor {
     private Set<String> relationsDeleteCache = new HashSet<>();
     private Set<Relation> relationsAddCache = new HashSet<>();
     private Set<String> apusToHaveIncomingRelsUpdated = new HashSet<>();
-    private Set<String> apuIdsProcessed = new HashSet<>();
+    private Map<String, LevelStats> apuIdsStates = new HashMap<>();
     private Map<String, DigitalObject> existingDaos = new HashMap<>();
 
     private static final int CACHE_SIZE = 100;
@@ -59,7 +61,9 @@ public class ApuProcessor {
     private int apuOrderCounter;
 
     public void processApuAndFiles(Path apuSrcPath, Map<String, Path> filesMap) {
-                
+    	
+    	preprocess(apuSrcPath);
+    	    	
         try(ApuSourceBatchReader reader = new ApuSourceBatchReader(apuSrcPath);) {
             log.debug("Processing apu source {}", reader.getUuid());
 
@@ -112,12 +116,50 @@ public class ApuProcessor {
         
     }
 
+    private void preprocess(Path apuSrcPath) {
+    	var fictiveRoot = new LevelStats();
+    	fictiveRoot.depth = 0;
+    	fictiveRoot.pos = 0;
+    	boolean clearState = true;	
+    	try(ApuSourceBatchReader reader = new ApuSourceBatchReader(apuSrcPath);) {
+    		log.debug("Processing first phase apu source {}", reader.getUuid());    		
+    		reader.process(apus->{
+    			for(var apu:apus) {
+    				var levelStats = new LevelStats();
+    				var parentId = apu.getPrnt();
+    				LevelStats parent;
+    				if (parentId!=null) {
+    					parent = apuIdsStates.get(parentId);
+    					if (parent==null) {
+    						log.error("Parent {} not exist", parentId);
+    						throw new RuntimeException("parent not exist"+parentId);
+    					}    					    				
+    				} else {
+    					parent = fictiveRoot;
+    				}
+    				parent.childCnt++;
+					levelStats.depth = parent.depth + 1;
+					levelStats.pos = parent.childCnt;    				
+    				apuIdsStates.put(apu.getUuid(), levelStats);
+    			}
+    		}, CACHE_SIZE);
+    		clearState = false;
+    	 } catch (Exception e) {
+             log.error("Fail to import apusource, preprocess phase ", e);
+             throw new RuntimeException(e);
+    	} finally {
+    		if (clearState) {
+    			clearInternalState();
+    		}
+    	}
+    }
+    
     private void clearInternalState() {
         saveCache.clear();
         relationsDeleteCache.clear();
         relationsAddCache.clear();
         apusToHaveIncomingRelsUpdated.clear();
-        apuIdsProcessed.clear();
+        apuIdsStates.clear();
         existingDaos.clear();
     }
     
@@ -134,7 +176,8 @@ public class ApuProcessor {
         processApuAndFiles(path, null);
     }
 
-    public void processApu(Apu apu, cz.aron.core.model.ApuSource apuSource, Map<String, Path> filesMap) {
+    public void processApu(Apu apu, cz.aron.core.model.ApuSource apuSource, Map<String, Path> filesMap) {    	
+    	var levelState = apuIdsStates.get(apu.getUuid());    	
         ApuEntity apuEntity = new ApuEntity();
         apuEntity.setId(apu.getUuid());
         apuEntity.setName(apu.getName());
@@ -142,10 +185,14 @@ public class ApuProcessor {
         apuEntity.setDescription(apu.getDesc());
         apuEntity.setPermalink(apu.getPrmLnk());
         apuEntity.setType(ApuType.valueOf(apu.getType().name().toUpperCase())); //fixme names don't match
+        apuEntity.setChildCnt(levelState.childCnt);
+        apuEntity.setPos(levelState.pos);
+        apuEntity.setDepth(levelState.depth);
         if (apu.getPrnt() != null) {
             ApuEntity parentApu = saveCache.get(apu.getPrnt());
             if (parentApu == null) {
-                if (!apuIdsProcessed.contains(apu.getPrnt())) {
+            	var parentLevelStats =  apuIdsStates.get(apu.getPrnt());
+                if (parentLevelStats==null||!parentLevelStats.processed) {
                     throw new RuntimeException("parent apu not found yet");
                 }
                 parentApu = apuRepository.getRef(apu.getPrnt());
@@ -170,6 +217,7 @@ public class ApuProcessor {
                 apuEntity.getDigitalObjects().add(insertedDao);
             }
         }
+        levelState.processed = true;
         saveCache.put(apuEntity.getId(), apuEntity);
         apusToHaveIncomingRelsUpdated.add(apuEntity.getId());
         /*
@@ -320,7 +368,6 @@ public class ApuProcessor {
 
         //save apus (indexing uses relations table to index incoming relation type groups)
         apuRepository.create(saveCache.values());
-        apuIdsProcessed.addAll(saveCache.keySet());
         //Now to reindex all apus that reference these apus, to update labels in them
         List<String> updatedApusIds = saveCache.values().stream().map(DomainObject::getId).collect(Collectors.toList());
         List<String> apuIdsTargetingUpdatedIds = relationStore.findIdsByTarget(updatedApusIds);
@@ -338,6 +385,14 @@ public class ApuProcessor {
         if (!daoIds.isEmpty()) {
             daoStore.listByIds(daoIds).forEach(dao -> existingDaos.put(dao.getId(), dao));
         }
+    }
+
+    private class LevelStats {
+    	private int depth;
+    	private int pos;
+    	private int childCnt = 0;
+    	private boolean processed = false;
+        	
     }
 
 }

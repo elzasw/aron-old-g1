@@ -60,6 +60,7 @@ public class CoreTypes {
     public static final String RECORD_TYPE = "RECORD_TYPE";
     public final static String ROLE = "ROLE";
     public final static String STORAGE_ID = "STORAGE_ID";
+    public static final String STORAGE = "STORAGE";
     
     // ArchDescs
     public static final String UNIT_ID_INDEX = "UNIT_ID_INDEX";
@@ -77,6 +78,8 @@ public class CoreTypes {
 
     // LINK
     public static final String SOURCE_LINK = "SOURCE_LINK";
+    public static final String DAO_LINK = "DAO_LINK";
+    public static final String RELATED_UNITS_LINK = "RELATED_UNITS_LINK";
 
     public static final String CRC_BIRTH_DATE = "CRC_BIRTH_DATE";
     public static final String CRC_RISE_DATE = "CRC_RISE_DATE";
@@ -88,5 +91,7 @@ public class CoreTypes {
 
     public static final String CRE_TYPE = "CRE_TYPE";
     public static final String EXT_TYPE = "EXT_TYPE";
+    
+    public static final String SIZE = "SIZE";
 
 }

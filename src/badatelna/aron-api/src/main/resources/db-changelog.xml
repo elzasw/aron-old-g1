@@ -202,4 +202,56 @@
             <column name="size" type="bigint"/>
         </addColumn>
     </changeSet>
+    <changeSet id="aron:9" author="zacek@lightcomp.cz">
+        <addColumn tableName="apu_entity">
+            <column name="depth" type="int"/>
+            <column name="pos" type="int"/>
+            <column name="child_cnt" type="int"/>
+        </addColumn>
+        <sql>
+             WITH new_child_count AS
+             (
+             SELECT count(*) as num_childs, parent_id 
+             FROM apu_entity GROUP BY parent_id
+             )
+             UPDATE apu_entity ae SET child_cnt=ncc.num_childs
+             FROM new_child_count ncc
+             WHERE ncc.parent_id=ae.id;
+             UPDATE apu_entity SET child_cnt=0 WHERE child_cnt IS NULL;
+
+             WITH new_pos AS
+             (
+             SELECT ROW_NUMBER() OVER(PARTITION BY parent_id ORDER BY ae1.order) AS row_num, id
+             FROM apu_entity ae1 WHERE parent_id IS NOT NULL
+             )
+             UPDATE apu_entity ae SET pos=np.row_num
+             FROM new_pos np
+             WHERE np.id=ae.id;
+             WITH new_pos AS
+             (
+             SELECT ROW_NUMBER() OVER(PARTITION BY source_id ORDER BY ae1.order) AS row_num, id
+             FROM apu_entity ae1 WHERE parent_id IS NULL
+             )
+             UPDATE apu_entity ae SET pos=np.row_num
+             FROM new_pos np
+             WHERE np.id=ae.id;
+
+             WITH RECURSIVE new_depth(id, depth) AS
+             (
+             SELECT id,1 FROM apu_entity WHERE parent_id IS NULL
+             UNION
+             SELECT ae.id, new_depth.depth+1 FROM new_depth
+             JOIN apu_entity ae ON ae.parent_id=new_depth.id 
+             )
+             UPDATE apu_entity ae
+             SET depth = new_depth.depth
+             FROM new_depth
+             WHERE new_depth.id = ae.id;
+        </sql>
+        <createIndex indexName="idx_apu_entity_id_pos"
+            tableName="apu_entity" unique="true">
+            <column name="id" />
+            <column name="pos" />
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>

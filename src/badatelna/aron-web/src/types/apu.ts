@@ -8,6 +8,10 @@ export interface ApuEntity extends LinkedEntity {
   published: boolean;
   source: ApuSource;
   type: ApuType;
+  childCnt: number;
+  depth: number;
+  order: number;
+  pos: number;
   parent?: ApuEntity;
   parts?: ApuPart[];
   attachments?: ApuAttachment[];

@@ -16,7 +16,7 @@ export const useStyles = (configuration?: StyleConfiguration ) => makeStyles((th
       background: theme.palette.primary.dark,
       position: 'sticky',
       top: 0,
-      zIndex: 20,
+      zIndex: 30,
       flexShrink: 0,
       flexGrow: 0,
     },

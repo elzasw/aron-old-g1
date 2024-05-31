@@ -6,4 +6,4 @@ export enum DateFormat {
   YM = 'YM',
 }
 
-export const DEFAULT_RANGE: [number, number] = [100, new Date().getFullYear()];
+export const DEFAULT_RANGE: [number, number] = [1, new Date().getFullYear()];

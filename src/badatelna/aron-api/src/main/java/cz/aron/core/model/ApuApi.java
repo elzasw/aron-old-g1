@@ -52,6 +52,7 @@ public class ApuApi extends DomainApi<
 
     @Inject private ApuTreeViewStore apuTreeViewStore;
     @Inject private ApuEntityViewStore apuEntityViewStore;
+    @Inject private ApuEntitySimpleStore apuEntitySimpleStore;    
     @Inject private ApuRepository apuRepository;
     @Inject private ApuStore apuStore;
     @Inject private ObjectMapper objectMapper;
@@ -129,6 +130,16 @@ public class ApuApi extends DomainApi<
         return new Result<>(items, idsResult.getCount(), idsResult.getSearchAfter(), idsResult.getAggregations());
     }
     
+    @PostMapping("/listsimple")
+    public Result<ApuEntitySimple> listSimple(@Valid @RequestBody(required = false) Params params) {
+        
+        params = coalesce(params, Params::new);
+        
+        Result<String> idsResult = apuRepository.getIndex().listIdsByParams(params);
+        List<ApuEntitySimple> items = apuEntitySimpleStore.listByIds(idsResult.getItems());
+        return new Result<>(items, idsResult.getCount(), idsResult.getSearchAfter(), idsResult.getAggregations());
+    }
+    
     @GetMapping(value = "/{id}/view")
     public ApuEntityView getView(@PathVariable("id") String id) {                        
         ApuEntityView view = apuEntityViewStore.find(id);        
@@ -136,11 +147,43 @@ public class ApuApi extends DomainApi<
         return view;
     }
     
-    @PostMapping(value = "/views")
-    public List<ApuEntityView> getViews(@RequestBody List<String> ids) {        
+    @GetMapping(value = "/views")
+    public ResponseEntity<List<ApuEntityView>> getViews(@RequestParam List<String> ids) {
         lte(ids.size(),100, ()-> new InvalidArgument("ids", InvalidArgument.ErrorCode.SIZE_TOO_BIG));        
-        return apuEntityViewStore.listByIds(ids);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=1800")
+                .contentType(MediaType.APPLICATION_JSON)
+		.body(apuEntityViewStore.listByIds(ids));
     }
 
-}
+    @GetMapping(value = "/{id}/related/{direction}")
+    public ResponseEntity<List<ApuEntityTreeViewDto>> getRelatedNodes(@PathVariable("id") String apuId, @PathVariable("direction") String direction) {
+	List<ApuEntityTreeViewDto> body = null;
+    	switch(direction) {
+    	case "before":
+    		body = apuStore.getEntitiesBefore(apuId);
+		break;
+    	case "after":
+    		body = apuStore.getEntitiesAfter(apuId);
+		break;
+    	case "under":
+    		body = apuStore.getEntitiesUnder(apuId);
+		break;
+    	default:
+    		throw new RuntimeException();
+    	}
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=1800")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body);
+    }
 
+    @GetMapping(value = "/{id}/entity")
+    public ResponseEntity<ApuEntity> getEntity(@PathVariable("id") String id) {
+        var body = service.get(id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=1800")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body);
+    }
+}

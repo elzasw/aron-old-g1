@@ -47,6 +47,9 @@ public class ApuSource {
 
     @JoinColumn(name = "date_imported", nullable = true)
     private ZonedDateTime dateImported;
+    
+    @Column(name="last_sent")
+    private Long lastSent;
 
     public Integer getId() {
         return id;
@@ -111,5 +114,13 @@ public class ApuSource {
     public void setDateImported(ZonedDateTime dateImported) {
         this.dateImported = dateImported;
     }
+
+	public Long getLastSent() {
+		return lastSent;
+	}
+
+	public void setLastSent(Long lastSent) {
+		this.lastSent = lastSent;
+	}
 
 }

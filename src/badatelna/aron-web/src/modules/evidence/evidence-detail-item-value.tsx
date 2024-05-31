@@ -7,6 +7,7 @@ import { useStyles } from './styles';
 import { ApuEntitySimplified } from '../../types';
 import { formatUnitDate } from '../../common-utils';
 import { EvidenceJSONDisplay } from './evidence-json-display';
+import { useIntl } from 'react-intl';
 
 export function EvidenceDetailItemValue({
   value,
@@ -20,12 +21,13 @@ export function EvidenceDetailItemValue({
   apu?: ApuEntitySimplified;
 }) {
   const classes = useStyles();
+  const intl = useIntl();
 
   let result: string | JSX.Element = value;
 
   switch (type) {
     case ApuPartItemDataType.UNITDATE:
-      result = formatUnitDate(value);
+      result = formatUnitDate(value, intl);
       break;
     case ApuPartItemDataType.APU_REF:
       result = (
@@ -39,8 +41,8 @@ export function EvidenceDetailItemValue({
           {apu && get(apu, 'description') ? (
             <span>, {get(apu, 'description')}</span>
           ) : (
-            <></>
-          )}
+              <></>
+            )}
         </span>
       );
       break;
@@ -52,13 +54,13 @@ export function EvidenceDetailItemValue({
           rel="noreferrer"
           className={classes.link}
         >
-          {value}
+          {value || href}
         </a>
       );
       break;
     case ApuPartItemDataType.JSON:
-        result = <EvidenceJSONDisplay jsonString={value}/>;
-        break;
+      result = <EvidenceJSONDisplay jsonString={value} />;
+      break;
   }
 
   return <span>{result}</span>;

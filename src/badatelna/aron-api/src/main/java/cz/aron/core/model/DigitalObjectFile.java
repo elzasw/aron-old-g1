@@ -26,9 +26,10 @@ public class DigitalObjectFile extends DomainObject<DigitalObjectFile> {
     @Enumerated(EnumType.STRING)
     private DigitalObjectType type;
 
-    @OneToMany(mappedBy = "file", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "file", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
+    @JsonIgnore
     private List<Metadatum> metadata = new ArrayList<>();
 
     @OneToOne

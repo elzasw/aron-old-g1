@@ -3,6 +3,7 @@ package cz.aron.transfagent.elza;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,7 +16,10 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.xml.ws.soap.SOAPFaultException;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -519,16 +523,23 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
         exportRequest.setEntities(entitiesRequest);
         var exportService = elzaExportService.get();
         
-        ExportResponseData response;
-        try {        
-            response = exportService.exportData(exportRequest);
-        } catch( ExportRequestException ere ) {
-            // Elza was called but entity was not exported
-            // -> entity is not available for download
-            log.info("Entity is not available in the Elza, id={}, elzaId={}, uuid={}", 
-                     ae.getId(), ae.getElzaId(), ae.getUuid());
-            throw new NotAvailableException(ae);
-        }
+		ExportResponseData response;
+		try {
+			response = exportService.exportData(exportRequest);
+		} catch (ExportRequestException ere) {
+			// Elza was called but entity was not exported
+			// -> entity is not available for download
+			log.info("Entity is not available in the Elza, id={}, elzaId={}, uuid={}, message={}", ae.getId(),
+					ae.getElzaId(), ae.getUuid(), ere.getMessage());
+			throw new NotAvailableException(ae);
+		} catch (SOAPFaultException sfEx) {
+			if (StringUtils.contains(sfEx.getMessage(), "Entity has been deleted")) {
+				log.info("Entity is deleted in the Elza, id={}, elzaId={}, uuid={}", ae.getId(), ae.getElzaId(),
+						ae.getUuid());
+				throw new NotAvailableException(ae);
+			}
+			throw sfEx;
+		}
 
         var dataHandler = response.getBinData();
         
@@ -538,8 +549,21 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
             Files.deleteIfExists(prevApPath);
             Files.move(targetApPath, prevApPath);
         }
+        
         try(var os = Files.newOutputStream(targetApPath)) {
             dataHandler.writeTo(os);
+        } catch (NoSuchFileException e) {
+        	log.warn("Target path not exist {}", targetApPath,e);
+        	// zkusim jeste jednou pro pripad, kdy byl smazan adresar
+        	try {
+        		Files.createDirectories(dir);
+        		try(var os = Files.newOutputStream(targetApPath)) {
+        			dataHandler.writeTo(os);
+        		}
+        	} catch (IOException e1) {
+        		log.error("Fail to write downloaded ap",e);
+                throw new IllegalStateException(e);
+        	}        	
         } catch (IOException e) {
             log.error("Fail to write downloaded ap",e);
             throw new IllegalStateException(e);
@@ -609,7 +633,9 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
             try {
                 downloadEntity(archEntity, apuDir);
             } catch (NotAvailableException e) {
-                markEntityAsNotAvailable(archEntity);
+            	transactionTemplate.executeWithoutResult(t -> {
+            		markEntityAsNotAvailable(archEntity);
+            	});
                 return Result.NOCHANGES;
             } catch(IOException e) {
                 log.error("Failed to download entity, targetDir: {}", apuDir.toString(), e);

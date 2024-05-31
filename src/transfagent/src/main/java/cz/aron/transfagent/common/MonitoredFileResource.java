@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ public abstract class MonitoredFileResource<R> {
 	private R resource = null;
 
 	public MonitoredFileResource(Path monitoredPath) {
+		Objects.requireNonNull(monitoredPath, "Monitored path cannot be null");
 		this.monitoredPath = monitoredPath;
 		this.checkInterval = 5000;
 	}
@@ -42,21 +44,21 @@ public abstract class MonitoredFileResource<R> {
 	}
 
 	public void checkModified() {
-		if (monitoredPath != null && (System.currentTimeMillis() - lastCheck) > checkInterval) {			
-			Path mappingFile = monitoredPath;
-			if (!Files.isRegularFile(mappingFile)) {
+		if ((System.currentTimeMillis() - lastCheck) > checkInterval) {
+			if (!Files.isRegularFile(monitoredPath)) {
 				// soubor byl smazan
 				resource = null;
-				lastCheck = System.currentTimeMillis();
-				return;
-			}
-			try {
-				FileTime lastMod = Files.getLastModifiedTime(mappingFile);
-				if (lastModification == null || lastMod.compareTo(lastModification) != 0) {
-					resource = reloadResources();
+				lastModification = null;
+			} else {
+				try {
+					FileTime lastMod = Files.getLastModifiedTime(monitoredPath);
+					if (lastModification == null || lastMod.compareTo(lastModification) != 0) {
+						resource = reloadResources();
+						lastModification = lastMod;
+					}
+				} catch (IOException ioEx) {
+					log.error("Fail to update monitored resource from {}", monitoredPath, ioEx);
 				}
-			} catch (IOException ioEx) {
-				log.error("Fail to update monitored resource from {}", monitoredPath, ioEx);
 			}
 			lastCheck = System.currentTimeMillis();
 		}
@@ -64,6 +66,8 @@ public abstract class MonitoredFileResource<R> {
 
 	/**
 	 * Nahrat resource z cesty
+	 * 
+	 * Pokud je zavolano tak soubor jehoz cesta je v monitoredPath existuje
 	 */
 	public abstract R reloadResources();
 	

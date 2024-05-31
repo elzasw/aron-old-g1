@@ -11,6 +11,12 @@ import org.springframework.context.annotation.Configuration;
 public class ConfigDaoFileStore2 {
 
 	private Path path;
+	
+	// stary format
+	private boolean oldFormat = false;
+	
+	// interval znovunacteni v minutach
+	private int refresh = 10;
 
 	public Path getPath() {
 		return path;
@@ -18,6 +24,22 @@ public class ConfigDaoFileStore2 {
 
 	public void setPath(String path) {
 		this.path = Paths.get(path);
+	}
+
+	public boolean isOldFormat() {
+		return oldFormat;
+	}
+
+	public void setOldFormat(boolean oldFormat) {
+		this.oldFormat = oldFormat;
+	}
+
+	public int getRefresh() {
+		return refresh;
+	}
+
+	public void setRefresh(int refresh) {
+		this.refresh = refresh;
 	}
 
 }

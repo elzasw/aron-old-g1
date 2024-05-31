@@ -164,14 +164,15 @@ public class Peva2ImportFunds extends Peva2Downloader {
     protected boolean processCommand(Path path, Peva2CodeListProvider codeListProvider) {
         var fileName = path.getFileName().toString();
         String id;
-        if (fileName.startsWith(institutionPrefix)) {
-            id = fileName.substring(institutionPrefix.length());
-        } else if (peva2.isMainConnection() && fileName.startsWith(PREFIX_DASH)) {
-            id = fileName.substring(PREFIX_DASH.length());
-        } else {
-            // not my command
-            return false;
-        }
+		if (fileName.startsWith(institutionPrefix)) {
+			id = fileName.substring(institutionPrefix.length());
+		} else if (peva2.isMainConnection() && fileName.startsWith(PREFIX_DASH)
+				&& fileName.length() == (PREFIX_DASH.length() + 36)) {
+			id = fileName.substring(PREFIX_DASH.length());
+		} else {
+			// not my command
+			return false;
+		}
 
         var gnsReq = new GetNadSheetRequest();
         gnsReq.setId(id);

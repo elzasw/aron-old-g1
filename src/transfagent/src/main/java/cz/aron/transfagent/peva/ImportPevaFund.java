@@ -36,9 +36,11 @@ import cz.aron.transfagent.config.ConfigurationLoader;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.ArchDesc;
 import cz.aron.transfagent.domain.Fund;
+import cz.aron.transfagent.elza.ApTypeService;
 import cz.aron.transfagent.elza.ImportArchDesc;
 import cz.aron.transfagent.peva.ImportPevaFundInfo.FundIgnored;
 import cz.aron.transfagent.peva.ImportPevaFundInfo.FundProvider;
+import cz.aron.transfagent.peva.ImportPevaFundInfo.FundRemoved;
 import cz.aron.transfagent.repository.ArchDescRepository;
 import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
@@ -94,6 +96,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
     private final DaoImportService daoImportService;
     
     private final DaoFileStore3Service daoFileStore3Service;
+    
+    private final ApTypeService apTypeService;
 
 	public ImportPevaFund(FundRepository fundRepository, InstitutionRepository institutionRepository,
 			DatabaseDataProvider databaseDataProvider, ConfigurationLoader configurationLoader, ConfigPeva2 configPeva2,
@@ -101,7 +105,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			Peva2CodeListDownloader codeListDownloader, Peva2CachedEntityDownloader entityDownloader,
 			ArchivalEntityService archivalEntityService, AttachmentService attachmentService,
 			ArchDescRepository archDescRepository, DaoImportService daoImportService,
-			@Nullable DaoFileStore3Service daoFileStore3Service) {
+			@Nullable DaoFileStore3Service daoFileStore3Service,ApTypeService apTypeService) {
 		super();
 		this.fundRepository = fundRepository;
 		this.institutionRepository = institutionRepository;
@@ -118,6 +122,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		this.archDescRepository = archDescRepository;
 		this.daoImportService = daoImportService;
 		this.daoFileStore3Service = daoFileStore3Service;
+		this.apTypeService = apTypeService;
 	}
     
 	@Override
@@ -171,7 +176,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
         
         var archDescRoot = getArchDescUUID(fund);
 
-        var ifi = new ImportPevaFundInfo(configPeva2.getFundProperties());
+        var ifi = new ImportPevaFundInfo(configPeva2.getFundProperties(), apTypeService, storageService);
         ApuSourceBuilder apusrcBuilder;
  
 		try {
@@ -184,6 +189,17 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			log.error("Fail to import fund, fail to parse data, path={}", fundXml, e);
 			throw new IllegalStateException(e);
 		} catch (FundIgnored fu) {
+			return true;
+		} catch (FundRemoved fr) {
+			if (fund != null) {
+				tt.executeWithoutResult(t->{
+					var fund2 = fundRepository.findByCode(fundCode);
+					if (fund!=null) {
+						fund2.getApuSource().setDeleted(true);
+						log.info("Fund marked deleted {}", fundCode);
+					}
+				});
+			}
 			return true;
 		}
         
@@ -249,6 +265,11 @@ public class ImportPevaFund implements FundImporter, FundProvider {
             archivalEntityService.registerAccessibleEntities(originatorUuids, ImportPevaOriginator.ENTITY_CLASS, fnd.getApuSource());
             var geoUuids = ifi.getGeos().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
             archivalEntityService.registerAccessibleEntities(geoUuids, ImportPevaGeo.ENTITY_CLASS, fnd.getApuSource());
+            if(!ifi.getCAMOriginatorIds().isEmpty()) {
+				var camUuids = ifi.getCAMOriginatorIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
+				archivalEntityService.registerAccessibleEntities(camUuids, null,
+						fund.getApuSource());
+			}
             attachmentService.updateAttachments(fnd.getApuSource(), apusrcBuilder, attachments);
             if (daoFileStore3Service!=null) {
                 daoImportService.updateDaos(fnd.getApuSource(), daos);
@@ -295,7 +316,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		
 		var fileName = PREFIX + fund.getCode() + ".xml";		
 		ApuSourceBuilder apuSourceBuilder;
-		var ifi = new ImportPevaFundInfo(configPeva2.getFundProperties());
+		var ifi = new ImportPevaFundInfo(configPeva2.getFundProperties(), apTypeService, storageService);
 		try {
 			apuSourceBuilder = ifi.importFundInfo(apuPath.resolve(fileName), fund.getUuid(), databaseDataProvider, this,
 					codeListProvider, entityDownloader, getArchDescUUID(fund));
@@ -317,8 +338,11 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			apuSourceBuilder.build(baos, new ApuValidator(configurationLoader.getConfig()));
 			byte [] newContent = baos.toByteArray();
-			if (StorageService.isContentEqual(apuSrcXmlPath, newContent)) {
-				return ReimportProcessor.Result.NOCHANGES;
+			if (StorageService.isContentEqual(apuSrcXmlPath, newContent)) {				
+				// zjistim jestli nebyla odeslana nejaka novejsi entita do aron core
+				if(ifi.getCAMOriginatorIds().isEmpty()||camEntitiesNotChanged(ifi.getCAMOriginatorIds(), apuSource.getLastSent())) {				
+					return ReimportProcessor.Result.NOCHANGES;
+				}
 			}
 			Files.write(apuSrcXmlPath, newContent);
 			
@@ -330,6 +354,11 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 							.collect(Collectors.toList());
 					archivalEntityService.registerAccessibleEntities(uuids, ImportPevaOriginator.ENTITY_CLASS,
 							fund.getApuSource());
+					if(!ifi.getCAMOriginatorIds().isEmpty()) {
+						var camUuids = ifi.getCAMOriginatorIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
+						archivalEntityService.registerAccessibleEntities(camUuids, null,
+								fund.getApuSource());
+					}					
 					attachmentService.updateAttachments(apuSource, apuSourceBuilder, attachments);
 					if (daoFileStore3Service!=null) {
 					    daoImportService.updateDaos(apuSource,daos);
@@ -346,6 +375,27 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		log.info("Fund id={}, uuid={} reimported", fund.getId(), fund.getUuid());
 		return ReimportProcessor.Result.REIMPORTED;
 	}
+	
+	
+	private boolean camEntitiesNotChanged(List<String> uuids, Long lastSent) {		
+		if (lastSent==null) {
+			// jeste nebylo odeslano, nemelo by nastat
+			return false;
+		}		
+		List<UUID> tmp = uuids.stream().map(uuid->UUID.fromString(uuid)).collect(Collectors.toList());		
+		for(var aeSourceInfo :archivalEntityService.getArchEntityApuSourcesWithScheduled(tmp)) {
+			if (aeSourceInfo.getLastSent()!=null && aeSourceInfo.getLastSent()>lastSent) {
+				// byla odeslana novejsi entita
+				return false;
+			}
+			if (aeSourceInfo.getLastScheduled()!=null) {
+				// bude odeslana novejsi entita
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	
 	private List<Path> readAllAttachments(ApuSource apuSource, Fund fund, ApuSourceBuilder apuSourceBuilder) {
 		var ret = new ArrayList<Path>();

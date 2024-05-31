@@ -25,7 +25,7 @@ export const useStyles = makeStyles((theme) => {
     breadcrumbsWrapper: {
       position: 'sticky',
       // top: appHeaderHeight,
-      zIndex: 10,
+      zIndex: 20,
       height: breadcrumbsHeight,
       borderBottom: border,
       background: '#fff',

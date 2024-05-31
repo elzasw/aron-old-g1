@@ -33,6 +33,8 @@ public class ConfigPeva2 {
     
     private ConfigPeva2FindingAidProperties findingAidProperties;
     
+    private ConfigPeva2OriginatorProperties originatorProperties;
+    
     private List<ConfigPeva2InstitutionCredentials> institutions;
     
     public ConfigPeva2() {
@@ -144,5 +146,14 @@ public class ConfigPeva2 {
     public void setInstitutions(List<ConfigPeva2InstitutionCredentials> institutions) {
         this.institutions = institutions;
     }
+
+	public ConfigPeva2OriginatorProperties getOriginatorProperties() {
+		return originatorProperties;
+	}
+
+	public void setOriginatorProperties(ConfigPeva2OriginatorProperties originatorProperties) {
+		this.originatorProperties = originatorProperties;
+	}
+
 
 }

@@ -464,7 +464,23 @@
     <modifyDataType columnName="name"
         newDataType="varchar(255)"
         tableName="property"/>
-
   </changeSet>
+  
+  <changeSet id="8" author="karel.zacek@lightcomp.cz">
+    <modifyDataType columnName="core_queue_id"
+        newDataType="bigint"
+        tableName="core_queue"/>
+    <addColumn tableName="apu_source">
+      <column name="last_sent" type="bigint"/>
+    </addColumn>
+  </changeSet>
+  
+ <changeSet author="karel.zacek@lightcomp.cz" id="8-h2" dbms="h2">
+        <addAutoIncrement
+            columnDataType="bigint"
+            columnName="core_queue_id"
+            tableName="core_queue"/>
+ </changeSet>
+
 
 </databaseChangeLog>

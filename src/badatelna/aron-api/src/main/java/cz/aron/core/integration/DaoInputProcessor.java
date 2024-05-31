@@ -39,7 +39,7 @@ public class DaoInputProcessor {
         try (StringReader reader = new StringReader(metadata)) {
             dao = JAXB.unmarshal(reader, Dao.class);
         }
-        DigitalObject digitalObject = digitalObjectStore.find(dao.getUuid());
+        DigitalObject digitalObject = digitalObjectStore.findFetchAll(dao.getUuid());
         if (digitalObject == null) {
             throw new RuntimeException("Digital object base not found.");
         }

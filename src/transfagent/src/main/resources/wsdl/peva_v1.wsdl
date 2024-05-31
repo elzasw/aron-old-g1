@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:sch="https://portal.nacr.cz/peva" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="https://portal.nacr.cz/peva" targetNamespace="https://portal.nacr.cz/peva">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:sch="https://portal.nacr.cz/peva" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="https://portal.nacr.cz/peva" targetNamespace="https://portal.nacr.cz/peva">
   <wsdl:types>
     <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="https://portal.nacr.cz/peva" version="1.0">
   <xs:element name="ActivateAccessibilityRequest" type="tns:ActivateAccessibilityRequest"/>
@@ -286,6 +285,7 @@
   <xs:element name="GetMainEvidenceUnitTypeResponse" type="tns:GetMainEvidenceUnitTypeResponse"/>
   <xs:element name="GetNadSheetRequest" type="tns:GetNadSheetRequest"/>
   <xs:element name="GetNadSheetResponse" type="tns:GetNadSheetResponse"/>
+  <xs:element name="GetOriginatorByCamUuidRequest" type="tns:GetOriginatorByCamUuidRequest"/>
   <xs:element name="GetOriginatorNameTypeRequest" type="tns:GetOriginatorNameTypeRequest"/>
   <xs:element name="GetOriginatorNameTypeResponse" type="tns:GetOriginatorNameTypeResponse"/>
   <xs:element name="GetOriginatorRequest" type="tns:GetOriginatorRequest"/>
@@ -690,12 +690,17 @@ Identifikátor entity 'Department'
               </xs:documentation>
             </xs:annotation>
           </xs:element>
-          <xs:element minOccurs="0" name="evidenceNumber" type="xs:string">
-            <xs:annotation>
-              <xs:documentation>
-                Evidenční číslo
-              </xs:documentation>
-            </xs:annotation>
+          <xs:element minOccurs="0" name="evidenceNumber">
+            <xs:simpleType>
+              <xs:annotation>
+                <xs:documentation>
+                  Evidenční číslo
+                </xs:documentation>
+              </xs:annotation>
+              <xs:restriction base="xs:string">
+                <xs:pattern value="[0-9]+"/>
+              </xs:restriction>
+            </xs:simpleType>
           </xs:element>
           <xs:element minOccurs="0" name="partNumber" type="xs:string">
             <xs:annotation>
@@ -909,6 +914,13 @@ Identifikátor entity 'Institution'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -1274,12 +1286,17 @@ Identifikátor entity 'FindingAid'
               </xs:documentation>
             </xs:annotation>
           </xs:element>
-          <xs:element minOccurs="0" name="evidenceNumber" type="xs:string">
-            <xs:annotation>
-              <xs:documentation>
-                Evidenční číslo
-              </xs:documentation>
-            </xs:annotation>
+          <xs:element minOccurs="0" name="evidenceNumber">
+            <xs:simpleType>
+              <xs:annotation>
+                <xs:documentation>
+                  Evidenční číslo
+                </xs:documentation>
+              </xs:annotation>
+              <xs:restriction base="xs:string">
+                <xs:pattern value="[0-9]+"/>
+              </xs:restriction>
+            </xs:simpleType>
           </xs:element>
           <xs:element minOccurs="0" name="partNumber" type="xs:string">
             <xs:annotation>
@@ -1331,6 +1348,13 @@ Identifikátor entity 'FindingAid'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -1371,11 +1395,10 @@ Identifikátor entity 'FindingAid'
               </xs:documentation>
             </xs:annotation>
           </xs:element>
-          <xs:element minOccurs="0" name="target" type="tns:UUID">
+          <xs:element minOccurs="0" name="target" type="tns:ChangeNadPrimarySheet">
             <xs:annotation>
               <xs:documentation>
                 List NAD
-Identifikátor entity 'NadSheet'
               </xs:documentation>
             </xs:annotation>
           </xs:element>
@@ -1445,6 +1468,64 @@ Identifikátor entity 'NadSheet'
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ChangeNadPrimarySheet">
+    <xs:annotation>
+      <xs:documentation>
+        List NAD (pro změnu) - hlavní
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element minOccurs="0" name="id" type="tns:UUID">
+        <xs:annotation>
+          <xs:documentation>
+            Identifikátor entity (UUID)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" name="evidenceNumber">
+        <xs:simpleType>
+          <xs:annotation>
+            <xs:documentation>
+              Číslo evidenčního listu NAD
+            </xs:documentation>
+          </xs:annotation>
+          <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]+"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element minOccurs="0" name="header" type="tns:ChangeNadHeader">
+        <xs:annotation>
+          <xs:documentation>
+            Archivní soubor (pro změnu) - záhlaví
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChangeNadHeader">
+    <xs:annotation>
+      <xs:documentation>
+        Archivní soubor (pro změny) - záhlaví
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element minOccurs="0" name="name" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>
+            Název
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" name="evidenceStatus" type="tns:EvidenceStatus">
+        <xs:annotation>
+          <xs:documentation>
+            Evidenční status
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
   </xs:complexType>
   <xs:complexType name="EvidenceUnitProcedure">
     <xs:sequence>
@@ -1645,6 +1726,13 @@ Jenom pro dílčí evidenční jednotky
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="type" type="tns:InternalChangeTypeCode" use="required">
           <xs:annotation>
             <xs:documentation>
@@ -1728,12 +1816,17 @@ Identifikátor entity 'Department'
               </xs:documentation>
             </xs:annotation>
           </xs:element>
-          <xs:element minOccurs="0" name="evidenceNumber" type="xs:string">
-            <xs:annotation>
-              <xs:documentation>
-                Evidenční číslo
-              </xs:documentation>
-            </xs:annotation>
+          <xs:element minOccurs="0" name="evidenceNumber">
+            <xs:simpleType>
+              <xs:annotation>
+                <xs:documentation>
+                  Evidenční číslo
+                </xs:documentation>
+              </xs:annotation>
+              <xs:restriction base="xs:string">
+                <xs:pattern value="[0-9]+"/>
+              </xs:restriction>
+            </xs:simpleType>
           </xs:element>
           <xs:element minOccurs="0" name="header" type="tns:InternalChangeMirrorChangeTargetHeaderDto">
             <xs:annotation>
@@ -1860,6 +1953,13 @@ Identifikátor entity 'HandoverPerson'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="type" type="tns:ExternalChangeTypeCode" use="required">
           <xs:annotation>
             <xs:documentation>
@@ -2000,6 +2100,13 @@ Hodnota s přesností na dvě desetiné místa. Musí být menší než 10 000.
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -2186,12 +2293,17 @@ Identifikátor entity 'Department'
               </xs:documentation>
             </xs:annotation>
           </xs:element>
-          <xs:element minOccurs="0" name="evidenceNumber" type="xs:string">
-            <xs:annotation>
-              <xs:documentation>
-                Evidenční číslo
-              </xs:documentation>
-            </xs:annotation>
+          <xs:element minOccurs="0" name="evidenceNumber">
+            <xs:simpleType>
+              <xs:annotation>
+                <xs:documentation>
+                  Evidenční číslo
+                </xs:documentation>
+              </xs:annotation>
+              <xs:restriction base="xs:string">
+                <xs:pattern value="[0-9]+"/>
+              </xs:restriction>
+            </xs:simpleType>
           </xs:element>
           <xs:element minOccurs="0" name="header" type="tns:ExternalChangeMirrorChangeTargetHeaderDto">
             <xs:annotation>
@@ -2264,6 +2376,13 @@ Identifikátor entity 'FindingAid'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -2358,6 +2477,13 @@ Identifikátor entity číselníku
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -2427,6 +2553,13 @@ Identifikátor entity číselníku
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -2571,6 +2704,13 @@ Identifikátor entity 'MainEvidenceUnitType'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -2624,6 +2764,13 @@ Identifikátor entity 'MainEvidenceUnitType'
             </xs:complexType>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -2672,6 +2819,13 @@ Identifikátor entity 'MainEvidenceUnitType'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -2699,6 +2853,13 @@ Identifikátor entity 'MainEvidenceUnitType'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -2755,6 +2916,13 @@ Identifikátor entity 'Language'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -2789,6 +2957,13 @@ Identifikátor entity 'Language'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -2838,6 +3013,13 @@ Identifikátor entity 'ThematicEvidenceGroup'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -3071,6 +3253,13 @@ Identifikátor entity 'OriginatorSubClass'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -3087,13 +3276,6 @@ Identifikátor entity 'OriginatorSubClass'
             <xs:annotation>
               <xs:documentation>
                 Vedlejší část jména
-              </xs:documentation>
-            </xs:annotation>
-          </xs:element>
-          <xs:element minOccurs="0" name="generalSupplement" type="xs:string">
-            <xs:annotation>
-              <xs:documentation>
-                Obecný doplněk
               </xs:documentation>
             </xs:annotation>
           </xs:element>
@@ -3335,6 +3517,13 @@ Identifikátor entity 'OriginatorNameType'
             <xs:annotation>
               <xs:documentation>
                 Chronologický doplněk jména
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element minOccurs="0" name="distinctiveSupplement" type="xs:int">
+            <xs:annotation>
+              <xs:documentation>
+                Odlišující doplněk
               </xs:documentation>
             </xs:annotation>
           </xs:element>
@@ -3826,6 +4015,13 @@ http://frnk.lightcomp.cz/download/cam/doc/ontology/classes.html
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -3881,6 +4077,13 @@ http://frnk.lightcomp.cz/download/cam/doc/ontology/classes.html
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -3908,6 +4111,13 @@ http://frnk.lightcomp.cz/download/cam/doc/ontology/classes.html
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -3963,6 +4173,13 @@ http://frnk.lightcomp.cz/download/cam/doc/ontology/classes.html
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -3983,6 +4200,13 @@ http://frnk.lightcomp.cz/download/cam/doc/ontology/classes.html
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -4024,6 +4248,13 @@ http://frnk.lightcomp.cz/download/cam/doc/ontology/classes.html
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="module" type="tns:SequenceModuleType" use="required">
           <xs:annotation>
             <xs:documentation>
@@ -4072,6 +4303,13 @@ http://frnk.lightcomp.cz/download/cam/doc/ontology/classes.html
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -4099,6 +4337,13 @@ http://frnk.lightcomp.cz/download/cam/doc/ontology/classes.html
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -4140,6 +4385,13 @@ http://frnk.lightcomp.cz/download/cam/doc/ontology/classes.html
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -4475,12 +4727,17 @@ Identifikátor entity 'Language'
     <xs:complexContent>
       <xs:extension base="tns:NadSheet">
         <xs:sequence>
-          <xs:element minOccurs="0" name="evidenceNumber" type="xs:string">
-            <xs:annotation>
-              <xs:documentation>
-                Číslo evidenčního listu NAD
-              </xs:documentation>
-            </xs:annotation>
+          <xs:element minOccurs="0" name="evidenceNumber">
+            <xs:simpleType>
+              <xs:annotation>
+                <xs:documentation>
+                  Číslo evidenčního listu NAD
+                </xs:documentation>
+              </xs:annotation>
+              <xs:restriction base="xs:string">
+                <xs:pattern value="[0-9]+"/>
+              </xs:restriction>
+            </xs:simpleType>
           </xs:element>
           <xs:element minOccurs="0" name="state" type="tns:State">
             <xs:annotation>
@@ -4720,6 +4977,13 @@ Seznam identifikátorů entity 'Originator'
             </xs:annotation>
           </xs:element>
         </xs:sequence>
+        <xs:attribute name="version" type="xs:int" use="required">
+          <xs:annotation>
+            <xs:documentation>
+              Verze záznamu
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -5034,6 +5298,18 @@ element instead.
             Set a limit for number of returned items.
           </xs:documentation>
         </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" name="includes">
+        <xs:annotation>
+          <xs:documentation>
+            Modifies the search to return items of specific state
+          </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="include" type="tns:Include"/>
+          </xs:sequence>
+        </xs:complexType>
       </xs:element>
       <xs:element minOccurs="0" name="searchAfter" type="xs:string">
         <xs:annotation>
@@ -7155,6 +7431,13 @@ element) to retrieve next page of items.
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  <xs:complexType name="GetOriginatorByCamUuidRequest">
+    <xs:complexContent>
+      <xs:extension base="tns:GetDictionaryRequest">
+        <xs:all/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="GetGeoObjectRequest">
     <xs:complexContent>
       <xs:extension base="tns:GetDictionaryRequest">
@@ -8806,418 +9089,2368 @@ element) to retrieve next page of items.
   </xs:complexType>
   <xs:simpleType name="ElectronicFindingAidStandard" tns:id="CA0011">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="apeEAD123"/>
-      <xs:enumeration value="apeEAD2"/>
-      <xs:enumeration value="EAD3"/>
-      <xs:enumeration value="SUZAP"/>
-      <xs:enumeration value="NO_STANDARD"/>
+      <xs:enumeration value="apeEAD123">
+        <xs:annotation>
+          <xs:documentation>
+            Standard apeEAD pro validaci elektronické archivní pomůcky verze 1.4
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="apeEAD2">
+        <xs:annotation>
+          <xs:documentation>
+            Standard apeEAD pro validaci elektronické archivní pomůcky verze 2.0
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EAD3">
+        <xs:annotation>
+          <xs:documentation>
+            Standard apeEAD pro validaci elektronické archivní pomůcky verze 3.0
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SUZAP">
+        <xs:annotation>
+          <xs:documentation>
+            Standard SUZAP pro validaci elektronické archivní pomůcky
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NO_STANDARD">
+        <xs:annotation>
+          <xs:documentation>
+            Elektronická pomůcka bez validace vůči standardu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="OwnerType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="HOLDER"/>
-      <xs:enumeration value="OWNER"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="LengthUnitType" tns:id="CA0011">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="M"/>
-      <xs:enumeration value="CM"/>
-      <xs:enumeration value="MM"/>
-      <xs:enumeration value="KM"/>
-      <xs:enumeration value="IN"/>
-      <xs:enumeration value="FT"/>
-      <xs:enumeration value="YD"/>
-      <xs:enumeration value="MI"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="DigitalUnitType" tns:id="CA0011">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="BYTE"/>
-      <xs:enumeration value="KB"/>
-      <xs:enumeration value="MB"/>
-      <xs:enumeration value="GB"/>
-      <xs:enumeration value="TB"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="CountUnitType" tns:id="CA0011">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="SINGLE"/>
-      <xs:enumeration value="DOZEN"/>
-      <xs:enumeration value="PAIR"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="EvidenceUnitTypeClass">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="MAIN"/>
-      <xs:enumeration value="PARTIAL"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="EvidenceUnitFormType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="ANALOG"/>
-      <xs:enumeration value="DIGITAL"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="InternalChangeTypeCode" tns:id="CA0002">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="GE_01"/>
-      <xs:enumeration value="GE_02"/>
-      <xs:enumeration value="GE_03"/>
-      <xs:enumeration value="DE_11"/>
-      <xs:enumeration value="DE_11a"/>
-      <xs:enumeration value="DE_11b"/>
-      <xs:enumeration value="DE_11c"/>
-      <xs:enumeration value="DE_12"/>
-      <xs:enumeration value="DE_13"/>
-      <xs:enumeration value="DE_21"/>
-      <xs:enumeration value="IN_91"/>
-      <xs:enumeration value="DE_22"/>
-      <xs:enumeration value="IN_92"/>
-      <xs:enumeration value="DE_23"/>
-      <xs:enumeration value="IN_93"/>
-      <xs:enumeration value="IN_31"/>
-      <xs:enumeration value="IN_31a"/>
-      <xs:enumeration value="IN_31b"/>
-      <xs:enumeration value="IN_32"/>
-      <xs:enumeration value="IN_32a"/>
-      <xs:enumeration value="IN_32b"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ExternalChangeTypeCode" tns:id="CA0002">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="IN_1"/>
-      <xs:enumeration value="IN_2"/>
-      <xs:enumeration value="IN_11"/>
-      <xs:enumeration value="IN_21"/>
-      <xs:enumeration value="IN_1"/>
-      <xs:enumeration value="IN_22"/>
-      <xs:enumeration value="IN_13"/>
-      <xs:enumeration value="IN_23"/>
-      <xs:enumeration value="IN_3"/>
-      <xs:enumeration value="IN_4"/>
-      <xs:enumeration value="DE_51"/>
-      <xs:enumeration value="DE_52"/>
-      <xs:enumeration value="DE_53"/>
-      <xs:enumeration value="DE_54"/>
-      <xs:enumeration value="DE_55"/>
-      <xs:enumeration value="DE_56"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="CulturalMonument" tns:id="CA0011">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="YES"/>
-      <xs:enumeration value="NO"/>
-      <xs:enumeration value="UNDEFINED"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ExternalChangeIncreaseTypeType" tns:id="CA0011">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="STORED_IN_ARCHIVE"/>
-      <xs:enumeration value="DEPOSIT"/>
-      <xs:enumeration value="OUTSIDE_SHREDDING"/>
-      <xs:enumeration value="SHREDDING"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="FormType" tns:id="CA0011">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="PAPER_FORM"/>
-      <xs:enumeration value="ELECTRONIC_FORM"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="Classification" tns:id="CA0011">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="BASIC"/>
-      <xs:enumeration value="SPECIAL"/>
-      <xs:enumeration value="REFERENCE"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ReportProcessing" tns:id="CA0011">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="NONE"/>
-      <xs:enumeration value="PROCESSED_NOT_INVENTARIZED"/>
-      <xs:enumeration value="PROCESSED_INVENTARIZED"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="OriginatorClass">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="PARTY_GROUP"/>
-      <xs:enumeration value="EVENT"/>
-      <xs:enumeration value="DYNASTY"/>
-      <xs:enumeration value="GEO_OBJECT"/>
-      <xs:enumeration value="PERSON"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="Dating">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="ORIGIN"/>
-      <xs:enumeration value="END"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ExternalIdType" tns:id="CA0002">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="INTERPI"/>
-      <xs:enumeration value="RUIAN"/>
-      <xs:enumeration value="CAM"/>
-      <xs:enumeration value="CAM_UUID"/>
-      <xs:enumeration value="ISO2"/>
-      <xs:enumeration value="ISO3"/>
-      <xs:enumeration value="NUTSLAU"/>
-      <xs:enumeration value="ARCHNUM"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="PersonType" tns:id="CA0011">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="UNDEFINED"/>
-      <xs:enumeration value="UNKNOWN"/>
-      <xs:enumeration value="NATURAL_PERSON"/>
-      <xs:enumeration value="LEGAL_PERSON"/>
-      <xs:enumeration value="SPECIAL"/>
-      <xs:enumeration value="INSTITUTION"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="SequenceModuleType">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="NAD_PRIMARY_SHEET"/>
-      <xs:enumeration value="INTERNAL_CHANGE"/>
-      <xs:enumeration value="EXTERNAL_CHANGE"/>
-      <xs:enumeration value="FINDING_AID"/>
-      <xs:enumeration value="FINDING_AID_COPY"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="DamageType" tns:id="CA0011">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="FRAGILE"/>
-      <xs:enumeration value="TORN"/>
-      <xs:enumeration value="MOLD"/>
-      <xs:enumeration value="INSECT"/>
-      <xs:enumeration value="RODENT"/>
-      <xs:enumeration value="FIRE"/>
-      <xs:enumeration value="HEAT"/>
-      <xs:enumeration value="WATER"/>
-      <xs:enumeration value="CORROSION"/>
-      <xs:enumeration value="EMP"/>
-      <xs:enumeration value="DUST"/>
-      <xs:enumeration value="LIGHT"/>
-      <xs:enumeration value="OTHER"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ArchivalGroupState" tns:id="CA0011">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="OPENED"/>
-      <xs:enumeration value="CLOSED"/>
-      <xs:enumeration value="UNDEFINED"/>
+      <xs:enumeration value="HOLDER">
+        <xs:annotation>
+          <xs:documentation>
+            Držitel
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OWNER">
+        <xs:annotation>
+          <xs:documentation>
+            Vlastník
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="EvidenceStatus" tns:id="CA0011">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="DIRECT_CARE"/>
-      <xs:enumeration value="OUTSIDE_INSTITUTION_CONTRACT"/>
-      <xs:enumeration value="INSIDE_INSTITUTION_CONTRACT"/>
-      <xs:enumeration value="EVIDED_ISSUED_TO_OWNER"/>
-      <xs:enumeration value="EVIDED"/>
+      <xs:enumeration value="DIRECT_CARE">
+        <xs:annotation>
+          <xs:documentation>
+            Archivní soubory v přímé péči instituce, uložené v instituci
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OUTSIDE_INSTITUTION_CONTRACT">
+        <xs:annotation>
+          <xs:documentation>
+            Archivní soubory uložené na základě smlouvy mimo instituci
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INSIDE_INSTITUTION_CONTRACT">
+        <xs:annotation>
+          <xs:documentation>
+            Archivní soubory uložené v instituci na základě smlouvy
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDED_ISSUED_TO_OWNER">
+        <xs:annotation>
+          <xs:documentation>
+            Archivní soubory vydané vlastníkům a archivem evidované
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDED">
+        <xs:annotation>
+          <xs:documentation>
+            Archivní soubory archivem pouze evidované
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="LengthUnitType" tns:id="CA0011">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="M">
+        <xs:annotation>
+          <xs:documentation>
+            Metre
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CM">
+        <xs:annotation>
+          <xs:documentation>
+            Centimetre
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MM">
+        <xs:annotation>
+          <xs:documentation>
+            Millimetre
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KM">
+        <xs:annotation>
+          <xs:documentation>
+            Kilometre
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN">
+        <xs:annotation>
+          <xs:documentation>
+            Inch
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FT">
+        <xs:annotation>
+          <xs:documentation>
+            Foot
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="YD">
+        <xs:annotation>
+          <xs:documentation>
+            Yard
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MI">
+        <xs:annotation>
+          <xs:documentation>
+            Mile
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="DigitalUnitType" tns:id="CA0011">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="BYTE">
+        <xs:annotation>
+          <xs:documentation>
+            Byte
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="KB">
+        <xs:annotation>
+          <xs:documentation>
+            Kilobyte
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MB">
+        <xs:annotation>
+          <xs:documentation>
+            Megabyte
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="GB">
+        <xs:annotation>
+          <xs:documentation>
+            Gigabyte
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TB">
+        <xs:annotation>
+          <xs:documentation>
+            Terabyte
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="CountUnitType" tns:id="CA0011">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="SINGLE">
+        <xs:annotation>
+          <xs:documentation>
+            Basic unit
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DOZEN">
+        <xs:annotation>
+          <xs:documentation>
+            Dozen
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PAIR">
+        <xs:annotation>
+          <xs:documentation>
+            Pair
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="EvidenceUnitTypeClass">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="MAIN">
+        <xs:annotation>
+          <xs:documentation>
+            Hlavní
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PARTIAL">
+        <xs:annotation>
+          <xs:documentation>
+            Dílčí
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="EvidenceUnitFormType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ANALOG">
+        <xs:annotation>
+          <xs:documentation>
+            Analog form type
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DIGITAL">
+        <xs:annotation>
+          <xs:documentation>
+            Digital form type
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="InternalChangeTypeCode" tns:id="CA0002">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="GE_01">
+        <xs:annotation>
+          <xs:documentation>
+            01 - obecná [zpracování, přemanipulování]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="GE_02">
+        <xs:annotation>
+          <xs:documentation>
+            02 - obecná [GI 2012]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="GE_03">
+        <xs:annotation>
+          <xs:documentation>
+            03 - Obecná (GI)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_11">
+        <xs:annotation>
+          <xs:documentation>
+            11 - vnitřní úbytek - části archivního souboru [zničení, nedohledání, vnitřní skartace]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_11a">
+        <xs:annotation>
+          <xs:documentation>
+            11a - vnitřní úbytek - části archivního souboru [vnitřní skartace po přehodnocení významu]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_11b">
+        <xs:annotation>
+          <xs:documentation>
+            11b - vnitřní úbytek - části archivního souboru [zničení]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_11c">
+        <xs:annotation>
+          <xs:documentation>
+            11c - vnitřní úbytek - části archivního souboru [nedohledání]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_12">
+        <xs:annotation>
+          <xs:documentation>
+            12 - vnitřní úbytek - celého archivního souboru [zničení, přehodnocení významu]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_13">
+        <xs:annotation>
+          <xs:documentation>
+            13 - vnitřní úbytek - celého archivního souboru [nedohledání]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_21">
+        <xs:annotation>
+          <xs:documentation>
+            21 - vnitřní přesun - části archivního souboru [zde úbytek] do jiného souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_91">
+        <xs:annotation>
+          <xs:documentation>
+            91 - přesun (inverze k 21) - části archivního souboru [zde přírůstek] z jiného souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_22">
+        <xs:annotation>
+          <xs:documentation>
+            22 - vnitřní přesun - části archivního souboru [zde úbytek] se vznikem nového souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_92">
+        <xs:annotation>
+          <xs:documentation>
+            92 - přesun (inverze k 22) - vznik nového archivního souboru přesunem části jiného souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_23">
+        <xs:annotation>
+          <xs:documentation>
+            23 - vnitřní přesun - celého archivního souboru do jiného souboru [zde úbytek]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_93">
+        <xs:annotation>
+          <xs:documentation>
+            93 - přesun (inverze k 23) - části archivního souboru [zde přírůstek] se zánikem celého souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_31">
+        <xs:annotation>
+          <xs:documentation>
+            31 - vnitřní přírůstek - části archivního souboru [dohledání]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_31a">
+        <xs:annotation>
+          <xs:documentation>
+            31a - vnitřní přírůstek - části archivního souboru [dohledání v neevidovaných archiváliích]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_31b">
+        <xs:annotation>
+          <xs:documentation>
+            31b - vnitřní přírůstek - části archivního souboru [dohledání dříve nedohledaných archiválií]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_32">
+        <xs:annotation>
+          <xs:documentation>
+            32 - vnitřní přírůstek - celého archivního souboru [dohledání] - ZNEPLATNENO
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_32a">
+        <xs:annotation>
+          <xs:documentation>
+            32a - vnitřní přírůstek - celého archivního souboru [dohledání v neevidovaných archiváliích]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_32b">
+        <xs:annotation>
+          <xs:documentation>
+            32b - vnitřní přírůstek - celého archivního souboru [dohledání dříve nedohledaných archiválií]
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ExternalChangeTypeCode" tns:id="CA0002">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="IN_1">
+        <xs:annotation>
+          <xs:documentation>
+            (1) - přírůstek výběrem - k existujícímu archivnímu souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_2">
+        <xs:annotation>
+          <xs:documentation>
+            (2) - přírůstek výběrem - nový archivní soubor
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_11">
+        <xs:annotation>
+          <xs:documentation>
+            (11) - přírůstek výběrem - k existujícímu archivnímu souboru s uložením v archivu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_21">
+        <xs:annotation>
+          <xs:documentation>
+            (21) - přírůstek výběrem - nový archivní soubor s  uložením v archivu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_1">
+        <xs:annotation>
+          <xs:documentation>
+            (12) - přírůstek výběrem - k existujícímu archivnímu souboru bez uložení v archivu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_22">
+        <xs:annotation>
+          <xs:documentation>
+            (22) - přírůstek výběrem - nový archivní soubor bez  uložení v archivu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_13">
+        <xs:annotation>
+          <xs:documentation>
+            (13) - přírůstek s uložením v archivu k existujícímu archivnímu souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_23">
+        <xs:annotation>
+          <xs:documentation>
+            (23) - přírůstek - uložení celého archivního souboru v archivu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_3">
+        <xs:annotation>
+          <xs:documentation>
+            (3) - přírůstek delimitací - k existujícímu archivnímu souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IN_4">
+        <xs:annotation>
+          <xs:documentation>
+            (4) - přírůstek delimitací - celého archivního souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_51">
+        <xs:annotation>
+          <xs:documentation>
+            (51) - úbytek delimitací - části archivního souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_52">
+        <xs:annotation>
+          <xs:documentation>
+            (52) - úbytek delimitací - celého archivního souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_53">
+        <xs:annotation>
+          <xs:documentation>
+            53 - úbytek vydáním - části archivního souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_54">
+        <xs:annotation>
+          <xs:documentation>
+            54 - úbytek vydáním - celého archivního souboru vlastníkovi v ČR
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_55">
+        <xs:annotation>
+          <xs:documentation>
+            55 - úbytek vydáním - celého archivního souboru do zahraničí
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DE_56">
+        <xs:annotation>
+          <xs:documentation>
+            56 - úbytek - uložením celého archivního souboru mimo archiv
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="CulturalMonument" tns:id="CA0011">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="YES">
+        <xs:annotation>
+          <xs:documentation>
+            Ano
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NO">
+        <xs:annotation>
+          <xs:documentation>
+            Ne
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="UNDEFINED">
+        <xs:annotation>
+          <xs:documentation>
+            Není definováno
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ExternalChangeIncreaseTypeType" tns:id="CA0011">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="STORED_IN_ARCHIVE">
+        <xs:annotation>
+          <xs:documentation>
+            uložení v archivu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DEPOSIT">
+        <xs:annotation>
+          <xs:documentation>
+            depozitum jiného subjektu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OUTSIDE_SHREDDING">
+        <xs:annotation>
+          <xs:documentation>
+            mimo skartační řízení
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SHREDDING">
+        <xs:annotation>
+          <xs:documentation>
+            ve skartačním řízení
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="FormType" tns:id="CA0011">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="PAPER_FORM">
+        <xs:annotation>
+          <xs:documentation>
+            Listinná
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ELECTRONIC_FORM">
+        <xs:annotation>
+          <xs:documentation>
+            Elektronická
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="Classification" tns:id="CA0011">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="BASIC">
+        <xs:annotation>
+          <xs:documentation>
+            Základní
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SPECIAL">
+        <xs:annotation>
+          <xs:documentation>
+            Speciální
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="REFERENCE">
+        <xs:annotation>
+          <xs:documentation>
+            Referenční
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ReportProcessing" tns:id="CA0011">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="NONE">
+        <xs:annotation>
+          <xs:documentation>
+            Žádnou
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PROCESSED_NOT_INVENTARIZED">
+        <xs:annotation>
+          <xs:documentation>
+            Zpracovanou ale neinventarizovanou
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PROCESSED_INVENTARIZED">
+        <xs:annotation>
+          <xs:documentation>
+            Zpracovanou a současně inventarizovanou
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="OriginatorClass">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="PARTY_GROUP">
+        <xs:annotation>
+          <xs:documentation>
+            Korporace
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVENT">
+        <xs:annotation>
+          <xs:documentation>
+            Událost
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DYNASTY">
+        <xs:annotation>
+          <xs:documentation>
+            Rod
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="GEO_OBJECT">
+        <xs:annotation>
+          <xs:documentation>
+            Geografický objekt
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PERSON">
+        <xs:annotation>
+          <xs:documentation>
+            Osoba
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="Dating">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ORIGIN">
+        <xs:annotation>
+          <xs:documentation>
+            Počátek
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="END">
+        <xs:annotation>
+          <xs:documentation>
+            Konec
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ExternalIdType" tns:id="CA0002">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="INTERPI">
+        <xs:annotation>
+          <xs:documentation>
+            Systém - Projekt „Interoperabilita v paměťových institucích“ společný projek Národní Knihovny a Národního archivu.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="RUIAN">
+        <xs:annotation>
+          <xs:documentation>
+            Registr územní identifikace, adres a nemovitostí.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CAM">
+        <xs:annotation>
+          <xs:documentation>
+            Centrální archivní modul pro správu archivních entit - EID
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CAM_UUID">
+        <xs:annotation>
+          <xs:documentation>
+            Centrální archivní modul pro správu archivních entit - EUID
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ISO3166_2">
+        <xs:annotation>
+          <xs:documentation>
+            Iso country code, two letters
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ISO3166_3">
+        <xs:annotation>
+          <xs:documentation>
+            Iso country code, three letters
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ISO3166_NUM">
+        <xs:annotation>
+          <xs:documentation>
+            Iso country code, numeric
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ISO3166_PART2">
+        <xs:annotation>
+          <xs:documentation>
+            Iso territorial unit code
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NUTSLAU">
+        <xs:annotation>
+          <xs:documentation>
+            NUTS
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ARCHNUM">
+        <xs:annotation>
+          <xs:documentation>
+            Číslo archivu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PEVA">
+        <xs:annotation>
+          <xs:documentation>
+            Our own primary id, as represented for external systems
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ORCID_ID">
+        <xs:annotation>
+          <xs:documentation>
+            Mezinárodní, jednoznačný a trvalý identifikátor autora v akademickém a vědeckém prostředí
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CZ_RETRO">
+        <xs:annotation>
+          <xs:documentation>
+            Kódy lokalit z databáze CZ Retro
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TAXONOMY">
+        <xs:annotation>
+          <xs:documentation>
+            Kód archivní taxonomické kategorie
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="AUT">
+        <xs:annotation>
+          <xs:documentation>
+            Národní autority
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="VIAF">
+        <xs:annotation>
+          <xs:documentation>
+            Virtual International Authority File
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LCNAF">
+        <xs:annotation>
+          <xs:documentation>
+            Library of Congress Name Authority File
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="PersonType" tns:id="CA0011">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="UNDEFINED">
+        <xs:annotation>
+          <xs:documentation>
+            Neurčeno
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="UNKNOWN">
+        <xs:annotation>
+          <xs:documentation>
+            Neznámý
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NATURAL_PERSON">
+        <xs:annotation>
+          <xs:documentation>
+            Fyzická osoba
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LEGAL_PERSON">
+        <xs:annotation>
+          <xs:documentation>
+            Právnická osoba
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SPECIAL">
+        <xs:annotation>
+          <xs:documentation>
+            "speciální hodnota specifická pro jednotlivé číselníky"
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INSTITUTION">
+        <xs:annotation>
+          <xs:documentation>
+            Instituce z číselníku archivů a KVI
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="SequenceModuleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="NAD_PRIMARY_SHEET">
+        <xs:annotation>
+          <xs:documentation>
+            Listy NAD
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Evidence vnitřních změn
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Evidence vnějších změn
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID">
+        <xs:annotation>
+          <xs:documentation>
+            Archivní pomůcky
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_COPY">
+        <xs:annotation>
+          <xs:documentation>
+            Stejnopisy archivních pomůcek
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="DamageType" tns:id="CA0011">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="FRAGILE">
+        <xs:annotation>
+          <xs:documentation>
+            Křehký, lámavý
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TORN">
+        <xs:annotation>
+          <xs:documentation>
+            Trhliny, přelomení
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MOLD">
+        <xs:annotation>
+          <xs:documentation>
+            Poškozený plísněmi
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INSECT">
+        <xs:annotation>
+          <xs:documentation>
+            Poškozený hmyzem
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="RODENT">
+        <xs:annotation>
+          <xs:documentation>
+            Poškozený hlodavci
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FIRE">
+        <xs:annotation>
+          <xs:documentation>
+            Poškozený ohněm
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="HEAT">
+        <xs:annotation>
+          <xs:documentation>
+            Poškozený teplem
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="WATER">
+        <xs:annotation>
+          <xs:documentation>
+            Poškozený vodou
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CORROSION">
+        <xs:annotation>
+          <xs:documentation>
+            Poškozený rzí
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EMP">
+        <xs:annotation>
+          <xs:documentation>
+            Poškozený vlivem elektromagnetického pole
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DUST">
+        <xs:annotation>
+          <xs:documentation>
+            Poškozený prachem
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LIGHT">
+        <xs:annotation>
+          <xs:documentation>
+            Poškozený světlem
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OTHER">
+        <xs:annotation>
+          <xs:documentation>
+            Jiné
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ArchivalGroupState" tns:id="CA0011">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="OPENED">
+        <xs:annotation>
+          <xs:documentation>
+            Neuzavřený
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CLOSED">
+        <xs:annotation>
+          <xs:documentation>
+            Uzavřený
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="UNDEFINED">
+        <xs:annotation>
+          <xs:documentation>
+            Nedefinovaný
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="State" tns:id="CA0011">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="OK"/>
-      <xs:enumeration value="DESTROYED"/>
-      <xs:enumeration value="NOT_FOUND"/>
-      <xs:enumeration value="PARTIALLY_NOT_FOUND"/>
-      <xs:enumeration value="MOVED"/>
+      <xs:enumeration value="OK">
+        <xs:annotation>
+          <xs:documentation>
+            V pořádku
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DESTROYED">
+        <xs:annotation>
+          <xs:documentation>
+            Zničeno
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NOT_FOUND">
+        <xs:annotation>
+          <xs:documentation>
+            Nedohledáno
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PARTIALLY_NOT_FOUND">
+        <xs:annotation>
+          <xs:documentation>
+            Částečně nedohledáno
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MOVED">
+        <xs:annotation>
+          <xs:documentation>
+            Přesunut
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="NadSheetType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="NAD_PRIMARY_SHEET"/>
-      <xs:enumeration value="NAD_SUBSHEET"/>
+      <xs:enumeration value="NAD_PRIMARY_SHEET">
+        <xs:annotation>
+          <xs:documentation>
+            List NAD (hlavní)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SUBSHEET">
+        <xs:annotation>
+          <xs:documentation>
+            Dílčí list NAD
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="Setting">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="SUM_SCOPE"/>
-      <xs:enumeration value="FINDING_AID_NEW_ALLOW_TO_CREATE_INVALID_TYPES"/>
-      <xs:enumeration value="FINDING_AID_NEW_GENERATE_PART_NUMBER_IN_INVALID_TYPES"/>
-      <xs:enumeration value="FINDING_AID_NEW_TRANSFER_SOURCE"/>
-      <xs:enumeration value="FINDING_AID_NEW_COPY_TYPE"/>
-      <xs:enumeration value="FINDING_AID_NEW_COPY_NAD_GROUPS"/>
-      <xs:enumeration value="FINDING_AID_NEW_COPY_NAD_PLACES_OF_ORIGIN"/>
-      <xs:enumeration value="FINDING_AID_NEW_COPY_DEPARTMENT"/>
-      <xs:enumeration value="FINDING_AID_NEW_COPY_YEAR_OF_ORIGIN"/>
-      <xs:enumeration value="FINDING_AID_NEW_COPY_YEAR_OF_REGISTRATION"/>
-      <xs:enumeration value="FINDING_AID_NEW_COPY_FORMS"/>
-      <xs:enumeration value="FINDING_AID_NEW_COPY_GROUPS"/>
-      <xs:enumeration value="FINDING_AID_NEW_COPY_AUTHORS"/>
-      <xs:enumeration value="FINDING_AID_NEW_COPY_PLACES_OF_ORIGIN"/>
-      <xs:enumeration value="NAD_SHEET_NEW_ALLOW_SUBSHEET"/>
-      <xs:enumeration value="NAD_SHEET_NEW_TRANSFER_SOURCE"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_EVIDENCE_STATUS"/>
-      <xs:enumeration value="NAD_SHEET_NEW_DEFAULT_EVIDENCE_STATUS"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_TO_DATE_VALUE"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_ACCESSIBILITY"/>
-      <xs:enumeration value="NAD_SHEET_NEW_DEFAULT_ACCESSIBILITY"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_DEPARTMENT"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_INTEGRITY"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_PHYSICAL_STATE"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_THEMATIC_EVIDENCE_GROUPS"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_PLACES_OF_ORIGIN"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_STORAGE_PLACES"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_EVIDENCE_UNITS"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_LANGUAGES"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_PROCESSOR"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_ORIGINATOR"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_ARCHIVE_GROUP_PARTS"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_THEMATIC_DESCRIPTION"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_INTERNAL_CHANGES"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_LOST_ARCHIVALS_NOTE"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_UNCOLLECTABLE_LOANS"/>
-      <xs:enumeration value="NAD_SHEET_NEW_COPY_LITERATURE"/>
-      <xs:enumeration value="NAD_SHEET_SHOW_SIGNATURE"/>
-      <xs:enumeration value="NAD_SHEET_SHOW_OTHER_NUMBER"/>
-      <xs:enumeration value="NAD_SHEET_SHOW_HEADER_STATE"/>
-      <xs:enumeration value="NAD_SHEET_SHOW_TIME_RANGE_NOTE"/>
-      <xs:enumeration value="NAD_SHEET_SHOW_NEXT_SHREDDING"/>
-      <xs:enumeration value="NAD_SHEET_SHOW_STORED_IN_ARCHIVE"/>
-      <xs:enumeration value="NAD_SHEET_SHOW_EVIDENCE_UNITS_COUNT"/>
-      <xs:enumeration value="NAD_SHEET_SUM_COUNT"/>
-      <xs:enumeration value="NAD_SHEET_SUM_DIGITAL"/>
-      <xs:enumeration value="NAD_SHEET_SUM_LENGTH"/>
-      <xs:enumeration value="NAD_SHEET_MERGE_TIME_RANGE"/>
-      <xs:enumeration value="NAD_SHEET_SUM_DAMAGED"/>
-      <xs:enumeration value="NAD_SHEET_OVERWRITE_TIME_RANGE"/>
-      <xs:enumeration value="NAD_SHEET_ADD_BUILDING_TO_STORAGE_PLACES"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_AUTOMATICALLY"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_BASIC"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_PLACES_OF_ORIGIN"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_LENGTH"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_ORIGINATOR"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_THEMATIC_DESCRIPTION"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_LANGUAGES"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_PRESERVATION_STATUS"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_ACCESSIBILITY"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_PROCESSING"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_CORRESPONDING_LENGTH_TO_EVIDENCE_UNITS"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_CORRESPONDING_EVIDENCE_UNIT_TO_LENGTH"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_LENGTH_CORRESPONDS_TO_FINDING_AIDS"/>
-      <xs:enumeration value="NAD_SHEET_VALIDATE_EVIDENCE_UNIT_COUNT_CORRESPONDS_TO_FINDING_AIDS"/>
-      <xs:enumeration value="NAD_SHEET_STORAGE_PLACES_ACCORDING_TO_LOCATIONS"/>
-      <xs:enumeration value="NAD_SHEET_CULTURAL_MONUMENT_ACCORDING_TO_LOCATIONS"/>
-      <xs:enumeration value="EVIDENCE_UNIT_SHOW_LENGTH"/>
-      <xs:enumeration value="EVIDENCE_UNITS_VALIDATION"/>
-      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION"/>
-      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_COUNT"/>
-      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_COUNT_QUANTITIES"/>
-      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_DIGITAL"/>
-      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_DIGITAL_QUANTITIES"/>
-      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_LENGTH"/>
-      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_LENGTH_QUANTITIES"/>
-      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_TIME_RANGE"/>
-      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_DAMAGED"/>
-      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_UNPROCESSED_ORPHANS"/>
-      <xs:enumeration value="EVIDENCE_UNITS_LENGTH_MATCH_NAD"/>
-      <xs:enumeration value="EVIDENCE_UNITS_TIME_RANGE_MATCH_NAD"/>
-      <xs:enumeration value="EVIDENCE_UNITS_MAIN_UNWOUND"/>
-      <xs:enumeration value="EVIDENCE_UNITS_CORRECT_USAGE"/>
-      <xs:enumeration value="EVIDENCE_UNITS_OTHER_NOTE_PRESENCE"/>
-      <xs:enumeration value="EVIDENCE_UNITS_MAIN_TIME_RANGE_PRESENCE"/>
-      <xs:enumeration value="EVIDENCE_UNITS_PARTIAL_TIME_RANGE_PRESENCE"/>
-      <xs:enumeration value="EVIDENCE_UNITS_UNUSED_PRESENCE"/>
-      <xs:enumeration value="LOCATION_NEW_DEFAULT_CULTURAL_MONUMENT"/>
-      <xs:enumeration value="LOCATION_NEW_TRANSFER_SOURCE"/>
-      <xs:enumeration value="LOCATION_NEW_COPY_STORAGE_UNIT"/>
-      <xs:enumeration value="LOCATION_NEW_COPY_STORAGE_PLACE"/>
-      <xs:enumeration value="LOCATION_NEW_COPY_DEPOSITORY"/>
-      <xs:enumeration value="LOCATION_NEW_COPY_FLOOR"/>
-      <xs:enumeration value="LOCATION_NEW_COPY_ROOM"/>
-      <xs:enumeration value="LOCATION_NEW_COPY_SECTOR"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_STORAGE_UNIT_RECORD_UNIT"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_STORAGE_UNIT_RECORD_FROM_TO"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_STORAGE_UNIT_RECORD_COUNT"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_STORAGE_PLACE"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_DEPOSITORY"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_FLOOR"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_ROOM"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_SECTOR"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_RACK_FROM"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_RACK_TO"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_COLUMN_FROM"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_COLUMN_TO"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_SHELF_FROM"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_SHELF_TO"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_NOTE"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_NUMBER"/>
-      <xs:enumeration value="LOCATION_STRUCTURE_CULTURAL_MONUMENT"/>
-      <xs:enumeration value="LOCATION_SHOW_EXTERNAL_CHANGE_NUMBER"/>
-      <xs:enumeration value="LOCATION_SHOW_TO_LEVEL"/>
-      <xs:enumeration value="LOCATION_PRINT_ARCHIVAL_STORAGE"/>
-      <xs:enumeration value="OTHER_DEPARTMENT_RESTRICTION"/>
-      <xs:enumeration value="HISTORICAL_MODE"/>
-      <xs:enumeration value="COLOR_PALETTE"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_NEW_TRANSFER_SOURCE"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_NEW_DATE"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_NEW_YEAR"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_NEW_COMPLETE_EVIDENCE_NUMBER_CURRENT_RECORD"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_NEW_COMPLETE_EVIDENCE_NUMBER_LAST_UPDATED_RECORD"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_NEW_COMPLETE_EVIDENCE_NUMBER_CURRENT_NAD_SHEET"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_SUM_COUNT"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_SUM_COUNT_DAMAGED"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_SUM_DIGITAL"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_SUM_DIGITAL_DAMAGED"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_SUM_LENGTH"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_SUM_LENGTH_DAMAGED"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_MERGE_EVIDENCE_UNIT_TIME_RANGE"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_OVERWRITE_LENGTH_PROCEDURE"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_OVERWRITE_TIME_RANGE"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_ADD_BUILDING_TO_STORAGE_PLACES"/>
-      <xs:enumeration value="EXTERNAL_CHANGE_COMMIT_OTHER_NUMBER_PRECEDENCY"/>
-      <xs:enumeration value="INTERNAL_CHANGE_NEW_TRANSFER_SOURCE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_ADD_NAD_SHEET_NUMBER"/>
-      <xs:enumeration value="INTERNAL_CHANGE_ADD_DATE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_SUM_COUNT"/>
-      <xs:enumeration value="INTERNAL_CHANGE_SUM_COUNT_DAMAGED"/>
-      <xs:enumeration value="INTERNAL_CHANGE_SUM_DIGITAL"/>
-      <xs:enumeration value="INTERNAL_CHANGE_SUM_DIGITAL_DAMAGED"/>
-      <xs:enumeration value="INTERNAL_CHANGE_SUM_LENGTH"/>
-      <xs:enumeration value="INTERNAL_CHANGE_SUM_LENGTH_DAMAGED"/>
-      <xs:enumeration value="INTERNAL_CHANGE_MERGE_EVIDENCE_UNIT_TIME_RANGE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_OVERWRITE_LENGTH_PROCEDURE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_OVERWRITE_TIME_RANGE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_OPEN_DIALOG"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_GE_01_TIME_RANGE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_GE_01_EVIDENCE_UNIT_TIME_RANGE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_GE_03_TIME_RANGE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_GE_03_EVIDENCE_UNIT_TIME_RANGE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_ORIGINATOR"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_CULTURAL_MONUMENT"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_EXTERNAL_CHANGES"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_SHREDDING_INFO_RECORDS"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_ARCHIVAL_GROUP_PARTS"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_THEMATIC_DESCRIPTION"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_INTERNAL_CHANGES"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_LOST_ARCHIVALS_NOTE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_UNCOLLECTABLE_LOANS"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_LITERATURE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_EDITION"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_NOTE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_SERVICE_NOTE"/>
-      <xs:enumeration value="INTERNAL_CHANGE_DE_11_CONVERSION"/>
-      <xs:enumeration value="INTERNAL_CHANGE_GE_01_CONVERSION"/>
-      <xs:enumeration value="INTERNAL_CHANGE_GE_02_CONVERSION"/>
+      <xs:enumeration value="SUM_SCOPE">
+        <xs:annotation>
+          <xs:documentation>
+            Rozsah
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_ALLOW_TO_CREATE_INVALID_TYPES">
+        <xs:annotation>
+          <xs:documentation>
+            Povolit zápis již nevytvářených druhů archivních pomůcek
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_GENERATE_PART_NUMBER_IN_INVALID_TYPES">
+        <xs:annotation>
+          <xs:documentation>
+            Generovat číslo části
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_TRANSFER_SOURCE">
+        <xs:annotation>
+          <xs:documentation>
+            Údaje přenášet
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_COPY_TYPE">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit druh pomůcky
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_COPY_NAD_GROUPS">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit skupiny tematické evidence z listu NAD
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_COPY_NAD_PLACES_OF_ORIGIN">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit místa vzniku z listu NAD
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_COPY_DEPARTMENT">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit oddělení
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_COPY_YEAR_OF_ORIGIN">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit rok vzniku. Platí i pro formy a dodatky, doplní se vždy ze systémového času počítače
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_COPY_YEAR_OF_REGISTRATION">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit rok zápisu. Platí i pro formy a dodatky, doplní se vždy ze systémového času počítače
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_COPY_FORMS">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit formy pomůcky
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_COPY_GROUPS">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit skupiny tematické evidence
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_COPY_AUTHORS">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit autory pomůcky
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDING_AID_NEW_COPY_PLACES_OF_ORIGIN">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit místa vzniku
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_ALLOW_SUBSHEET">
+        <xs:annotation>
+          <xs:documentation>
+            Povolit zápis dílčích listů
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_TRANSFER_SOURCE">
+        <xs:annotation>
+          <xs:documentation>
+            Údaje přenášet
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_EVIDENCE_STATUS">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit evidenční status
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_DEFAULT_EVIDENCE_STATUS">
+        <xs:annotation>
+          <xs:documentation>
+            Výchozí evidenční status
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_TO_DATE_VALUE">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit stav ke dni
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_ACCESSIBILITY">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit přístupnost
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_DEFAULT_ACCESSIBILITY">
+        <xs:annotation>
+          <xs:documentation>
+            Výchozí přístupnost
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_DEPARTMENT">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit oddělení
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_INTEGRITY">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit úplnost
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_PHYSICAL_STATE">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit fyzický stav
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_THEMATIC_EVIDENCE_GROUPS">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit skupiny tématické evidence
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_PLACES_OF_ORIGIN">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit místa vzniku
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_STORAGE_PLACES">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit místa uložení
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_EVIDENCE_UNITS">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit evidenční jednotky
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_LANGUAGES">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit jazyky
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_PROCESSOR">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit zpracovatele záznamu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_ORIGINATOR">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit původce
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_ARCHIVE_GROUP_PARTS">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit části archivního souboru v jiných institucích
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_THEMATIC_DESCRIPTION">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit tematický popis
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_INTERNAL_CHANGES">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit vnitřní změny
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_LOST_ARCHIVALS_NOTE">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit nedohledané archiválie
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_UNCOLLECTABLE_LOANS">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit nedobytné zápůjčky
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_NEW_COPY_LITERATURE">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit literaturu o archivním souboru
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_SHOW_SIGNATURE">
+        <xs:annotation>
+          <xs:documentation>
+            Signatura
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_SHOW_OTHER_NUMBER">
+        <xs:annotation>
+          <xs:documentation>
+            Jiné číslo
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_SHOW_HEADER_STATE">
+        <xs:annotation>
+          <xs:documentation>
+            Uzavřený fond
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_SHOW_TIME_RANGE_NOTE">
+        <xs:annotation>
+          <xs:documentation>
+            Poznámka u čas. rozsahu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_SHOW_NEXT_SHREDDING">
+        <xs:annotation>
+          <xs:documentation>
+            Příští skartace
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_SHOW_STORED_IN_ARCHIVE">
+        <xs:annotation>
+          <xs:documentation>
+            Uloženo v archivu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_SHOW_EVIDENCE_UNITS_COUNT">
+        <xs:annotation>
+          <xs:documentation>
+            Počty evidenčních jednotek
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_SUM_COUNT">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat ks
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_SUM_DIGITAL">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat Byte
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_SUM_LENGTH">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat bm
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_MERGE_TIME_RANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Určit časový rozsah
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_SUM_DAMAGED">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat počet poškozených
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_OVERWRITE_TIME_RANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Výpočet časového rozsahu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_ADD_BUILDING_TO_STORAGE_PLACES">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit místa uložení
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_AUTOMATICALLY">
+        <xs:annotation>
+          <xs:documentation>
+            Makes no sense for PEvA II, will be removed soon
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_BASIC">
+        <xs:annotation>
+          <xs:documentation>
+            Vyplnění základních údajů. Číslo archivu, číslo listu, název fondu (sbírky), evidenční status, časový rozsah, stav ke dni, kategorie, přístupnost, skupiny tematické evidence, místa uložení, evidenční jednotky, operátor, zpracovatel, úplnost, fyzický stav
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_PLACES_OF_ORIGIN">
+        <xs:annotation>
+          <xs:documentation>
+            Vyplnění míst vzniku. Ne pro se skupinou 11 (osobní a rodinné) a 25 (sbírky)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_LENGTH">
+        <xs:annotation>
+          <xs:documentation>
+            Vyplnění metráže
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_ORIGINATOR">
+        <xs:annotation>
+          <xs:documentation>
+            Vyplnění původce. Ne pro se skupinou 25 (sbírky)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_THEMATIC_DESCRIPTION">
+        <xs:annotation>
+          <xs:documentation>
+            Vyplnění tematického popisu. Jen pro zpracované
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_LANGUAGES">
+        <xs:annotation>
+          <xs:documentation>
+            Vyplnění jazyků. Test vyplnění alespoň jednoho jazyka
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_PRESERVATION_STATUS">
+        <xs:annotation>
+          <xs:documentation>
+            Podoba zápisu poškození archvního souboru. Existence zápisu pro poškozené + test hodnoty "jiné"; test zápisu poškozených ev. jednotek
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_ACCESSIBILITY">
+        <xs:annotation>
+          <xs:documentation>
+            Zápis přístupnosti. Srovnání hodnoty přístupnosti a zapsané metráže (jen pro evidenční status 1)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_PROCESSING">
+        <xs:annotation>
+          <xs:documentation>
+            Zapnout testy. Porovnává zápis metráže, počtů evidenčních jednotek a zapsaných (a přiřazených) archivních pomůcek z hlediska zpracovanosti fondu (sbírky)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_CORRESPONDING_LENGTH_TO_EVIDENCE_UNITS">
+        <xs:annotation>
+          <xs:documentation>
+            Existuje k zapsaným evidenčním jednotkám i zápis metráže?
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_CORRESPONDING_EVIDENCE_UNIT_TO_LENGTH">
+        <xs:annotation>
+          <xs:documentation>
+            Existuje k zapsané metráži i zápis evidenční jednotky?
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_LENGTH_CORRESPONDS_TO_FINDING_AIDS">
+        <xs:annotation>
+          <xs:documentation>
+            Metráže fondu (sbírky), případně velikosti v MB =? přiřazenými archivními pomůckami
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_VALIDATE_EVIDENCE_UNIT_COUNT_CORRESPONDS_TO_FINDING_AIDS">
+        <xs:annotation>
+          <xs:documentation>
+            Počty ev. jednotek =? přiřazenými archivními pomůckami
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_STORAGE_PLACES_ACCORDING_TO_LOCATIONS">
+        <xs:annotation>
+          <xs:documentation>
+            TODO
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="NAD_SHEET_CULTURAL_MONUMENT_ACCORDING_TO_LOCATIONS">
+        <xs:annotation>
+          <xs:documentation>
+            TODO
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNIT_SHOW_LENGTH">
+        <xs:annotation>
+          <xs:documentation>
+            Metráž evidenčních jednotek
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_VALIDATION">
+        <xs:annotation>
+          <xs:documentation>
+            Zapnout testy
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION">
+        <xs:annotation>
+          <xs:documentation>
+            Jsou dílčí evidenční jednotky sumarizovány do hlavních?
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_COUNT">
+        <xs:annotation>
+          <xs:documentation>
+            Počty (ks)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_COUNT_QUANTITIES">
+        <xs:annotation>
+          <xs:documentation>
+            Rozsah
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_DIGITAL">
+        <xs:annotation>
+          <xs:documentation>
+            Digitální velikost (Byte)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_DIGITAL_QUANTITIES">
+        <xs:annotation>
+          <xs:documentation>
+            Rozsah
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_LENGTH">
+        <xs:annotation>
+          <xs:documentation>
+            Metráž (bm)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_LENGTH_QUANTITIES">
+        <xs:annotation>
+          <xs:documentation>
+            Rozsah
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_TIME_RANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Časový rozsah
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_DAMAGED">
+        <xs:annotation>
+          <xs:documentation>
+            Počty poškozených (ks)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_SUMARIZATION_VALIDATE_UNPROCESSED_ORPHANS">
+        <xs:annotation>
+          <xs:documentation>
+            Kontrola "sirotků" ve sloupci N
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_LENGTH_MATCH_NAD">
+        <xs:annotation>
+          <xs:documentation>
+            Metráž evidenčních jednotek =? metráži fondu (sbírky)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_TIME_RANGE_MATCH_NAD">
+        <xs:annotation>
+          <xs:documentation>
+            Odpovídá datace hlavních ev. j. časovému rozsahu fondu (sbírky)?
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_MAIN_UNWOUND">
+        <xs:annotation>
+          <xs:documentation>
+            Jsou rozepsány hlavní ev. j.?
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_CORRECT_USAGE">
+        <xs:annotation>
+          <xs:documentation>
+            Kontrola správného použití ev. j. z hlediska zpracovanosti (balíky, fascikly) a její datace (tisky, listiny)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_OTHER_NOTE_PRESENCE">
+        <xs:annotation>
+          <xs:documentation>
+            Je popsána ev. j. "Jiné" v poznámce?
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_MAIN_TIME_RANGE_PRESENCE">
+        <xs:annotation>
+          <xs:documentation>
+            Je zapsán časový rozsah hlavních ev. jednotek?
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_PARTIAL_TIME_RANGE_PRESENCE">
+        <xs:annotation>
+          <xs:documentation>
+            Je zapsán časový rozsah dílčích ev. jednotek?
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVIDENCE_UNITS_UNUSED_PRESENCE">
+        <xs:annotation>
+          <xs:documentation>
+            Kontrola již nepoužívaných evidenčních jednotek
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_NEW_DEFAULT_CULTURAL_MONUMENT">
+        <xs:annotation>
+          <xs:documentation>
+            TODO
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_NEW_TRANSFER_SOURCE">
+        <xs:annotation>
+          <xs:documentation>
+            Údaje přenášet
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_NEW_COPY_STORAGE_UNIT">
+        <xs:annotation>
+          <xs:documentation>
+            Ukládací jednotku (popis)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_NEW_COPY_STORAGE_PLACE">
+        <xs:annotation>
+          <xs:documentation>
+            Místo uložení (budovu)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_NEW_COPY_DEPOSITORY">
+        <xs:annotation>
+          <xs:documentation>
+            Depozitář
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_NEW_COPY_FLOOR">
+        <xs:annotation>
+          <xs:documentation>
+            Patro
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_NEW_COPY_ROOM">
+        <xs:annotation>
+          <xs:documentation>
+            Místnost
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_NEW_COPY_SECTOR">
+        <xs:annotation>
+          <xs:documentation>
+            Sektor
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_STORAGE_UNIT_RECORD_UNIT">
+        <xs:annotation>
+          <xs:documentation>
+            Popis jednotky
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_STORAGE_UNIT_RECORD_FROM_TO">
+        <xs:annotation>
+          <xs:documentation>
+            Od čísla / do čísla
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_STORAGE_UNIT_RECORD_COUNT">
+        <xs:annotation>
+          <xs:documentation>
+            Počet
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_STORAGE_PLACE">
+        <xs:annotation>
+          <xs:documentation>
+            Místo uložení (budova)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_DEPOSITORY">
+        <xs:annotation>
+          <xs:documentation>
+            Depozitář
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_FLOOR">
+        <xs:annotation>
+          <xs:documentation>
+            Patro
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_ROOM">
+        <xs:annotation>
+          <xs:documentation>
+            Místnost
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_SECTOR">
+        <xs:annotation>
+          <xs:documentation>
+            Sektor
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_RACK_FROM">
+        <xs:annotation>
+          <xs:documentation>
+            Regál od
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_RACK_TO">
+        <xs:annotation>
+          <xs:documentation>
+            Regál do
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_COLUMN_FROM">
+        <xs:annotation>
+          <xs:documentation>
+            Paprsek od
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_COLUMN_TO">
+        <xs:annotation>
+          <xs:documentation>
+            Paprsek do
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_SHELF_FROM">
+        <xs:annotation>
+          <xs:documentation>
+            Police od
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_ARCHIVAL_STORAGE_SHELF_TO">
+        <xs:annotation>
+          <xs:documentation>
+            Police do
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_NOTE">
+        <xs:annotation>
+          <xs:documentation>
+            Poznámka
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_NUMBER">
+        <xs:annotation>
+          <xs:documentation>
+            Číslo
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_STRUCTURE_CULTURAL_MONUMENT">
+        <xs:annotation>
+          <xs:documentation>
+            AKP a NKP
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_SHOW_EXTERNAL_CHANGE_NUMBER">
+        <xs:annotation>
+          <xs:documentation>
+            Zobrazit číslo vnější změny (VněZ)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_SHOW_TO_LEVEL">
+        <xs:annotation>
+          <xs:documentation>
+            Zobrazit vše do úrovně
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCATION_PRINT_ARCHIVAL_STORAGE">
+        <xs:annotation>
+          <xs:documentation>
+            Tisky v evidenci - ukládací řetězec
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OTHER_DEPARTMENT_RESTRICTION">
+        <xs:annotation>
+          <xs:documentation>
+            Omezit přístup dle oddělení
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="HISTORICAL_MODE">
+        <xs:annotation>
+          <xs:documentation>
+            Historický mód
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="COLOR_PALETTE">
+        <xs:annotation>
+          <xs:documentation>
+            Barevná schéma
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_NEW_TRANSFER_SOURCE">
+        <xs:annotation>
+          <xs:documentation>
+            Údaje přenášet
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_NEW_DATE">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit datum vnější změny (vždy ze systémového času počítače)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_NEW_YEAR">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit rok vnější změny (vždy ze systémového času počítače)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_NEW_COMPLETE_EVIDENCE_NUMBER_CURRENT_RECORD">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit z aktuálního (zobrazovaného) záznamu číslo evidenčního listu NAD (ne pro přírůstky typu nový archivní soubor)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_NEW_COMPLETE_EVIDENCE_NUMBER_LAST_UPDATED_RECORD">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit ze zapsaného záznamu číslo evidenčního listu NAD (ne pro přírůstky typu nový archivní soubor)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_NEW_COMPLETE_EVIDENCE_NUMBER_CURRENT_NAD_SHEET">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit z aktuálního (a otevřeného) záznamu číslo evidenčního listu NAD (ne pro přírůstky typu nový archivní soubor)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_SUM_COUNT">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat ks
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_SUM_COUNT_DAMAGED">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat počet poškozených (ks)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_SUM_DIGITAL">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat Byte
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_SUM_DIGITAL_DAMAGED">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat počet poškozených (Byte)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_SUM_LENGTH">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat bm
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_SUM_LENGTH_DAMAGED">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat počet poškozených (bm)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_MERGE_EVIDENCE_UNIT_TIME_RANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Určit časový rozsah
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_OVERWRITE_LENGTH_PROCEDURE">
+        <xs:annotation>
+          <xs:documentation>
+            Výpočet metráže
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_OVERWRITE_TIME_RANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Výpočet časového rozsahu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_ADD_BUILDING_TO_STORAGE_PLACES">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit místa uložení
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EXTERNAL_CHANGE_COMMIT_OTHER_NUMBER_PRECEDENCY">
+        <xs:annotation>
+          <xs:documentation>
+            Položka "jiné číslo" má přednost před číslem vnější změny
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_NEW_TRANSFER_SOURCE">
+        <xs:annotation>
+          <xs:documentation>
+            Údaje přenášet
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_ADD_NAD_SHEET_NUMBER">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit číslo evidenčního listu NAD
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_ADD_DATE">
+        <xs:annotation>
+          <xs:documentation>
+            Doplnit datum vnitřní změny (vždy ze systémového času počítače)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_SUM_COUNT">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat ks
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_SUM_COUNT_DAMAGED">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat počet poškozených (ks)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_SUM_DIGITAL">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat Byte
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_SUM_DIGITAL_DAMAGED">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat počet poškozených (Byte)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_SUM_LENGTH">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat bm
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_SUM_LENGTH_DAMAGED">
+        <xs:annotation>
+          <xs:documentation>
+            Sčítat počet poškozených (bm)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_MERGE_EVIDENCE_UNIT_TIME_RANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Určit časový rozsah
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_OVERWRITE_LENGTH_PROCEDURE">
+        <xs:annotation>
+          <xs:documentation>
+            Výpočet metráž změny
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_OVERWRITE_TIME_RANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Výpočet časového rozsahu změny
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_OPEN_DIALOG">
+        <xs:annotation>
+          <xs:documentation>
+            Dialog otevírat při přepisu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_GE_01_TIME_RANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Celkový časový rozsah změny
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_GE_01_EVIDENCE_UNIT_TIME_RANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Časové rozsahy evidenčních jednotek změny a ev. jednotek na listu NAD
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_GE_03_TIME_RANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Celkový časový rozsah změny
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_GE_03_EVIDENCE_UNIT_TIME_RANGE">
+        <xs:annotation>
+          <xs:documentation>
+            Časové rozsahy evidenčních jednotek změny a ev. jednotek na listu NAD
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_ORIGINATOR">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj původce (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_CULTURAL_MONUMENT">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj NKP a AKP (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_EXTERNAL_CHANGES">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj vnější změny (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_SHREDDING_INFO_RECORDS">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj záznamy o výběru (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_ARCHIVAL_GROUP_PARTS">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj Části fondu (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_THEMATIC_DESCRIPTION">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj tematický popis (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_INTERNAL_CHANGES">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj vnitřní změny (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_LOST_ARCHIVALS_NOTE">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj nedohledané archiválie (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_UNCOLLECTABLE_LOANS">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj nedobytné zápůjčky (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_LITERATURE">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj literatura (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_EDITION">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj edice (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_NOTE">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj poznámka (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERNAL_CHANGE_COMMIT_DE_23_SERVICE_NOTE">
+        <xs:annotation>
+          <xs:documentation>
+            Přenést údaj servisní poznámka (z listu č. 1 do listu č. 2)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="Include">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="DELETED">
+        <xs:annotation>
+          <xs:documentation>
+            Return deleted items
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="REPLACED">
+        <xs:annotation>
+          <xs:documentation>
+            Return replaced items (in case of dictionaries)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DUPLICATES">
+        <xs:annotation>
+          <xs:documentation>
+            Return duplicate items (in case of dictionaries)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DEACTIVATED">
+        <xs:annotation>
+          <xs:documentation>
+            Return deactivated items (in case of dictionaries)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INVALID">
+        <xs:annotation>
+          <xs:documentation>
+            Return items with invalid validFrom and/or validTo values (in case of dictionaries)
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OTHER_INSTITUTION">
+        <xs:annotation>
+          <xs:documentation>
+            Return items even from other institutions
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="DESTROYED">
+        <xs:annotation>
+          <xs:documentation>
+            Return destroyed NAD sheets
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MOVED">
+        <xs:annotation>
+          <xs:documentation>
+            Return moved NAD sheets
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="RoleName" tns:id="CA0011">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="VIEWER"/>
-      <xs:enumeration value="OPERATOR"/>
-      <xs:enumeration value="LOCAL_ADMIN"/>
-      <xs:enumeration value="SUPER_ADMIN"/>
+      <xs:enumeration value="VIEWER">
+        <xs:annotation>
+          <xs:documentation>
+            Náhled - Na úrovní základní a ústřední evidence má možnost náhledu. V případě, že jeho instituce spravuje jiné instituce v druhotné evidenci, tak má přístup ke čtení druhotné evidenci.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OPERATOR">
+        <xs:annotation>
+          <xs:documentation>
+            Operátor - Vede základní evidenci v plném rozsahu oprávnění. V případě, že jeho instituce spravuje jiné instituce v druhotné evidenci, tak má přístup k druhotné evidenci. Má možnost náhledu dat v ústřední evidenci.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCAL_ADMIN">
+        <xs:annotation>
+          <xs:documentation>
+            Lokální správce - Vstupuje do administrace systému, spravuje lokální číselníky (přidání nových hodnot, deduplikace hodnost atd. ), tiskové sestavy a přiděluje uživatelům oprávnění do systému.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SUPER_ADMIN">
+        <xs:annotation>
+          <xs:documentation>
+            Správce - Vstupuje do administrace systému, spravuje globální číselníky v rozsahu administrace (přidání nových hodnot, deduplikace hodnost atd. ), tiskové sestavy. Také má k dispozici funkce pro správu a konfiguraci systému.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="RoleLevel" tns:id="CA0011">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="BASIC"/>
-      <xs:enumeration value="SECONDARY"/>
-      <xs:enumeration value="CENTRAL"/>
+      <xs:enumeration value="BASIC">
+        <xs:annotation>
+          <xs:documentation>
+            Základní úroveň přístupu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SECONDARY">
+        <xs:annotation>
+          <xs:documentation>
+            Druhotná úroveň přístupu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CENTRAL">
+        <xs:annotation>
+          <xs:documentation>
+            Ústřední úroveň přístupu
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
   <xs:complexType final="#all" name="ValidationExemptionEntryArray">
@@ -9933,6 +12166,10 @@ element) to retrieve next page of items.
   </wsdl:message>
   <wsdl:message name="CreateMainEvidenceUnitTypeResponse">
     <wsdl:part element="tns:CreateMainEvidenceUnitTypeResponse" name="CreateMainEvidenceUnitTypeResponse">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="GetOriginatorByCamUuidRequest">
+    <wsdl:part element="tns:GetOriginatorByCamUuidRequest" name="GetOriginatorByCamUuidRequest">
     </wsdl:part>
   </wsdl:message>
   <wsdl:message name="ListGeoObjectRequest">
@@ -11898,6 +14135,10 @@ element) to retrieve next page of items.
       <wsdl:output message="tns:ListExternalChangeResponse" name="ListExternalChangeResponse">
     </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="GetOriginatorByCamUuid">
+      <wsdl:input message="tns:GetOriginatorByCamUuidRequest" name="GetOriginatorByCamUuidRequest">
+    </wsdl:input>
+    </wsdl:operation>
     <wsdl:operation name="ListGeoObject">
       <wsdl:input message="tns:ListGeoObjectRequest" name="ListGeoObjectRequest">
     </wsdl:input>
@@ -13691,6 +15932,12 @@ element) to retrieve next page of items.
       <wsdl:output name="ListExternalChangeResponse">
         <soap:body use="literal"/>
       </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetOriginatorByCamUuid">
+      <soap:operation soapAction=""/>
+      <wsdl:input name="GetOriginatorByCamUuidRequest">
+        <soap:body use="literal"/>
+      </wsdl:input>
     </wsdl:operation>
     <wsdl:operation name="ListGeoObject">
       <soap:operation soapAction=""/>

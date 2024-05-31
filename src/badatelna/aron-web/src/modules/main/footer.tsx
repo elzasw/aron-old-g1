@@ -10,12 +10,12 @@ export const Footer = ({ pageTemplate }: Props) => {
   const classes = useStyles();
   const spacingClasses = useSpacingStyles();
 
-  if( !pageTemplate?.homepage?.footerCenter && !pageTemplate?.homepage?.footerRight) { 
-    return <></>; 
+  if (!pageTemplate?.homepage?.footerCenter && !pageTemplate?.homepage?.footerRight) {
+    return <></>;
   }
 
   return (
-    <div className={classes.mainFooter}>
+    <footer className={classes.mainFooter}>
       <div className={spacingClasses.padding}>
         <div className={classes.mainFooterInner}>
           {pageTemplate ? (
@@ -35,61 +35,61 @@ export const Footer = ({ pageTemplate }: Props) => {
               ))}
             </div>
           ) : (
-            <div className={classes.mainFooterSections}>
-              {[
-                {
-                  title: Message.BASIC_INFORMATION,
-                  content: [
-                    <p>
-                      ARchiv ONline je webová aplikace{' '}
-                      <a href="https://vychodoceskearchivy.cz/">
-                        Státního oblastního archivu v Zámrsku
+              <div className={classes.mainFooterSections}>
+                {[
+                  {
+                    title: Message.BASIC_INFORMATION,
+                    content: [
+                      <p>
+                        ARchiv ONline je webová aplikace{' '}
+                        <a href="https://vychodoceskearchivy.cz/">
+                          Státního oblastního archivu v Zámrsku
                       </a>{' '}
                       sloužící ke zpřístupnění popisu archiválií a jejich
                       digitalizátů.
                     </p>,
-                    <p>
-                      Copyright &copy; 2021 Státní oblastní archiv v Zámrsku
+                      <p>
+                        Copyright &copy; 2021 Státní oblastní archiv v Zámrsku
                     </p>,
-                  ],
-                },
-                {
-                  title: Message.CONTACT,
-                  content: [<p>webmaster@ahapa.cz</p>],
-                },
-              ].map(({ title, content }) => (
-                <div
-                  key={title}
-                  className={classNames(
-                    classes.mainFooterSection,
-                    spacingClasses.padding
-                  )}
-                >
-                  <p
+                    ],
+                  },
+                  {
+                    title: Message.CONTACT,
+                    content: [<p>webmaster@ahapa.cz</p>],
+                  },
+                ].map(({ title, content }) => (
+                  <div
+                    key={title}
                     className={classNames(
-                      classes.mainFooterTitle,
-                      spacingClasses.marginSmall
+                      classes.mainFooterSection,
+                      spacingClasses.padding
                     )}
                   >
-                    <FormattedMessage id={title} />
-                  </p>
-                  {content.map((c: any, i: number) => (
-                    <p
-                      key={`${i}-${i}`}
+                    <h2
                       className={classNames(
-                        classes.mainFooterText,
-                        spacingClasses.marginNone
+                        classes.mainFooterTitle,
+                        spacingClasses.marginSmall
                       )}
                     >
-                      {c}
-                    </p>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
+                      <FormattedMessage id={title} />
+                    </h2>
+                    {content.map((c: any, i: number) => (
+                      <p
+                        key={`${i}-${i}`}
+                        className={classNames(
+                          classes.mainFooterText,
+                          spacingClasses.marginNone
+                        )}
+                      >
+                        {c}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
         </div>
       </div>
-    </div>
+    </footer>
   );
 };

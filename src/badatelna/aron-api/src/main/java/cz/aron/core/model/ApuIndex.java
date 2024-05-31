@@ -88,7 +88,7 @@ public class ApuIndex extends DomainIndex<ApuEntity, ApuEntity, IndexedApu> impl
                     dataType = "keyword";
                     break;
                 case UNITDATE:
-                    dataType = "date";
+                    dataType = "date_range";
                     break;
                 case LINK:
                     dataType = "keyword";
@@ -106,6 +106,13 @@ public class ApuIndex extends DomainIndex<ApuEntity, ApuEntity, IndexedApu> impl
                 labelFieldProperties.put("type", "text");
                 customMapping.put(allItemType.getCode() + "~LABEL", labelFieldProperties);
                 customMapping.put(allItemType.getCode() + "~ID~LABEL", fieldProperties);
+            } else if (allItemType.getType() == DataType.UNITDATE) {
+                var lowProperties = new HashMap<String,Object>();
+                lowProperties.put("type", "date");
+                customMapping.put(allItemType.getCode() + "~L", lowProperties);
+                var highProperties = new HashMap<String,Object>();
+                highProperties.put("type", "date");
+                customMapping.put(allItemType.getCode() + "~H", highProperties);
             }
         }
         return customMapping;
@@ -171,6 +178,15 @@ public class ApuIndex extends DomainIndex<ApuEntity, ApuEntity, IndexedApu> impl
                 indexedFieldProps = new IndexedFieldProps(fieldType, true, null, false);
                 indexLabelFieldLeafNode = new IndexFieldLeafNode(IndexedApu.class, labelFieldName, String.class, indexedFieldProps, null, false, 1.0f, new HashSet<>());
                 dynamicFields.put(labelFieldName, indexLabelFieldLeafNode);
+            }  else if (allItemType.getType() == DataType.UNITDATE) {
+                var lowFieldName = fieldName + "~L";
+                var lowFieldProps = new IndexedFieldProps(FieldType.Date, true, analyzer, false);
+                var lowFieldLeafNode = new IndexFieldLeafNode(IndexedApu.class, lowFieldName, String.class, lowFieldProps, null, false, 1.0f, new HashSet<>());
+                dynamicFields.put(lowFieldName, lowFieldLeafNode);
+                var highFieldName = fieldName + "~H";
+                var highFieldProps = new IndexedFieldProps(FieldType.Date, true, analyzer, false);
+                var highFieldLeafNode = new IndexFieldLeafNode(IndexedApu.class, highFieldName, String.class, highFieldProps, null, false, 1.0f, new HashSet<>());
+                dynamicFields.put(highFieldName, highFieldLeafNode);
             }
         }
         return dynamicFields;

@@ -1,6 +1,7 @@
 package cz.inqool.eas.common.domain.store;
 
 import cz.inqool.eas.common.domain.index.dto.aggregation.AggregationResult;
+import cz.inqool.eas.common.domain.index.dto.aggregation.AggregationResultAsString;
 import cz.inqool.eas.common.domain.index.dto.aggregation.DefaultAggregationResult;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
@@ -9,6 +10,8 @@ import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
 import org.elasticsearch.search.aggregations.bucket.nested.ParsedReverseNested;
 import org.elasticsearch.search.aggregations.metrics.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.InternalSum;
+import org.elasticsearch.search.aggregations.metrics.Max;
+import org.elasticsearch.search.aggregations.metrics.Min;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,6 +55,20 @@ public class AggregationUtils {
             DefaultAggregationResult aggregationResult = new DefaultAggregationResult();
             aggregationResult.setKey(cardinality.getName());
             aggregationResult.setValue(String.valueOf(cardinality.getValue()));
+            resultList.add(aggregationResult);
+        } else if (aggregation instanceof Max) {   //max aggregation
+            Max max = (Max) aggregation;
+            AggregationResultAsString aggregationResult = new AggregationResultAsString();
+            aggregationResult.setKey(max.getName());
+            aggregationResult.setValue(String.valueOf(max.getValue()));
+            aggregationResult.setAsString(max.getValueAsString());
+            resultList.add(aggregationResult);
+        } else if (aggregation instanceof Min) {   //min aggregation
+            Min min = (Min) aggregation;
+            AggregationResultAsString aggregationResult = new AggregationResultAsString();
+            aggregationResult.setKey(min.getName());
+            aggregationResult.setValue(String.valueOf(min.getValue()));
+            aggregationResult.setAsString(min.getValueAsString());
             resultList.add(aggregationResult);
         } else if (aggregation instanceof ParsedFilter) {   //filter aggregation
             ParsedFilter parsedFilterAgg = (ParsedFilter) aggregation;

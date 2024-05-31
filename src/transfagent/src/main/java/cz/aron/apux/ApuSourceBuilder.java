@@ -398,15 +398,17 @@ public class ApuSourceBuilder {
         return apuList.get(0);
     }
 
-    public Attachment addAttachment(Apu apu, String name, String mimetype) {
-        DaoFile daoFile = DaoBuilder.createDaoFile(1, mimetype);
-                
+    public Attachment addAttachment(Apu apu, String name, String mimetype) {        
+        return addAttachment(apu, name, mimetype, 1);
+    }
+
+    public Attachment addAttachment(Apu apu, String name, String mimetype, int pos) {
+    	DaoFile daoFile = DaoBuilder.createDaoFile(pos, mimetype);        
         var attList = apu.getAttchs();
         Attachment att = ApuxFactory.getObjFactory().createAttachment();
         att.setName(name);        
         att.setFile(daoFile);
         attList.add(att);
-        return att;
+        return att;    
     }
-
 }

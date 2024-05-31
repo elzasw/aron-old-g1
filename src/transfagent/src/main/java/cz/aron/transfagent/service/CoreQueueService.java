@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.lightcomp.ft.FileTransfer;
 import com.lightcomp.ft.client.Client;
@@ -24,6 +25,7 @@ import cz.aron.management.v1.ApuManagementPort;
 import cz.aron.transfagent.config.ConfigAronCore;
 import cz.aron.transfagent.domain.Attachment;
 import cz.aron.transfagent.domain.CoreQueue;
+import cz.aron.transfagent.repository.ApuSourceRepository;
 import cz.aron.transfagent.repository.AttachmentRepository;
 import cz.aron.transfagent.repository.CoreQueueRepository;
 import cz.aron.transfagent.service.client.CoreAronClient;
@@ -36,23 +38,31 @@ public class CoreQueueService implements SmartLifecycle {
     private final CoreQueueRepository coreQueueRepository;
 
     private final AttachmentRepository attachmentRepository;
+    
+    private final ApuSourceRepository apuSourceRepository;
 
     private final ConfigAronCore configAronCore;
 
     private final CoreAronClient coreAronClient;
 
     private final StorageService storageService;
+    
+    private final TransactionTemplate tt;
 
     private ThreadStatus status;
     
     private Client client = null;
 
-    public CoreQueueService(CoreQueueRepository coreQueueRepository, AttachmentRepository attachmentRepository, ConfigAronCore configAronCore, CoreAronClient coreAronClient, StorageService storageService) {
-        this.coreQueueRepository = coreQueueRepository;
-        this.attachmentRepository = attachmentRepository;
-        this.configAronCore = configAronCore;
-        this.coreAronClient = coreAronClient; 
-        this.storageService = storageService;
+	public CoreQueueService(CoreQueueRepository coreQueueRepository, AttachmentRepository attachmentRepository,
+			ApuSourceRepository apuSourceRepository, ConfigAronCore configAronCore, CoreAronClient coreAronClient,
+			StorageService storageService, TransactionTemplate tt) {
+		this.coreQueueRepository = coreQueueRepository;
+		this.attachmentRepository = attachmentRepository;
+		this.apuSourceRepository = apuSourceRepository;
+		this.configAronCore = configAronCore;
+		this.coreAronClient = coreAronClient;
+		this.storageService = storageService;
+		this.tt = tt;
     }
 
     /**
@@ -71,12 +81,14 @@ public class CoreQueueService implements SmartLifecycle {
 				createClient();
 				for (var item : events) {
 					uploadOrDeleteData(item);
-					coreQueueRepository.delete(item);
+					tt.executeWithoutResult(t->{
+						coreQueueRepository.deleteById(item.getId());
+						apuSourceRepository.setLastSent(item.getApuSource().getId(), item.getId());
+					});					
 					if (status != ThreadStatus.RUNNING) {
 						return;
 					}
 				}
-
 			} finally {				
 				if (client!=null) {
 					try {

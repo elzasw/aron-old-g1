@@ -41,14 +41,14 @@ export function AppHeader({ pageTemplate, ...props }: Props) {
   const showLanguages = localizations && localizations.length > 1 && !configuration.localeCookieName;
 
   return (
-    <div className={classes.appHeader}>
+    <header className={classes.appHeader}>
       <div
         className={classNames(
           classes.appHeaderInner,
           layoutClasses.flexSpaceBetween
         )}
       >
-        <AppTitle {...props} />
+        <AppTitle appName={pageTemplate?.name} {...props} />
         <div className={classes.appHeaderItems}>
           {getAppHeaderItems(configuration).map(({ path, label, url }, i) =>
             !path ? (
@@ -134,6 +134,6 @@ export function AppHeader({ pageTemplate, ...props }: Props) {
           )}
         </>
       </div>
-    </div>
+    </header>
   );
 }

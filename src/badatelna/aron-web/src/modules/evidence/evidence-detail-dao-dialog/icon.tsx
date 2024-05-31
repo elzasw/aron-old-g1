@@ -5,7 +5,7 @@ import { useSpacingStyles } from '../../../styles';
 import { useStyles } from './styles';
 import { IconProps } from './types';
 
-export function Icon({
+export function ToolbarButton({
   title,
   Component,
   className,
@@ -18,18 +18,20 @@ export function Icon({
 
   return (
     <Tooltip {...{ key: title, title }}>
-      <Component
-        {...{
-          ...props,
-          onClick: (e: React.MouseEvent) => !disabled && onClick(e),
-          className: classNames(
-            classes.daoDialogIcon,
-            disabled && classes.daoDialogIconDisabled,
-            spacingClasses.marginHorizontalSmall,
-            className
-          ),
-        }}
-      />
+      <div>
+        <Component
+          {...{
+            ...props,
+            onClick: (e: React.MouseEvent) => !disabled && onClick(e),
+            className: classNames(
+              classes.daoDialogIcon,
+              disabled && classes.daoDialogIconDisabled,
+              spacingClasses.marginHorizontalExtraSmall,
+              className
+            ),
+          }}
+        />
+      </div>
     </Tooltip>
   );
 }

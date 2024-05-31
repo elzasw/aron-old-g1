@@ -28,7 +28,9 @@ import javax.validation.constraints.NotNull;
         property = "aggregator",
         visible = true)
 @JsonSubTypes({
-        @JsonSubTypes.Type(name = "CARDINALITY", value = CardinalityAggregation.class)
+        @JsonSubTypes.Type(name = "CARDINALITY", value = CardinalityAggregation.class),
+	@JsonSubTypes.Type(name = "MAX", value = MaxAggregation.class),
+	@JsonSubTypes.Type(name = "MIN", value = MinAggregation.class)
 })
 @Getter
 @Setter
@@ -55,5 +57,19 @@ abstract public class MetricAggregation extends AbstractAggregation {
          * Aggregation</a>
          */
         CARDINALITY,
+        /**
+         * A single-value metrics aggregation that calculates max value.
+         *
+         * @see <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-max-cardinality-aggregation.html">Max
+         * Aggregation</a>
+         */
+        MAX,
+        /**
+         * A single-value metrics aggregation that calculates min value.
+         *
+         * @see <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-max-cardinality-aggregation.html">Min
+         * Aggregation</a>
+         */
+        MIN,
     }
 }

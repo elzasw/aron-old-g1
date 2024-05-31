@@ -46,6 +46,7 @@ export function RelationshipFilterCreator({
 
   const updateFilterValue = useCallback(
     (fields: string[]) => {
+      setSelectedRelationships(undefined);
       onChange(
         fields.map((field: string) => ({
           field,
@@ -68,6 +69,7 @@ export function RelationshipFilterCreator({
       ),
     })
   );
+
   return (
     <div className={classes.relationshipFilterCreatorWrapper}>
       <div className={classes.relationshipFilterLabel}>
@@ -101,12 +103,11 @@ export function RelationshipFilterCreator({
               size="small"
               label={<FormattedMessage id={Message.ADD_TO_FILTER} />}
               className={spacingClasses.marginTopSmall}
+              disabled={isEmpty(selectedRelationships)}
               onClick={() =>
                 updateFilterValue(
-                  selectedRelationships === undefined
+                  !selectedRelationships || isEmpty(selectedRelationships)
                     ? []
-                    : isEmpty(selectedRelationships)
-                    ? options
                     : selectedRelationships.map((r) => r.field)
                 )
               }

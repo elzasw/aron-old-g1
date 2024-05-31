@@ -2,10 +2,10 @@ import makeStyles from '@material-ui/core/styles/makeStyles';
 import { colorBlueVeryLight, appHeaderHeight as _appHeaderHeight, compactAppHeaderHeight } from '../../styles';
 
 export interface StyleConfiguration {
-    compactAppHeader?: boolean;
+  compactAppHeader?: boolean;
 }
 
-export const useStyles = (configuration?: StyleConfiguration ) => makeStyles((theme) => {
+export const useStyles = (configuration?: StyleConfiguration) => makeStyles((theme) => {
   const appHeaderHeight = configuration?.compactAppHeader ? compactAppHeaderHeight : _appHeaderHeight;
   return {
     main: {
@@ -38,7 +38,7 @@ export const useStyles = (configuration?: StyleConfiguration ) => makeStyles((th
     mainFavourite: {
       width: '100%',
 
-      '& > div': {
+      '& > div, & > a': {
         width: '100%',
         cursor: 'pointer',
 
@@ -50,11 +50,6 @@ export const useStyles = (configuration?: StyleConfiguration ) => makeStyles((th
           color: theme.palette.primary.main,
         },
       },
-    },
-    mainFavouriteIcon: {
-      color: theme.palette.primary.main,
-      width: '24px !important',
-      height: '24px !important',
     },
     mainFooter: {
       marginTop: 'auto',
@@ -117,6 +112,19 @@ export const useStyles = (configuration?: StyleConfiguration ) => makeStyles((th
       '& :first-child': {
         marginRight: theme.spacing(0.5),
       },
+    },
+    otherSourceLink: {
+      textDecoration: "none",
+      color: "currentColor",
+      display: "block",
+    },
+    mainFavouriteIcon: {
+      color: theme.palette.primary.main,
+      fontSize: "1.4em",
+      lineHeight: "1em",
+      width: "1.5em",
+      height: "1em",
+      display: "inline-block"
     },
   };
 })();

@@ -189,7 +189,7 @@ export function useMapFilters() {
         value:
           item.value ||
           find(filters, ({ source }) => source === item.source)?.value ||
-          (item.type === FacetType.FULLTEXT || item.type === FacetType.FULLTEXTF ? '' : []),
+          (item.type === FacetType.FULLTEXT || item.type === FacetType.FULLTEXTF || item.type === FacetType.CONSTANT ? '' : []),
       };
     });
 

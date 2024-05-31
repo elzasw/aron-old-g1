@@ -10,7 +10,7 @@ import { useStyles } from './styles';
 import { useLayoutStyles } from '../../styles/layout';
 import { useSpacingStyles } from '../../styles';
 import { ModulePath, pageSizeOptions, Message } from '../../enums';
-import { Select, Loading } from '../../components';
+import { Select, Loading, useConfiguration } from '../../components';
 import { useWindowSize, useApiListSimple } from '../../common-utils';
 import { useFilters } from './evidence-filters';
 import { ApuEntitySimplified } from '../../types';
@@ -19,6 +19,24 @@ function ItemsList() {
   const classes = useStyles();
   const layoutClasses = useLayoutStyles();
   const spacingClasses = useSpacingStyles();
+
+  const { orderResultsByScore } = useConfiguration();
+  const sortBy = orderResultsByScore === true ?  [
+    {
+      field: 'name',
+      type: 'SCORE',
+      order: 'DESC',
+      sortMode: 'MIN',
+    },
+  ] :
+  [
+    {
+      field: 'name',
+      type: 'FIELD',
+      order: 'ASC',
+      sortMode: 'MIN',
+    },
+  ];
 
   const {
     page,
@@ -30,14 +48,7 @@ function ItemsList() {
 
   const [result, loading] = useApiListSimple({
     filters: apiFilters,
-    sort: [
-      {
-        field: 'name',
-        type: 'FIELD',
-        order: 'ASC',
-        sortMode: 'MIN',
-      },
-    ],
+    sort: sortBy,
     offset: (page - 1) * pageSize,
     size: pageSize,
     source: "evidence-list"

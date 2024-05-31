@@ -16,6 +16,11 @@ export const useLayoutStyles = makeStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  flexBottom: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
   flexSpaceBetweenBottom: {
     display: 'flex',
     flexDirection: 'row',
@@ -62,5 +67,20 @@ export const useLayoutStyles = makeStyles((theme) => ({
     [theme.breakpoints.up('md')]: {
       flexDirection: 'row',
     },
+  },
+  flexGrow0: {
+    flexGrow: 0
+  },
+  flexGrow1: {
+    flexGrow: 1
+  },
+  flexGrow2: {
+    flexGrow: 2
+  },
+  flexGrow3: {
+    flexGrow: 3
+  },
+  flexGrow4: {
+    flexGrow: 4
   },
 }));

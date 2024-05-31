@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import contentDisposition from 'content-disposition';
-import { first, get } from 'lodash';
+import { get } from 'lodash';
 
 import { useFetch, ApiFilterOperation } from '@eas/common-web';
 
-import { API_URL, ApiUrl, SortMode } from '../enums';
+import { API_URL, ApiUrl } from '../enums';
 import { downloadFileFromUrl } from './file';
-import { Filter, ApuPart, ApuPartItem, ApuEntity, AggregationItems, ApuEntitySimplified } from '../types';
-import { getUnitDatePart } from './date';
+import { Filter, ApuEntity, AggregationItems, ApuEntitySimplified } from '../types';
 
 type Options = any;
 
@@ -51,6 +50,7 @@ export interface AggregationConfig {
   name: string;
   field: string;
   size?: number;
+  format?: string;
 }
 
 export interface ApiListSimplifiedResponse {
@@ -163,6 +163,26 @@ export function useApiListSimple({
   return usePost<ApiListSimplifiedResponse>(`${ApiUrl.APU}/listview?listType=${(source)?.toUpperCase()}`, { json });
 }
 
+export function useApiListViewSimple({
+  filters = [], 
+  sort = [], 
+  offset, 
+  size = -1, 
+  aggregations = [],
+  flipDirection = false,
+  source,
+}: ApiListProps) {
+  const json = { 
+    aggregations, 
+    filters: transformFilters(filters), 
+    sort, 
+    offset, 
+    flipDirection, 
+    size,
+  };
+  return usePost<ApiListResponse>(`${ApiUrl.APU}/listsimple?listType=${(source)?.toUpperCase()}`, { json });
+};
+
 export const getApu = async (id: string):Promise<ApuEntitySimplified | null> => {
   try {
     const response = await fetch(createUrl(`${ApiUrl.APU}/${id}/view`));
@@ -176,14 +196,8 @@ export const getApu = async (id: string):Promise<ApuEntitySimplified | null> => 
 
 export const getApus = async (ids: string[]):Promise<ApuEntitySimplified[] | null> => {
   try {
-    const response = await fetch(createUrl(`${ApiUrl.APU}/views`), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(ids),
-    });
-
+    const query = ids.join(','); 
+    const response = await fetch(createUrl(`${ApiUrl.APU}/views?ids=${query}`));
     return response.ok ? await response.json() : null;
   } catch (error) {
     console.log(error);
@@ -332,7 +346,7 @@ export const useGetMatchingName = (query: string, group?: string) =>
               operation: ApiFilterOperation.AND,
               filters: [
                 {
-                  operation: ApiFilterOperation.CONTAINS,
+                  operation: ApiFilterOperation.FTXF,
                   field: 'name',
                   value: query,
                 },
@@ -344,7 +358,7 @@ export const useGetMatchingName = (query: string, group?: string) =>
               ],
             }
           : {
-              operation: ApiFilterOperation.CONTAINS,
+              operation: ApiFilterOperation.FTXF,
               field: 'name',
               value: query,
             },
@@ -480,63 +494,51 @@ export const downloadFile = async (
   }
 };
 
-const useGetDateLimit = (
-  sortMode: SortMode,
+const useGetDateRangeLimit = (
   filters: Filter[],
   field: string
-): [number | null, boolean] => {
-  const [response, loading] = useApiList({
-      size: 1,
-      sort: [
+): [number | null, number | null, boolean] => {
+  const [response, loading] = useApiListViewSimple({
+      size: 0,
+      aggregations: [
         {
-          type: 'FIELD',
-          field: field,
-          sortMode,
-          order: sortMode === SortMode.MAX ? 'DESC' : 'ASC',
+          family: 'METRIC',
+          aggregator: 'MAX',
+          name: 'maxH',
+          field:  `${field}~H`,
+          format: 'yyyy'
         },
+        {
+          family: 'METRIC',
+          aggregator: 'MIN',
+          name: 'minL',
+          field:  `${field}~L`,
+          format: 'yyyy'
+        }
       ],
       // remove current field from filters
       filters: filters.filter(
         ({ field: filterField }) => field !== filterField
       ),
-    source: (`get-date-limit_${sortMode}`).toUpperCase()
+    source: (`get-date-range_${field}`).toUpperCase()
   });
 
-  const items: any[] = get(response, 'items', []);
+  const items = get(response, 'aggregations', null);
 
-  const getYear = (years: number[]) =>
-    years.length
-      ? sortMode === SortMode.MAX
-        ? Math.max(...years)
-        : Math.min(...years)
-      : null;
+  const getFiniteNumber = (value: String): number|null => {
+    const num = Number(value);
+    return isFinite(num)?num:null;
+  } 
 
-  const result =
-    !loading && items.length
-      ? getYear(
-          first(items)
-            ?.parts.reduce(
-              (all: ApuPartItem[], current: ApuPart) => [
-                ...all,
-                ...current.items,
-              ],
-              []
-            )
-            .filter((item: ApuPartItem) => item.type === field)
-            .map((item: ApuPartItem) =>
-              getUnitDatePart(
-                item.value,
-                sortMode === SortMode.MAX ? 'to' : 'from'
-              )
-            )
-            .map((item: string | null) =>
-              item ? new Date(item).getFullYear() : null
-            )
-            .map((item: number) => item)
-        )
-      : null;
+  const minValue = !loading && items && items['minL']
+        ? getFiniteNumber(items['minL'][0]['asString'])
+        :null;
 
-  return [result, loading];
+  const maxValue = !loading && items && items['maxH']
+        ? getFiniteNumber(items['maxH'][0]['asString'])
+        :null;
+
+  return [minValue, maxValue, loading];
 };
 
 export const useGetRangeFilterInterval = (
@@ -547,16 +549,13 @@ export const useGetRangeFilterInterval = (
     null,
     null,
   ]);
-  const [minValue, minLoading] = useGetDateLimit(SortMode.MIN, filters, field);
-  const [maxValue, maxLoading] = useGetDateLimit(SortMode.MAX, filters, field);
-
+  const [minValue, maxValue, loading] = useGetDateRangeLimit(filters, field);
   useEffect(() => {
-    if (!minLoading && !maxLoading) {
+    if (!loading) {
       setResult([minValue || null, maxValue || null]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [minLoading, maxLoading]);
-  const loading = minLoading || maxLoading;
+  }, [loading]);
   return [result, loading];
 };
 

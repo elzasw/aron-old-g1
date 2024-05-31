@@ -153,7 +153,7 @@ export function EvidenceLayout({
               bottom: layoutType === LayoutType.ONE_COLUMN,
             }} 
             size={treeSize}
-            maxWidth={layoutType !== LayoutType.ONE_COLUMN ? '32%' : undefined}
+            maxWidth={layoutType !== LayoutType.ONE_COLUMN ? '50%' : undefined}
             minHeight={'50px'}
             style={{
               display: !showTree ? 'none' : undefined,

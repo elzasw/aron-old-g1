@@ -9,14 +9,16 @@ import { ModulePath, Message } from '../../enums';
 import { useStyles } from './styles';
 import { Props } from './types';
 import { useConfiguration } from '../configuration'
+import { useAppStyles } from '../../styles';
 
-export function AppTitle({ appLogo, appTopImage }: Props) {
+export function AppTitle({ appLogo, appTopImage, appName }: Props) {
   const {
-    compactAppHeader, 
-    showAppTopImage, 
+    compactAppHeader,
+    showAppTopImage,
     showAppLogo
   } = useConfiguration();
-  const classes = useStyles({compactAppHeader});
+  const classes = useStyles({ compactAppHeader });
+  const appClasses = useAppStyles();
   const location = useLocation();
 
   const { navigate } = useContext(NavigationContext);
@@ -31,6 +33,9 @@ export function AppTitle({ appLogo, appTopImage }: Props) {
       )}
       onClick={() => isClickable && !appLogo && navigate(ModulePath.MAIN)}
     >
+      <div className={appClasses.screenReaderHidden}>
+        <h1>{appName}</h1>
+      </div>
       {showAppLogo &&
         (appLogo ? (
           <img
@@ -42,16 +47,16 @@ export function AppTitle({ appLogo, appTopImage }: Props) {
             onClick={() => isClickable && navigate(ModulePath.MAIN)}
           />
         ) : (
-          <>
-            <span className={classes.appTitleFirst}>
-              <FormattedMessage id={Message.ARCHIVE} />
-            </span>
+            <>
+              <span className={classes.appTitleFirst}>
+                <FormattedMessage id={Message.ARCHIVE} />
+              </span>
             &nbsp;
-            <FormattedMessage id={Message.ONLINE} />
-          </>
-      ))}
-      {showAppTopImage && !compactAppHeader && 
-        <img className={classes.appTitleTopImage} src={appTopImage}/>
+              <FormattedMessage id={Message.ONLINE} />
+            </>
+          ))}
+      {showAppTopImage && !compactAppHeader &&
+        <img className={classes.appTitleTopImage} src={appTopImage} />
       }
       <div />
     </div>

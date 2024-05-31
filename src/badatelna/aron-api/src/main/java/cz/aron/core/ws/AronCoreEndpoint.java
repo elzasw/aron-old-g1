@@ -4,13 +4,13 @@ import cz.aron.apux._2020.UuidList;
 import cz.aron.core.model.ApuRepository;
 import cz.aron.core.model.ApuSourceStore;
 import cz.aron.core.model.ApuStore;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.util.List;
 
 /**

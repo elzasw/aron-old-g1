@@ -3,6 +3,7 @@ import makeStyles from '@material-ui/core/styles/makeStyles';
 const BIG = 3;
 const NORMAL = 2;
 const SMALL = 1;
+const EXTRA_SMALL = 0.5;
 
 export const useSpacingStyles = makeStyles(({ spacing }) => {
   const big = spacing(BIG);
@@ -150,6 +151,9 @@ export const useSpacingStyles = makeStyles(({ spacing }) => {
     },
     marginHorizontalSmall: {
       margin: spacing(0, SMALL),
+    },
+    marginHorizontalExtraSmall: {
+      margin: spacing(0, EXTRA_SMALL),
     },
   };
 });

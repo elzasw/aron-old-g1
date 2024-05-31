@@ -36,6 +36,7 @@ export function Autocomplete<OPTION extends DomainObject>({
   ItemComponent = AutocompleteItem,
   showTooltip,
   DisabledComponent = TextField,
+  closeOnSelect = false,
 }: AutocompleteProps<OPTION>) {
   // fix undefined value
   value = value ?? null;
@@ -75,6 +76,10 @@ export function Autocomplete<OPTION extends DomainObject>({
       } else {
         option = await source.loadDetail(option);
         onChange([...multipleValue, option]);
+      }
+      if (closeOnSelect) {
+        setPopupOpen(false);
+        setTextValue("");
       }
     } else {
       // select item and close popup
@@ -182,51 +187,51 @@ export function Autocomplete<OPTION extends DomainObject>({
             value={multiple ? multiLabel : singleLabel}
           />
         ) : (
-          <>
-            <div className={input} onClick={handleClick}>
-              <TextField
-                ref={anchorEl}
-                error={error}
-                endAdornment={
-                  <>
-                    {clearable && value !== null && (
-                      <IconButton
-                        className={clearButton}
-                        size="small"
-                        onClick={handleClear}
-                      >
-                        <ClearIcon fontSize="small" />
-                      </IconButton>
-                    )}
-                    <ArrowDropDownIcon
-                      classes={{
-                        root: clsx(icon, { [iconOpened]: popupOpen }),
-                      }}
-                    />
-                  </>
-                }
-                value={textValue}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
-
-            {multiple && multipleValue.length > 0 && (
-              <div className={chips}>
-                {multipleValue.map((value) => (
-                  <Chip
-                    key={value.id}
-                    label={labelMapper(value, 'FIELD')}
-                    className={chip}
-                    variant="outlined"
-                    size="small"
-                    onDelete={!disabled ? () => handleDelete(value) : undefined}
-                  />
-                ))}
+            <>
+              <div className={input} onClick={handleClick}>
+                <TextField
+                  ref={anchorEl}
+                  error={error}
+                  endAdornment={
+                    <>
+                      {clearable && value !== null && (
+                        <IconButton
+                          className={clearButton}
+                          size="small"
+                          onClick={handleClear}
+                        >
+                          <ClearIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                      <ArrowDropDownIcon
+                        classes={{
+                          root: clsx(icon, { [iconOpened]: popupOpen }),
+                        }}
+                      />
+                    </>
+                  }
+                  value={textValue}
+                  onChange={handleChange}
+                  onKeyDown={handleKeyDown}
+                />
               </div>
-            )}
-          </>
-        )}
+
+              {multiple && multipleValue.length > 0 && (
+                <div className={chips}>
+                  {multipleValue.map((value) => (
+                    <Chip
+                      key={value.id}
+                      label={labelMapper(value, 'FIELD')}
+                      className={chip}
+                      variant="outlined"
+                      size="small"
+                      onDelete={!disabled ? () => handleDelete(value) : undefined}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
       </div>
       {popupOpen && anchorEl && (
         <Popover

@@ -209,6 +209,14 @@ public class ImportPevaFindingAidInfo {
 			var formTypes = getFormTypes(findingAid); 			
 			return institutionInfo.getName() + ": " + findingAid.getName() + ". " + findingAidType + ", "
 					+ formTypes + ", " + findingAid.getYearOfOrigin();
+		} else if  (findingAidProperties.isComposedShortFindingAidName() ) {
+			var findingAidType = codeLists.getFindingAidType(findingAid.getType());
+			if (StringUtils.isEmpty(findingAidType)) {
+				findingAidType = "";
+			}
+			var formTypes = getFormTypes(findingAid); 			
+			return institutionInfo.getShortName() + ": " + findingAid.getName() + ". " + findingAidType + ", "
+					+ formTypes + ", " + findingAid.getYearOfOrigin();
 		} else {
 			return findingAid.getName();
 		}
@@ -273,6 +281,10 @@ public class ImportPevaFindingAidInfo {
 			return fundIds;
 		}
 
+	}
+	
+	public static class FindingAidRemoved extends RuntimeException {
+		
 	}
 	
 }

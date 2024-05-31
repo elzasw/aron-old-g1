@@ -5,7 +5,7 @@ import { TextField, Tooltip } from '../../../components';
 import { useStyles } from './styles';
 import { useStyles as useEvidenceStyles } from '../styles';
 import { useSpacingStyles } from '../../../styles';
-import { InputFilterProps } from '.';
+import { InputFilterProps, InputFilterType } from '.';
 import { useGetCountInput } from './utils';
 
 export function InputFilter({
@@ -17,7 +17,7 @@ export function InputFilter({
   description,
   inDialog,
   apiFilters,
-  foldedFilter = false,
+  filterType = InputFilterType.FULLTEXT,
 }: InputFilterProps): ReactElement {
   const classes = useStyles();
   const classesEvidence = useEvidenceStyles();
@@ -54,7 +54,7 @@ export function InputFilter({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
-  const [result, loading] = useGetCountInput(source, value, apiFilters, foldedFilter);
+  const [result, loading] = useGetCountInput(source, value, apiFilters, filterType);
 
   return (
     <>

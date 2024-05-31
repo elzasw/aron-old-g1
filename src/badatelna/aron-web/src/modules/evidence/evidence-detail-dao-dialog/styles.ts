@@ -1,13 +1,11 @@
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import { colorGrey } from '../../../styles';
 
-const daoDialogToolbarHeight = 50;
-
 export interface StyleConfiguration {
   alternativeItemLabel?: boolean;
 }
 
-export const useStyles =  makeStyles((theme) => {
+export const useStyles = makeStyles((theme) => {
   const md = theme.breakpoints.up('md');
   return {
     icon: {
@@ -38,10 +36,7 @@ export const useStyles =  makeStyles((theme) => {
       zIndex: 100,
     },
     daoDialogSection: {
-      position: 'absolute',
-      top: daoDialogToolbarHeight,
-      height: `calc(100% - ${daoDialogToolbarHeight}px)`,
-      overflow: 'hidden',
+      position: 'relative',
     },
     daoDialogSide: {
       width: '100%',
@@ -69,7 +64,6 @@ export const useStyles =  makeStyles((theme) => {
     },
     daoDialogCenterNoSidebar: {
       [md]: {
-        width: 'calc(100% - 160px)',
         height: '100%',
         top: 0,
         left: '160px',
@@ -88,6 +82,7 @@ export const useStyles =  makeStyles((theme) => {
     },
     daoDialogSideOpen: {
       display: 'block',
+      zIndex: 10,
     },
     daoDialogNoFiles: {
       color: '#fff',
@@ -170,7 +165,6 @@ export const useStyles =  makeStyles((theme) => {
       height: 'auto'
     },
     daoDialogMetadata: {
-      maxHeight: `calc(100vh - ${daoDialogToolbarHeight}px - 30px - 8px)`,
       overflowY: 'auto',
       background: '#222',
       color: 'white',
@@ -196,7 +190,7 @@ export const useStyles =  makeStyles((theme) => {
       cursor: 'pointer',
     },
     daoDialogFloatingOverlay: {
-      position: 'absolute', 
+      position: 'absolute',
       color: 'white',
       background: '#0008',
       padding: '8px 5px',
@@ -228,20 +222,38 @@ export const useStyles =  makeStyles((theme) => {
       cursor: 'auto',
     },
     daoDialogToolbar: {
-      // height: daoDialogToolbarHeight,
-      // width: '100vw',
       width: '100%',
-      position: 'absolute',
       background: '#0009',
       zIndex: 1,
-      overflowX: 'auto',
+      // overflowX: 'auto',
+      // overflowY: 'visible',
       [md]: {
-        overflowX: 'hidden',
+        // overflowX: 'hidden',
       }
     },
     daoDialogToolbarInner: {
       padding: '10px',
-      // height: 'calc(100% - 8px)',
     },
+    toolbarPageForm: {
+      color: '#fff',
+      whiteSpace: 'nowrap',
+    },
+    toolbarInput: {
+      background: '#fff3',
+      color: '#fff',
+      width: '6ch',
+      border: 'none',
+      padding: '3px',
+      borderRadius: '3px',
+      textAlign: 'right',
+      outline: 'none',
+    },
+    imageSettingsWrapper: {
+      width: '100%',
+      height: '100%',
+    },
+    imageSettingsButton: {
+      cursor: 'pointer',
+    }
   };
 });

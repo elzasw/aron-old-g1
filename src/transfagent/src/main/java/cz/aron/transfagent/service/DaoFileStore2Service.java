@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.map.LRUMap;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -37,20 +38,20 @@ public class DaoFileStore2Service  implements DaoImporter {
 	private final TransformService transformService;
 	
 	/**
-	 * Mapovani (archiv,fond)->seznam adresaru obsahujicich dao, plna cesta
-	 * pravdepodobne bude adresar pouze jeden
-	 */
-	private final Map<ArchiveFundKey, List<Path>> fundDaoDir;
-	
-	/**
 	 * Mapovani (archiv,fond,daoId)->seznam souboru k daoId, plna cesta k souborum
 	 */
 	private final LRUMap<ArchiveFundKey, Map<String, List<Path>>> fundDaoCache = new LRUMap<>(10);
 	
+	/**
+	 * Mapovani (archiv, fond) -> adesar s digitalizaty
+	 */
+	private Map<ArchiveFundKey, List<Path>> fundDaoPaths = new HashMap<>();
+	
+	private long lastCheck = 0L;
+	
 	public DaoFileStore2Service(ConfigDaoFileStore2 config, TransformService transformService) throws IOException {
 		this.config = config;
 		this.transformService = transformService;
-		this.fundDaoDir = init();
 	}
 
 	@Override
@@ -81,37 +82,56 @@ public class DaoFileStore2Service  implements DaoImporter {
 	}
 	
 	public List<Path> getDaos(ArchiveFundDao archiveFundDao) throws IOException {
-		Map<String, List<Path>> daos = getFundDaos(archiveFundDao.createKey());
+		Map<String, List<Path>> daos = getFundDaos(archiveFundDao.createFundKey());
 		return daos.get(archiveFundDao.getDaoId());
 	}
+
+	private synchronized Map<ArchiveFundKey, List<Path>> getFundDaoPaths() throws IOException {
+		long currentTime = System.currentTimeMillis();
+		if ((currentTime-lastCheck) > config.getRefresh()*1000*60) {
+			// reload
+			fundDaoCache.clear();
+			if (config.isOldFormat()) {
+				fundDaoPaths = readFundDaoPathsOld();
+			} else {
+				fundDaoPaths = readFunDaoPaths();
+			}
+			lastCheck = currentTime;
+		}
+		return fundDaoPaths;
+	}
 	
-	private synchronized Map<String, List<Path>> getFundDaos(ArchiveFundKey key) throws IOException {
+	private synchronized Map<String, List<Path>> getFundDaos(ArchiveFundKey key) throws IOException {		
+		// call to force check actualness
+		var daoPaths = getFundDaoPaths();		
 		Map<String, List<Path>> daos = fundDaoCache.get(key);
 		if (daos == null) {
 			daos = new HashMap<>();
-			List<Path> paths = fundDaoDir.get(key);
+			List<Path> paths = daoPaths.get(key);
 			if (paths == null) {
 				fundDaoCache.put(key, daos);
-			} else {				
+			} else {
 				for (Path path : paths) {
-					Map<String, List<Path>> tmp = read(path);					
-					for(Map.Entry<String, List<Path>> entry:tmp.entrySet()) {
-						daos.compute(entry.getKey(), (k,v)->{
-							if (v==null) {
-								return entry.getValue();
-							} else {
-								v.addAll(entry.getValue());
-								return v;
+					Map<String, List<Path>> tmp = read(path);
+					for (Map.Entry<String, List<Path>> entry : tmp.entrySet()) {
+						daos.compute(entry.getKey(), (k, v) -> {
+							if (v == null) {
+								v = new ArrayList<>();
 							}
+							v.addAll(entry.getValue());
+							return v;
 						});
 					}
+				}
+				// order paths
+				for (var p : daos.values()) {
+					p.sort((p1, p2) -> p1.getFileName().toString().compareTo(p2.getFileName().toString()));
 				}
 				fundDaoCache.put(key, daos);
 			}
 		}
 		return daos;
 	}
-
 
 	/**
 	 * Nacte cesty ke vsem dao z jednoho adresare. 
@@ -150,7 +170,45 @@ public class DaoFileStore2Service  implements DaoImporter {
 	 * @return Map<ArchiveFundKey, List<Path>>
 	 * @throws IOException
 	 */
-	private Map<ArchiveFundKey, List<Path>> init() throws IOException {
+	private Map<ArchiveFundKey, List<Path>> readFunDaoPaths() throws IOException {
+		log.info("Initializing filestore2 from {}", config.getPath());
+		var archiveDirs = new ArrayList<Path>();
+		try (var fundStream = Files.list(config.getPath())) {
+			fundStream.filter(fs -> Files.isDirectory(fs)).forEach(fs -> archiveDirs.add(fs));
+		}
+		var ret = new HashMap<ArchiveFundKey, List<Path>>();
+		for (Path archiveDir : archiveDirs) {
+			var archiveCode = archiveDir.getFileName().toString();
+			try (var fundStream = Files.list(archiveDir)) {
+				fundStream.filter(fundDir -> Files.isDirectory(fundDir)).forEach(fundDir -> {
+					var splitted = fundDir.getFileName().toString().split("_");
+					if (StringUtils.isNotBlank(splitted[0])) {
+						try {
+							ArchiveFundKey key = new ArchiveFundKey(archiveCode, Integer.parseInt(splitted[0]));
+							ret.compute(key, (k, v) -> {
+								if (v == null) {
+									v = new ArrayList<>();
+								}
+								v.add(fundDir);
+								return v;
+							});
+						} catch (NumberFormatException ex) {
+							log.error("Invalid name of directory {}", fundDir);
+						}
+					}
+				});
+			}
+		}
+		log.info("file2store initialized, num dao dirs {}", ret.size());
+		return ret;
+	}
+	
+	/**
+	 * Inicializuje mapovani (archiv,fond)->seznam adreasru s dao, plna cesta k adresari
+	 * @return Map<ArchiveFundKey, List<Path>>
+	 * @throws IOException
+	 */
+	private Map<ArchiveFundKey, List<Path>> readFundDaoPathsOld() throws IOException {
 		log.info("Initializing filestore2 from {}",config.getPath());
 		Map<ArchiveFundKey, List<Path>> fundDaoDir = new HashMap<>();
 		try (Stream<Path> stream = Files.list(config.getPath())) {
@@ -244,7 +302,7 @@ public class DaoFileStore2Service  implements DaoImporter {
 			return archive + "_" + fund + "_" + daoId;
 		}
 		
-		public ArchiveFundKey createKey() {
+		public ArchiveFundKey createFundKey() {
 			return new ArchiveFundKey(archive,fund);
 		}
 		

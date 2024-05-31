@@ -18,6 +18,8 @@ public class ConfigElza {
     private boolean soapLogging;
     
     private int maxChildElements = 0;
+    
+    private boolean archdescFlag = false;
 
     public boolean isDisabled() {
         return disabled;
@@ -66,5 +68,13 @@ public class ConfigElza {
     public void setMaxChildElements(int maxChildElements) {
         this.maxChildElements = maxChildElements;
     }
+
+	public boolean isArchdescFlag() {
+		return archdescFlag;
+	}
+
+	public void setArchdescFlag(boolean archdescFlag) {
+		this.archdescFlag = archdescFlag;
+	}    
 
 }

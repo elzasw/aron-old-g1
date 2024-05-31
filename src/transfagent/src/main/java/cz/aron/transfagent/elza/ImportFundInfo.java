@@ -48,6 +48,8 @@ public class ImportFundInfo {
 
 	private String institutionCode;
 	
+	private boolean archdescFlag;
+	
 	public static void main(String[] args) {
 		Path inputFile = Path.of(args[0]);
 		ImportFundInfo ifi = new ImportFundInfo();
@@ -71,17 +73,18 @@ public class ImportFundInfo {
 		Path propPath = Paths.get(propFile);
 		pdp.load(propPath);
 		
-		return importFundInfo(inputFile, null, pdp);
+		return importFundInfo(inputFile, null, pdp, false);
 	}
 
-    public ApuSourceBuilder importFundInfo(final Path inputFile, UUID uuid, final ContextDataProvider cdp) throws IOException, JAXBException {
-        this.dataProvider = cdp;
-
-        try (InputStream is = Files.newInputStream(inputFile)) {
-            elzaXmlReader = ElzaXmlReader.read(is);
-            return importFundInfo(uuid);
-        }
-    }
+	public ApuSourceBuilder importFundInfo(final Path inputFile, UUID uuid, final ContextDataProvider cdp,
+			final boolean archdescFlag) throws IOException, JAXBException {
+		this.dataProvider = cdp;
+		this.archdescFlag = archdescFlag;
+		try (InputStream is = Files.newInputStream(inputFile)) {
+			elzaXmlReader = ElzaXmlReader.read(is);
+			return importFundInfo(uuid);
+		}
+	}
 
     /**
      * 
@@ -118,6 +121,9 @@ public class ImportFundInfo {
 		var rootLvlUuid = getRootLevelUuid(sect.getLvls());
 		if(rootLvlUuid!=null) {
 			apusBuilder.addApuRef(partFundInfo, "ARCHDESC_ROOT_REF", rootLvlUuid);
+			if (archdescFlag) {
+				ApuSourceBuilder.addEnum(partFundInfo, "ARCHDESC_FLAG", "Ano", false);	
+			}			
 		}
         if(fi.getNum()!=null) {
             apusBuilder.addString(partFundInfo, "CISLO_NAD", fi.getNum().toString());

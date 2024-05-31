@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 
@@ -41,9 +42,12 @@ import cz.aron.peva2.wsdl.NadSheet;
 import cz.aron.peva2.wsdl.NadSubsheet;
 import cz.aron.peva2.wsdl.Quantity;
 import cz.aron.transfagent.config.ConfigPeva2FundProperties;
+import cz.aron.transfagent.domain.EntityStatus;
+import cz.aron.transfagent.elza.ApTypeService;
 import cz.aron.transfagent.peva.jsoncomponent.Column;
 import cz.aron.transfagent.peva.jsoncomponent.JSONComponent;
 import cz.aron.transfagent.peva.jsoncomponent.Table;
+import cz.aron.transfagent.service.StorageService;
 import cz.aron.transfagent.transformation.ContextDataProvider;
 import cz.aron.transfagent.transformation.CoreTypes;
 import cz.aron.transfagent.transformation.InstitutionInfo;
@@ -59,7 +63,11 @@ public class ImportPevaFundInfo {
     
     private Peva2CodeListProvider codeListProvider;
     
-    private ConfigPeva2FundProperties fundProperties;
+    private final ConfigPeva2FundProperties fundProperties;
+    
+    private final ApTypeService apTypeService;
+    
+    private final StorageService storageService;
     
     private String institutionCode;
     
@@ -69,13 +77,15 @@ public class ImportPevaFundInfo {
     
     private final List<String> originators = new ArrayList<>();
     
+    private final List<String> camOriginators = new ArrayList<>();
+    
     private final List<String> findingAids = new ArrayList<>();
     
     private final List<String> geos = new ArrayList<>();
-    
+            
     public static void main(String[] args) {
         Path inputFile = Path.of(args[0]);
-        ImportPevaFundInfo ifi = new ImportPevaFundInfo(new ConfigPeva2FundProperties());
+        ImportPevaFundInfo ifi = new ImportPevaFundInfo(new ConfigPeva2FundProperties(),null, null);
         try {
             ApuSourceBuilder apusrcBuilder = ifi.importFundInfo(inputFile, args[1]);
             Path ouputPath = Paths.get(args[2]);
@@ -88,12 +98,14 @@ public class ImportPevaFundInfo {
         }
     }
     
-    public ImportPevaFundInfo(ConfigPeva2FundProperties fundProperties) {
+    public ImportPevaFundInfo(ConfigPeva2FundProperties fundProperties, ApTypeService apTypeService, StorageService storageService) {
     	if (fundProperties!=null) {
     		this.fundProperties = fundProperties;
     	} else {
     		this.fundProperties = new ConfigPeva2FundProperties();
     	}
+    	this.apTypeService = apTypeService;
+    	this.storageService = storageService;
     }
 
     public ApuSourceBuilder importFundInfo(Path inputFile, String propFile) throws IOException, JAXBException {
@@ -113,6 +125,13 @@ public class ImportPevaFundInfo {
 		this.codeListProvider = codeListProvider;
 		this.archDescRoot = archDescRoot;
 		GetNadSheetResponse gnsr = Peva2XmlReader.unmarshalGetNadSheetResponse(inputFile);
+		
+		//TODO po uprave v PEvA II
+		/*
+		if (gnsr.getNadPrimarySheet()!=null&&gnsr.getNadPrimarySheet().getState()!=State.OK) {
+			throw new FundRemoved();
+		}*/
+		
 		if (gnsr.getNadPrimarySheet() != null) {
 			importPrimarySheet(gnsr.getNadPrimarySheet());
 		} else {
@@ -184,6 +203,9 @@ public class ImportPevaFundInfo {
 		if (fundProperties.isComposedFundName()) {
 			return institutionInfo.getName() + ": " + nadSheet.getHeader().getName() + " "
 					+ (nadSheet.getHeader().getTimeRange()!=null?Peva2Utils.getAsString(nadSheet.getHeader().getTimeRange()):"");
+		} else if (fundProperties.isComposedShortFundName()) {
+			return institutionInfo.getShortName() + ": " + nadSheet.getHeader().getName() + " "
+					+ (nadSheet.getHeader().getTimeRange()!=null?Peva2Utils.getAsString(nadSheet.getHeader().getTimeRange()):"");
 		} else {
 			return nadSheet.getHeader().getName();
 		}
@@ -192,6 +214,9 @@ public class ImportPevaFundInfo {
 	private void processArchDesc(Part partFundInfo) {
 		if (archDescRoot != null) {
 			apusBuilder.addApuRef(partFundInfo, "ARCHDESC_ROOT_REF", archDescRoot);
+			if (fundProperties.isArchdescFlag()) {
+				ApuSourceBuilder.addEnum(partFundInfo, "ARCHDESC_FLAG", "Ano", false);
+			}
 		}
 	}
 
@@ -332,14 +357,50 @@ public class ImportPevaFundInfo {
 		if (fundProperties.isOriginators()) {
 			var originators = nadSheet.getOriginators();
 			if (originators != null && originators.getOriginator() != null) {
-				originators.getOriginator().forEach(o -> {
-					apusBuilder.addApuRef(partFundInfo, CoreTypes.ORIGINATOR_REF, UUID.fromString(o));
-					this.originators.add(o);
-				});
+				if (fundProperties.isCamOriginators()) {
+					List<UUID> uuids = originators.getOriginator().stream().map(uuid -> UUID.fromString(uuid))
+							.collect(Collectors.toList());
+					var archEntitySources = this.dataProvider.getArchEntityApuSources(uuids,
+							ImportPevaOriginator.ENTITY_CLASS);
+					for (var archEntitySource : archEntitySources) {
+						if (archEntitySource.getStatus() != EntityStatus.ACCESSIBLE
+								&& archEntitySource.getStatus() != EntityStatus.AVAILABLE) {
+							// entita neni dostupna nebo neni urcena k publikaci
+							continue;
+						}
+						var ipoi = new ImportPevaOriginatorInfo(apTypeService, codeListProvider);
+						var dataDir = storageService.getApuDataDir(archEntitySource.getDataDir());
+						var originatorPath = ImportPevaOriginator.getPevaOriginatorFile(dataDir);
+						if (originatorPath.isEmpty()) {
+							log.error("Fail to read peva originator, not exist, path={}", dataDir);
+							throw new IllegalStateException();
+						}
+						try {
+							ipoi.importOriginator(originatorPath.get(), dataProvider);
+						} catch (IOException e) {
+							log.error("Fail to read peva originator", e);
+							throw new IllegalStateException();
+						} catch (JAXBException e) {
+							log.error("Fail to read peva originator", e);
+							throw new IllegalStateException();
+						}
+						if (ipoi.getCamUUID() != null) {
+							apusBuilder.addApuRef(partFundInfo, CoreTypes.ORIGINATOR_REF,
+									UUID.fromString(ipoi.getCamUUID()));
+							camOriginators.add(ipoi.getCamUUID());
+						}
+					}
+					this.originators.addAll(originators.getOriginator());
+				} else {
+					originators.getOriginator().forEach(o -> {
+						apusBuilder.addApuRef(partFundInfo, CoreTypes.ORIGINATOR_REF, UUID.fromString(o));
+						this.originators.add(o);
+					});
+				}
 			}
 		}
-	}
-
+	}	
+	
     private static Comparator<Object> COMPARATOR_CS_CZ = Collator.getInstance(new Locale("cs","CZ"));
     
 	private void processLanguages(NadSheet nadSheet, Part partFundInfo) {
@@ -865,7 +926,11 @@ public class ImportPevaFundInfo {
     
     public List<String> getOriginatorIds() {
     	return originators;
-    }    
+    }
+    
+    public List<String> getCAMOriginatorIds() {
+    	return camOriginators;
+    }
 
 	public List<String> getFindingAidIds() {
 		return findingAids;
@@ -873,13 +938,20 @@ public class ImportPevaFundInfo {
 
 	public List<String> getGeos() {
 		return geos;
-	}
+	}	
 
 	public interface FundProvider {		
 		NadPrimarySheet getFundByUUID(UUID uuid) throws IOException, JAXBException;		
 	}
 
+	@SuppressWarnings("serial")
 	public static class FundIgnored extends RuntimeException {
 		
 	}
+	
+	@SuppressWarnings("serial")
+	public static class FundRemoved extends RuntimeException {
+		
+	}
+	
 }

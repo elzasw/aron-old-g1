@@ -23,8 +23,9 @@ export interface ActionsRenderProps {
 export interface ToolbarProps {
   noView?: boolean;
   noAction?: boolean;
-  previous: () => void;
-  next: () => void;
+  selectRelative: (step: number) => void;
+  selectIndex: (index: number) => void;
+  totalItemCount: number;
   zoomIn: () => void;
   zoomOut: () => void;
   reset: () => void;
@@ -36,6 +37,7 @@ export interface ToolbarProps {
   nextDisabled: boolean;
   zoomInDisabled: boolean;
   zoomOutDisabled: boolean;
+  itemIndex: number;
   item: Dao;
   setItem: (item: Dao | null) => void;
   open: boolean;

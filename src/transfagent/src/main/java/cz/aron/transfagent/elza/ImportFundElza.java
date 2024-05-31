@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.apux.ApuValidator;
+import cz.aron.transfagent.config.ConfigElza;
 import cz.aron.transfagent.config.ConfigurationLoader;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.Fund;
@@ -49,16 +50,19 @@ public class ImportFundElza implements FundImporter {
     private final DatabaseDataProvider databaseDataProvider;
 
     private final ConfigurationLoader configurationLoader;
+    
+    private final ConfigElza configElza;
 
 	public ImportFundElza(FundService fundService, FundRepository fundRepository, StorageService storageService,
 			InstitutionRepository institutionRepository, DatabaseDataProvider databaseDataProvider,
-			ConfigurationLoader configurationLoader) {
+			ConfigurationLoader configurationLoader, ConfigElza configElza) {
 		this.fundService = fundService;
 		this.fundRepository = fundRepository;
 		this.storageService = storageService;
 		this.institutionRepository = institutionRepository;
 		this.databaseDataProvider = databaseDataProvider;
 		this.configurationLoader = configurationLoader;
+		this.configElza = configElza;
 	}
 
 	@Override
@@ -107,7 +111,7 @@ public class ImportFundElza implements FundImporter {
 		ApuSourceBuilder apusrcBuilder;
 
 		try {
-			apusrcBuilder = ifi.importFundInfo(fundXml, fundUuid, databaseDataProvider);
+			apusrcBuilder = ifi.importFundInfo(fundXml, fundUuid, databaseDataProvider, configElza.isArchdescFlag());
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		} catch (JAXBException e) {
@@ -159,7 +163,7 @@ public class ImportFundElza implements FundImporter {
         ApuSourceBuilder apuSourceBuilder;
         var ifi = new ImportFundInfo();
         try {
-            apuSourceBuilder = ifi.importFundInfo(apuDir.resolve(fileName), fund.getUuid(), databaseDataProvider);
+            apuSourceBuilder = ifi.importFundInfo(apuDir.resolve(fileName), fund.getUuid(), databaseDataProvider, configElza.isArchdescFlag());
             apuSourceBuilder.setUuid(apuSource.getUuid());
             try (var os = Files.newOutputStream(apuDir.resolve("apusrc.xml"))) {
                 apuSourceBuilder.build(os, new ApuValidator(configurationLoader.getConfig()));

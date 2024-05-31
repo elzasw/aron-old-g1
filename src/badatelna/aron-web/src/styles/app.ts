@@ -25,4 +25,14 @@ export const useAppStyles = makeStyles({
     width: 'calc(100% - 4em)',
     fontSize: '1.4rem',
   },
+  screenReaderHidden: {
+    position: "absolute",
+    display: "inline-block",
+    left: "-10000px",
+    top: 0,
+    overflow: "hidden",
+    "&:focus-within": {
+      left: 0
+    }
+  }
 });

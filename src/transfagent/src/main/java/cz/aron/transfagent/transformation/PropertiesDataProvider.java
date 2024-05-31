@@ -22,7 +22,7 @@ public class PropertiesDataProvider implements ContextDataProvider {
 	@Override
 	public InstitutionInfo getInstitutionApu(String instCode) {
 		String propName = "institution." + instCode;
-		return new InstitutionInfo(UUID.fromString(getProperty(propName)), getProperty(propName));
+		return new InstitutionInfo(UUID.fromString(getProperty(propName)), getProperty(propName), getProperty(propName));
 	}
 
 	private String getProperty(String propName) {
@@ -62,5 +62,10 @@ public class PropertiesDataProvider implements ContextDataProvider {
 	public UUID getFundApuByUUID(String institutionCode, UUID fundUuid) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<ArchEntitySourceInfo> getArchEntityApuSources(List<UUID> uuids, String entityClass) {
+		return Collections.emptyList();
 	}
 }

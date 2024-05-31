@@ -25,4 +25,5 @@ export interface AutocompleteProps<OPTION extends DomainObject> {
     value: string | null;
     disabled?: boolean;
   }>;
+  closeOnSelect?: boolean;
 }

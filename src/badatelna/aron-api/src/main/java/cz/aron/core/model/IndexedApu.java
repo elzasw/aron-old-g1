@@ -19,7 +19,9 @@ import org.springframework.data.elasticsearch.annotations.InnerField;
 import org.springframework.data.elasticsearch.annotations.MultiField;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -123,7 +125,19 @@ public class IndexedApu extends DomainIndexedObject<ApuEntity, ApuEntity> {
                     case UNITDATE:
                         try {
                             UniversalDate universalDate = objectMapper.readValue(value, UniversalDate.class);
-                            data = universalDate.getFrom();   //todo other subfields and where to? also create date object?
+                            //data = universalDate.getFrom();   //todo other subfields and where to? also create date object?
+                            var r = new LinkedHashMap<String,String>();
+                            r.put("gte", universalDate.getFrom());
+                            r.put("lte", universalDate.getTo());
+                            data = r;
+                            var origL = additionalDataToIndex.get(itemType.getCode() + "~L");
+                            if (origL == null||UniversalDate.isLower(universalDate.getFrom(),(String)origL.get(0))) {
+                                additionalDataToIndex.put(itemType.getCode() + "~L", Collections.singletonList(universalDate.getFrom()));                                
+                            }                            
+                            var origH = additionalDataToIndex.get(itemType.getCode() + "~H");
+                            if (origH == null||UniversalDate.isHigher(universalDate.getTo(),(String)origH.get(0))) {
+                                additionalDataToIndex.put(itemType.getCode() + "~H", Collections.singletonList(universalDate.getTo()));
+                            }
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }

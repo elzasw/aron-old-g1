@@ -39,6 +39,7 @@ import cz.aron.transfagent.domain.SourceType;
 import cz.aron.transfagent.repository.ArchivalEntityRepository;
 import cz.aron.transfagent.repository.CoreQueueRepository;
 import cz.aron.transfagent.repository.EntitySourceRepository;
+import cz.aron.transfagent.transformation.ArchEntitySourceInfo;
 
 @Service
 public class ArchivalEntityService {
@@ -99,7 +100,7 @@ public class ArchivalEntityService {
 		if (insertToCoreQueue) {
 			insertToCoreQueue(apuSource);
 		}
-		log.info("Archival entity created, uuid={}", apuSourceUuid);
+		log.info("Archival entity created, uuid={}, entityClass={}", apuSourceUuid, entityClass);
 	}
 	
 	/**
@@ -126,7 +127,10 @@ public class ArchivalEntityService {
 		if (insertToCoreQueue) {
 			insertToCoreQueue(apuSource);
 		}
-		log.info("Archival entity updated, uuid={}", apuSourceUuid);
+		
+		archivalEntityRepository.reimportConnected(archivalEntity.getId());
+		
+		log.info("Archival entity updated, uuid={}, entityClass={}", apuSourceUuid, archivalEntity.getEntityClass());
 	}
 	
 	private void insertToCoreQueue(ApuSource apuSource) {
@@ -281,6 +285,11 @@ public class ArchivalEntityService {
 		}, () -> {
 			log.error("Fail to set entity {} to NOT_AVAILABLE state. Entity not exist", uuid);
 		});
+	}
+	
+	
+	public List<ArchEntitySourceInfo> getArchEntityApuSourcesWithScheduled(List<UUID> uuids) {
+		return archivalEntityRepository.getArchEntityApuSourcesWithScheduled(uuids);
 	}
 
     @Transactional

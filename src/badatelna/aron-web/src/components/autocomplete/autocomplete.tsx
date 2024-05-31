@@ -36,5 +36,5 @@ export function Autocomplete({
     count: options.length,
     setLoading: () => loading,
   };
-  return <EasAutocomplete {...{ value, onChange, source, multiple }} />;
+  return <EasAutocomplete {...{ value, onChange, source, multiple, closeOnSelect: true }} />;
 }

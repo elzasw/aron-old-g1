@@ -4,9 +4,10 @@ import cz.aron.core.integration.transformagent.TransformAgentClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class ApuRequestQueue {
     @Inject private QueuedApuStore queuedApuStore;
     @Inject private TransformAgentClient transformAgentClient;
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    @Transactional(propagation=Propagation.REQUIRES_NEW)
     @Async
     public void add(String apuId, String sourceId) {
         QueuedApu queuedApu = new QueuedApu();
@@ -35,7 +36,7 @@ public class ApuRequestQueue {
      * 
      * Note: call repeatedly until return false
      */
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    @Transactional(propagation=Propagation.REQUIRES_NEW)
     public boolean sendRequestsBatch() {
         List<QueuedApu> batchToResolve = queuedApuStore.getBatchToResolve();
         if (batchToResolve.isEmpty()) {

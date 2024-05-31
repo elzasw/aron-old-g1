@@ -15,6 +15,7 @@ import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.ArchivalEntity;
 import cz.aron.transfagent.domain.EntityStatus;
 import cz.aron.transfagent.domain.IdProjection;
+import cz.aron.transfagent.transformation.ArchEntitySourceInfo;
 
 @Repository
 public interface ArchivalEntityRepository extends JpaRepository<ArchivalEntity, Integer> {
@@ -85,7 +86,25 @@ public interface ArchivalEntityRepository extends JpaRepository<ArchivalEntity, 
 	@Query("update ArchivalEntity ae set ae.download = true where ae.elzaId in :ids")
     void setDownloadTrueByIds(@Param("ids") List<Integer> ids);
 
-    @Query("SELECT ae FROM ArchivalEntity ae WHERE ae NOT IN (SELECT DISTINCT es.archivalEntity FROM EntitySource es)")
+    /**
+     * Vrati seznam archivnich entit, u kterych je potreba nastavit stav NOT_ACCESSIBLE
+     * @return List<ArchivalEntity>
+     */
+    @Query("SELECT ae FROM ArchivalEntity ae WHERE ae NOT IN (SELECT DISTINCT es.archivalEntity FROM EntitySource es) AND ae.status<>'NOT_ACCESSIBLE'")
     List<ArchivalEntity> findNewlyUnaccesibleEntities();
 
+    @Query("SELECT new cz.aron.transfagent.transformation.ArchEntitySourceInfo(ae.uuid, apuS.dataDir, apuS.uuid, ae.status, apuS.lastSent) "
+    		+ "FROM ArchivalEntity ae "
+    		+ "JOIN ae.apuSource apuS "
+    		+ "WHERE ae.uuid in (:uuids) AND ae.entityClass=:entityClass AND ae.status in ('ACCESSIBLE', 'AVAILABLE')")
+    List<ArchEntitySourceInfo> getArchEntityApuSources(@Param("uuids") List<UUID> uuids, @Param("entityClass") String entityClass);
+
+    @Query("SELECT new cz.aron.transfagent.transformation.ArchEntitySourceInfo(ae.uuid, apuS.dataDir, apuS.uuid, ae.status, apuS.lastSent, max(cq.id)) "
+    		+ "FROM ArchivalEntity ae "
+    		+ "JOIN ae.apuSource apuS "
+    		+ "LEFT JOIN CoreQueue cq ON cq.apuSource=apuS "
+    		+ "WHERE ae.uuid in (:uuids) AND ae.status in ('ACCESSIBLE', 'AVAILABLE') "
+    		+ "GROUP BY ae.uuid, apuS.dataDir, apuS.uuid, ae.status, apuS.lastSent")
+    List<ArchEntitySourceInfo> getArchEntityApuSourcesWithScheduled(@Param("uuids") List<UUID> uuids);
+    
 }

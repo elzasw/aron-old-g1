@@ -36,6 +36,8 @@ public class ImportPevaOriginatorInfo {
 	private ApuSourceBuilder apusBuilder = new ApuSourceBuilder();
 
 	private String uuid;
+	
+	private String camUUID;
 
 	public ImportPevaOriginatorInfo(ApTypeService apTypeService, Peva2CodeListProvider codeLists) {
 		this.apTypeService = apTypeService;
@@ -60,7 +62,7 @@ public class ImportPevaOriginatorInfo {
 			importPerson(getOriginatorResp.getPerson());
 		} else {
 			throw new IllegalStateException("Unsupported type of originator");
-		}
+		}		
 		return apusBuilder;
 	}
 
@@ -135,7 +137,8 @@ public class ImportPevaOriginatorInfo {
 					ApuSourceBuilder.addDateRange(part, endDateRange);
 				}
 			}
-		}
+		}		
+		camUUID = originator.getCamUuid();
 	}
 	
 	private ItemDateRange createOriginatorDateRange(String date, String method, String defaultType) {		
@@ -163,9 +166,6 @@ public class ImportPevaOriginatorInfo {
 		sb.append(dynastyName.getPrimaryPart());
 		if (StringUtils.isNotBlank(dynastyName.getSecondaryPart())) {
 			sb.append(", ").append(dynastyName.getSecondaryPart());
-		}
-		if (StringUtils.isNotBlank(dynastyName.getGeneralSupplement())) {
-			sb.append(" (").append(dynastyName.getGeneralSupplement()).append(")");
 		}
 		return sb.toString();
 	}
@@ -241,5 +241,9 @@ public class ImportPevaOriginatorInfo {
 	public String getUuid() {
 		return uuid;
 	}
+
+	public String getCamUUID() {
+		return camUUID;
+	}	
 
 }

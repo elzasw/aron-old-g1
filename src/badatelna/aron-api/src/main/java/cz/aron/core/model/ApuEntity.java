@@ -24,6 +24,9 @@ public class ApuEntity extends DomainObject<ApuEntity> {
     private String permalink;
     private int order;
     private boolean published;
+    private int depth;
+    private int pos;
+    private int childCnt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @Fetch(FetchMode.SELECT)

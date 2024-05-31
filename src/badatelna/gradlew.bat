@@ -1,3 +1,4 @@
+set JAVA_HOME=C:\Program Files\Java\jdk-11.0.17
 @rem
 @rem Copyright 2015 the original author or authors.
 @rem

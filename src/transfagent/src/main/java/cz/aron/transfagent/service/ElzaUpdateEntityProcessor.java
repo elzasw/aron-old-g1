@@ -16,6 +16,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import cz.aron.transfagent.common.BulkOperation;
 import cz.aron.transfagent.config.ConfigElza;
 import cz.aron.transfagent.domain.ApuSource;
+import cz.aron.transfagent.domain.EntityStatus;
 import cz.aron.transfagent.domain.Property;
 import cz.aron.transfagent.repository.ApuSourceRepository;
 import cz.aron.transfagent.repository.ArchivalEntityRepository;
@@ -85,13 +86,13 @@ public class ElzaUpdateEntityProcessor implements ImportProcessor {
             // update jednou za hodinu
             return;
         }
-        log.debug("Checking Elza updates");
+        log.info("Checking Elza updates");
         
         this.transactionTemplate.executeWithoutResult(ts -> importDataTrans(ts, ic));
         
         lastUpdate = System.currentTimeMillis();
         
-        log.debug("Elza updates check finished");
+        log.info("Elza updates check finished");
     }
 
     private void importDataTrans(TransactionStatus ts, ImportContext ic) {
@@ -109,7 +110,7 @@ public class ElzaUpdateEntityProcessor implements ImportProcessor {
             throw new IllegalStateException(e);
         }
         
-        log.debug("Received updates, transaction from: {} to: {}", entityUpdates.getFromTrans(), entityUpdates.getToTrans());
+        log.info("Received updates, transaction from: {} to: {}", entityUpdates.getFromTrans(), entityUpdates.getToTrans());
 
         if(property==null) {
             property = new Property();
@@ -122,26 +123,32 @@ public class ElzaUpdateEntityProcessor implements ImportProcessor {
             // List entity UUIDS
             var identifiers = entityUpdates.getEntityIds().getIdentifier();
             
-            log.debug("Updates count: {}", identifiers.size());
+            log.info("Updates count: {}", identifiers.size());
             
             BulkOperation.run(identifiers, 1000, sids -> {
                 List<UUID> uuids = sids.stream()
                         .map(p -> UUID.fromString(p))
                         .collect(Collectors.toList());                
                 var ents = archivalEntityRepository.findByUuidIn(uuids);
-                for(var ent: ents) {
-                    log.debug("Found modified entity, id={}, uuid={}, elzaId={}", ent.getId(),
-                              ent.getUuid(), ent.getElzaId());
+                for(var ent: ents) {                    
                     ApuSource apusrc = ent.getApuSource();
                     if(apusrc==null) {
-                        log.debug("Entity not yet downloaded.");
-                        continue;
-                    }
-                    // mark for fresh download and reimport
-                    ent.setDownload(true);
-                    archivalEntityRepository.save(ent);
-                    apusrc.setReimport(true);
-                    apuSourceRepository.save(apusrc);
+                    	if (ent.getStatus()==EntityStatus.NOT_AVAILABLE) {
+                    		ent.setStatus(EntityStatus.ACCESSIBLE);
+                    		 archivalEntityRepository.save(ent);
+                    		log.info("Found modified entity, id={}, uuid={}, elzaId={}, mark as ACCESSIBLE", ent.getId(),
+                                    ent.getUuid(), ent.getElzaId());
+                    	} else {
+                    		log.info("Found modified entity, id={}, uuid={}, elzaId={}, state={}, ignored", ent.getId(),
+                                ent.getUuid(), ent.getElzaId(), ent.getStatus());
+                    	}
+                    } else {
+                    	// mark for fresh download and reimport
+                        ent.setDownload(true);
+                        archivalEntityRepository.save(ent);
+                        apusrc.setReimport(true);
+                        apuSourceRepository.save(apusrc);	
+                    }                    
                 }
             });
         }
