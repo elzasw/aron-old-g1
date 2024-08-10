@@ -1,47 +1,21 @@
 openapi: 3.0.2
 info:
-  version: 1.0.0
   title: Transfagent Service API
-servers:
-  - url: 'https://localhost:3000/'
+  version: 1.0.0
 tags:
   - name: Transfagent
-
 paths:
-  '/archives':
+  /apus:
     get:
       tags:
         - Transfagent
-      summary: Returns list of archives
-      description: ''
-      operationId: getArchives
-      parameters:
-        - in: query
-          name: name
-          description: Name of archive
-          required: false
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: string
-                
-  '/apus':
-    get:
-      tags:
-        - Transfagent
-      summary: Returns list of apus
-      description: List of apus
       operationId: getApus
+      description: Returns list of apus
       parameters:
-        - in: query
-          name: datadir
-          description: directory of apu
+        - name: datadir
+          in: query
           required: false
+          description: directory of apu
           schema:
             type: string
         - $ref: '#/components/parameters/uuidOptional'
@@ -49,184 +23,223 @@ paths:
         - $ref: '#/components/parameters/pageSize'
       responses:
         '200':
-          description: Success
+          description: The request has succeeded.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApuSourceResponse'
-
-  '/apus/{apuId}/reimport':
+  /apus/{apuId}/reimport:
     patch:
       tags:
-        - Transfagent      
-      summary: Mark apu for reimport
-      description: Mark apu fo reimport in database      
+        - Transfagent
       operationId: reimportApu
+      description: Mark apu for reimport in database
       parameters:
         - $ref: '#/components/parameters/apuId'
       responses:
         '200':
-          description: Success
+          description: The request has succeeded.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApuSourceDef'
-                
-                
-  '/daos':
+  /archives:
     get:
       tags:
         - Transfagent
-      summary: Return list of daos
-      description: Return list of daos filtered by required criteria
+      operationId: getArchives
+      description: Returns list of archives
+      parameters:
+        - name: name
+          in: query
+          required: false
+          description: name of archive
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: string
+  /daos:
+    get:
+      tags:
+        - Transfagent
       operationId: getDaos
+      description: Return list of daos filtered by required criteria
       parameters:
         - $ref: '#/components/parameters/uuidOptional'
         - $ref: '#/components/parameters/page'
-        - $ref: '#/components/parameters/pageSize'      
+        - $ref: '#/components/parameters/pageSize'
       responses:
         '200':
-          description: Success
+          description: The request has succeeded.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DaosResponse'
-
-  '/daos/{daoId}/reimport':
-    patch:
-      tags:
-        - Transfagent      
-      summary: Mark dao for reimport
-      description: Mark apu fo reimport in database      
-      operationId: reimportDao
-      parameters:
-        - $ref: '#/components/parameters/daoId'
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DaoDef'
-
-  '/daos/reimport':
+  /daos/reimport:
     post:
       tags:
-        - Transfagent      
-      summary: Mark dao for reimport
-      description: Mark apu fo reimport in database      
+        - Transfagent
       operationId: reimportDaos
+      description: Mark daos for reimport in database
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
       requestBody:
+        required: true
         content:
           '*/*':
             schema:
               type: string
               format: binary
-      responses:
-        '200':
-          description: Success
-                
-  '/funds':
-    get:
+  /daos/{daoId}/reimport:
+    patch:
       tags:
         - Transfagent
-      summary: Return list of funds
-      description: Return list of daos filtered by required criteria
-      operationId: getFunds
+      operationId: reimportDao
+      description: Mark dao for reimport in database
       parameters:
-        - in: query
-          name: code
-          description: fund code
-          required: false
-          schema:
-            type: string      
-        - $ref: '#/components/parameters/uuidOptional'
-        - $ref: '#/components/parameters/page'
-        - $ref: '#/components/parameters/pageSize'      
+        - $ref: '#/components/parameters/daoId'
       responses:
         '200':
-          description: Success
+          description: The request has succeeded.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FundsResponse'
-
-  '/findingaids':
+                $ref: '#/components/schemas/DaoDef'
+  /entities:
     get:
       tags:
         - Transfagent
-      summary: Return list of finding aids
-      description: Return list of finding aids filtered by required criteria
-      operationId: getFindingAids
-      parameters:
-        - in: query
-          name: code
-          description: fund code
-          required: false
-          schema:
-            type: string      
-        - $ref: '#/components/parameters/uuidOptional'
-        - $ref: '#/components/parameters/page'
-        - $ref: '#/components/parameters/pageSize'      
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FindingAidsResponse'
-
-  '/entities':
-    get:
-      tags:
-        - Transfagent
-      summary: Return list of entities
-      description: Return list of entities filtered by required criteria
       operationId: getEntities
+      description: Return list of entities filtered by required criteria
       parameters:
-        - in: query
-          name: code
-          description: fund code
+        - name: code
+          in: query
           required: false
+          description: code of entity
           schema:
-            type: string      
+            type: string
         - $ref: '#/components/parameters/uuidOptional'
         - $ref: '#/components/parameters/page'
-        - $ref: '#/components/parameters/pageSize'      
+        - $ref: '#/components/parameters/pageSize'
       responses:
         '200':
-          description: Success
+          description: The request has succeeded.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EntitiesResponse'
-
+  /findingaids:
+    get:
+      tags:
+        - Transfagent
+      operationId: getFindingAids
+      description: Return list of finding aids filtered by required criteria
+      parameters:
+        - name: code
+          in: query
+          required: false
+          description: code of finding aids
+          schema:
+            type: string
+        - $ref: '#/components/parameters/uuidOptional'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FindingAidsResponse'
+  /funds:
+    get:
+      tags:
+        - Transfagent
+      operationId: getFunds
+      description: Return list of funds filtered by required criteria
+      parameters:
+        - name: code
+          in: query
+          required: false
+          description: code of fund
+          schema:
+            type: string
+        - $ref: '#/components/parameters/uuidOptional'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundsResponse'
 components:
-
+  parameters:
+    apuId:
+      name: apuId
+      in: path
+      required: true
+      description: id of apu
+      schema:
+        type: integer
+        format: int64
+    daoId:
+      name: daoId
+      in: path
+      required: true
+      description: id of dao
+      schema:
+        type: integer
+        format: int64
+    page:
+      name: page
+      in: query
+      required: false
+      description: číslo stránky
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: velikost stránky
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 1000
+        default: 200
+    uuidOptional:
+      name: uuid
+      in: query
+      required: false
+      description: uuid volitelný
+      schema:
+        type: string
   schemas:
-  
-    ApuSourceType:
-      type: string
-      enum: &APU_TYPE
-        - DIRECT
-        - FUND
-        - FINDING_AID
-        - ARCH_DESCS
-        - COLLECTION
-        - INSTITUTION
-        - ARCH_ENTITY
-      
     ApuSourceDef:
-      description: ApuSource
       type: object
+      required:
+        - sourceType
       properties:
         apusourceId:
           type: integer
           format: int64
         sourceType:
-          $ref: '#/components/schemas/ApuSourceType'          
+          $ref: '#/components/schemas/ApuSourceType'
         uuid:
-          type: string 
+          type: string
         dataDir:
           type: string
         deleted:
@@ -236,10 +249,12 @@ components:
         imported:
           type: string
           format: date-time
-
+      description: Apu source definition
     ApuSourceResponse:
-      description: Returned list of ApuSources
       type: object
+      required:
+        - items
+        - totalCount
       properties:
         items:
           type: array
@@ -248,24 +263,26 @@ components:
         totalCount:
           type: integer
           format: int32
-      required: [items, totalCount]
-      
-    DaoStateDef:
+      description: Returned list of ApuSources
+    ApuSourceType:
       type: string
-      enum: &DAO_STATE
-        - READY
-        - ACCESSIBLE
-        - INACCESSIBLE
-      
+      enum:
+        - DIRECT
+        - FUND
+        - FINDING_AID
+        - ARCH_DESCS
+        - COLLECTION
+        - INSTITUTION
+        - ARCH_ENTITY
+      description: Types of apu source
     DaoDef:
-      description: Dao
       type: object
       properties:
         daoId:
           type: integer
           format: int64
         uuid:
-          type: string 
+          type: string
         handle:
           type: string
         apusourceId:
@@ -279,10 +296,19 @@ components:
           type: string
         source:
           type: string
-
+      description: Dao definition
+    DaoStateDef:
+      type: string
+      enum:
+        - READY
+        - ACCESSIBLE
+        - INACCESSIBLE
+      description: Dao states
     DaosResponse:
-      description: Returned list of Daos
       type: object
+      required:
+        - items
+        - totalCount
       properties:
         items:
           type: array
@@ -291,82 +317,22 @@ components:
         totalCount:
           type: integer
           format: int32
-      required: [items, totalCount]
-    
-    FundDef:
-      description: Dao
+      description: Returned list of daos
+    EntitiesResponse:
       type: object
-      properties:
-        fundId:
-          type: integer
-          format: int64
-        uuid:
-          type: string
-        code:
-          type: string 
-        source:
-          type: string
-        apusourceId:
-          type: integer
-          format: int64
-        institutionId:
-          type: integer
-          format: int64
-    
-    FundsResponse:
-      description: Returned list of funds
-      type: object
+      required:
+        - items
+        - totalCount
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/FundDef'
+            $ref: '#/components/schemas/EntityDef'
         totalCount:
           type: integer
           format: int32
-      required: [items, totalCount]
-
-    FindingAidDef:
-      description: Fnding aid
-      type: object
-      properties:
-        findingAidId:
-          type: integer
-          format: int64
-        uuid:
-          type: string
-        code:
-          type: string 
-        apusourceId:
-          type: integer
-          format: int64
-        institutionId:
-          type: integer
-          format: int64
-
-    FindingAidsResponse:
-      description: Returned list of finding aids
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/FindingAidDef'
-        totalCount:
-          type: integer
-          format: int32
-      required: [items, totalCount]
-
-    EntityStateDef:
-      type: string
-      enum: &ENTITY_STATE
-        - ACCESSIBLE
-        - AVAILABLE
-        - NOT_ACCESSIBLE
-        - NOT_AVAILABLE
-
+      description: Returned list of entities
     EntityDef:
-      description: Entity
       type: object
       properties:
         entityId:
@@ -386,67 +352,80 @@ components:
           type: string
         state:
           $ref: '#/components/schemas/EntityStateDef'
-
-    EntitiesResponse:
-      description: Returned list of entities
+      description: Entity definition
+    EntityStateDef:
+      type: string
+      enum:
+        - ACCESSIBLE
+        - AVAILABLE
+        - NOT_ACCESSIBLE
+        - NOT_AVAILABLE
+      description: Entity states
+    FindingAidDef:
       type: object
+      properties:
+        findingAidId:
+          type: integer
+          format: int64
+        uuid:
+          type: string
+        code:
+          type: string
+        apusourceId:
+          type: integer
+          format: int64
+        institutionId:
+          type: integer
+          format: int64
+      description: Fnding aid definition
+    FindingAidsResponse:
+      type: object
+      required:
+        - items
+        - totalCount
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/EntityDef'
+            $ref: '#/components/schemas/FindingAidDef'
         totalCount:
           type: integer
           format: int32
-      required: [items, totalCount]
-
-    
-  parameters:
-  
-    apuId:
-      in: path
-      name: apuId
-      description: id apu
-      required: true
-      schema:
-        type: integer
-        format: int64
-
-    daoId:
-      in: path
-      name: daoId
-      description: id of dao
-      required: true
-      schema:
-        type: integer
-        format: int64
-
-    uuidOptional:                  
-      in: query                    
-      name: uuid                   
-      required: false              
-      schema:                      
-        type: string               
-                                   
-    page:                          
-      in: query                    
-      name: page                   
-      description: Cislo stranky   
-      required: false              
-      schema:                      
-        type: integer              
-        format: int32              
-        default: 0                 
-        minimum: 0                 
-                                   
-    pageSize:                      
-      in: query                    
-      name: pageSize               
-      description: Velikost stranky
-      required: false              
-      schema:                      
-        type: integer              
-        format: int32              
-        default: 200               
-        minimum: 1                 
-        maximum: 1000              
+      description: Returned list of finding aids
+    FundDef:
+      type: object
+      properties:
+        fundId:
+          type: integer
+          format: int64
+        uuid:
+          type: string
+        code:
+          type: string
+        source:
+          type: string
+        apusourceId:
+          type: integer
+          format: int64
+        institutionId:
+          type: integer
+          format: int64
+      description: Fund definition
+    FundsResponse:
+      type: object
+      required:
+        - items
+        - totalCount
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FundDef'
+        totalCount:
+          type: integer
+          format: int32
+      description: Returned list of funds
+servers:
+  - url: https://localhost:3000/
+    description: Devel server
+    variables: {}

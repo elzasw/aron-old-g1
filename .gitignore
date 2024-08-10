@@ -1,0 +1,16 @@
+# Eclipse settings
+.settings
+.project
+
+# Default TypeSpec output
+tsp-output/
+
+# TypeSpec settings
+package*
+tspconfig*
+
+# Dependency node directories
+node_modules/
+
+# Visual Code settings
+.vs/
