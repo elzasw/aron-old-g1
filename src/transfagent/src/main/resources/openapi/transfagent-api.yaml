@@ -28,6 +28,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApuSourceResponse'
+  /apus/{apuId}:
+    delete:
+      tags:
+        - Transfagent
+      operationId: deleteApu
+      description: Delete apu from database
+      parameters:
+        - $ref: '#/components/parameters/apuId'
+      responses:
+        '200':
+          description: The request has succeeded.
   /apus/{apuId}/reimport:
     patch:
       tags:

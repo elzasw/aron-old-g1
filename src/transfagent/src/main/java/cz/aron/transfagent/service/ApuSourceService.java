@@ -28,13 +28,13 @@ import cz.aron.transfagent.repository.ApuSourceRepository;
 
 @Service
 public class ApuSourceService {
-    
+
     private static final Logger log = LoggerFactory.getLogger(ApuSourceService.class);
-		
+
 	private final ApuSourceRepository apuSourceRepository;
-	
+
 	private final EntityManager em;
-	
+
 	public ApuSourceService(final ApuSourceRepository apuSourceRepository, EntityManager em) {
 		this.apuSourceRepository = apuSourceRepository;
 		this.em = em;
@@ -42,7 +42,7 @@ public class ApuSourceService {
 
 	@Transactional
 	public ApuSource createApuSource(UUID apusrcUuid, SourceType sourceType, Path dataDir, String origDir) {
-		
+
 		var apuSource = new cz.aron.transfagent.domain.ApuSource();
 		apuSource.setDataDir(dataDir.toString());
 		apuSource.setOrigDir(origDir);
@@ -55,6 +55,11 @@ public class ApuSourceService {
 		
 		apuSourceRepository.flush();
 		return apuSource;
+	}
+
+	@Transactional
+	public void delete(Integer apuId) {
+		apuSourceRepository.deleteById(apuId);
 	}
 
 	public ApuSource reimport(ApuSource apuSource) {
@@ -90,29 +95,6 @@ public class ApuSourceService {
         return new ApuSourceResponse(items, totalItems.intValue());
     }
 
-    private <T> void addApuSourcePredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<ApuSource> root, String datadir, String uuid) {        
-        if (datadir==null && uuid==null) {
-            // no filter
-            return;
-        }
-        if (uuid==null) {
-            try {
-                uuid = UUID.fromString(datadir).toString();
-                datadir=null;
-            } catch (Exception e) {
-                // ignore
-            }
-        }        
-        Predicate p = cb.conjunction();
-        if (datadir!=null) {
-            p = cb.and(p, cb.like(root.get("dataDir"), "%"+datadir+"%"));
-        }
-        if (uuid!=null) {
-            p = cb.and(p, cb.equal(root.get("uuid"), UUID.fromString(uuid)));
-        }        
-        cq.where(p);
-    }
-    
     @Transactional
     public ApuSourceDef reimportApuSource(int apuSourceId) {
         var apuSource = apuSourceRepository.findById(apuSourceId).orElseThrow(() -> {
@@ -127,5 +109,27 @@ public class ApuSourceService {
         }
         return new ApuSourceDefVO(apuSource);
     }
-    
+
+    private <T> void addApuSourcePredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<ApuSource> root, String datadir, String uuid) {        
+        if (datadir==null && uuid==null) {
+            // no filter
+            return;
+        }
+        if (uuid == null) {
+            try {
+                uuid = UUID.fromString(datadir).toString();
+                datadir = null;
+            } catch (Exception e) {
+                // ignore
+            }
+        }        
+        Predicate p = cb.conjunction();
+        if (datadir != null) {
+            p = cb.and(p, cb.like(root.get("dataDir"), "%"+datadir+"%"));
+        }
+        if (uuid != null) {
+            p = cb.and(p, cb.equal(root.get("uuid"), UUID.fromString(uuid)));
+        }        
+        cq.where(p);
+    }
 }

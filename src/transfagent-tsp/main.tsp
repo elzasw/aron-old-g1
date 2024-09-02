@@ -171,6 +171,16 @@ namespace TransfagentAPI {
     ): ApuSourceDef;
 
     /**
+     * Delete apu from database
+     */
+    @route("/apus/{apuId}")
+    @delete op deleteApu(
+        ...apuId
+    ): {
+        @Http.statusCode statusCode: 200;
+    };
+
+    /**
      * Return list of daos filtered by required criteria
      */
     @route("/daos")

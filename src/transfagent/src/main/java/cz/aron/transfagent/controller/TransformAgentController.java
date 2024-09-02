@@ -33,20 +33,22 @@ import cz.aron.transfagent.service.FundService;
 @RestController
 @RequestMapping("/api")
 public class TransformAgentController implements TransfagentApi {
-    
+
     private final ApuSourceService apuSourceService;
-    
+
     private final DaoImportService daoImportService;
-    
+
     private final FundService fundService;
-    
+
     private final FindingAidService findingAidService;
-    
+
     private final ArchivalEntityService archivalEntityService;
-    
-    public TransformAgentController(ApuSourceService apuSourceService, DaoImportService daoImportService,
+
+    public TransformAgentController(ApuSourceService apuSourceService, 
+    							    DaoImportService daoImportService,
                                     FundService fundService,
-                                    FindingAidService findingAidService, ArchivalEntityService archivalEntityService) {
+                                    FindingAidService findingAidService, 
+                                    ArchivalEntityService archivalEntityService) {
         this.apuSourceService = apuSourceService;
         this.daoImportService = daoImportService;
         this.fundService = fundService;
@@ -54,64 +56,84 @@ public class TransformAgentController implements TransfagentApi {
         this.archivalEntityService = archivalEntityService;
     }
 
+    // get: /apus
     @Override
-    public ResponseEntity<ApuSourceResponse> getApus(@Valid String datadir, @Valid String uuid,
+    public ResponseEntity<ApuSourceResponse> getApus(@Valid String datadir, 
+    		                                         @Valid String uuid,
                                                      @Min(0) @Valid Integer page,
                                                      @Min(1) @Max(1000) @Valid Integer pageSize) {
         return ResponseEntity.ok(apuSourceService.getApuSources(datadir, uuid, page, pageSize));
     }
 
+    // delete: /apus/{apuId}
+	@Override
+	public ResponseEntity<Void> deleteApu(Long apuId) {
+		apuSourceService.delete(apuId.intValue());
+		return ResponseEntity.ok().build();
+	}
+
+	// patch: /apus/{apuId}/reimport
+    @Override
+    public ResponseEntity<ApuSourceDef> reimportApu(Long apuId) {
+        return ResponseEntity.ok(apuSourceService.reimportApuSource(apuId.intValue()));
+    }
+
+    // get: /archives
     @Override
     public ResponseEntity<String> getArchives(@Valid String name) {
         // TODO Auto-generated method stub
         return null;
     }
 
+    // get: /daos
     @Override
-    public ResponseEntity<ApuSourceDef> reimportApu(Long apuId) {
-        return ResponseEntity.ok(apuSourceService.reimportApuSource(apuId.intValue()));
-    }
-
-    @Override
-    public ResponseEntity<DaosResponse> getDaos(@Valid String uuid, @Min(0) @Valid Integer page,
+    public ResponseEntity<DaosResponse> getDaos(@Valid String uuid, 
+    		                                    @Min(0) @Valid Integer page,
                                                 @Min(1) @Max(1000) @Valid Integer pageSize) {
-        
         return ResponseEntity.ok(daoImportService.getDaos(uuid, page, pageSize));
     }
 
-    @Override
-    public ResponseEntity<DaoDef> reimportDao(Long daoId) {        
-        return ResponseEntity.ok(daoImportService.reimportDao(daoId.intValue()));
-    }
-
-    @Override
-    public ResponseEntity<FundsResponse> getFunds(@Valid String code, @Valid String uuid, @Min(0) @Valid Integer page,
-                                                  @Min(1) @Max(1000) @Valid Integer pageSize) {
-        return ResponseEntity.ok(fundService.getFunds(code, uuid, page, pageSize));
-    }
-
+    // post: /daos/reimport
     @Override
     public ResponseEntity<Void> reimportDaos(Resource body) {
         try (var is = body.getInputStream()) {
-            IOUtils.readLines(is, StandardCharsets.UTF_8).stream().map(s->s.trim());
+            IOUtils.readLines(is, StandardCharsets.UTF_8).stream().map(s -> s.trim());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
         return ResponseEntity.ok().build();
     }
 
+    // patch: /daos/{daoId}/reimport
     @Override
-    public ResponseEntity<EntitiesResponse> getEntities(@Valid String code, @Valid String uuid,
+    public ResponseEntity<DaoDef> reimportDao(Long daoId) {        
+        return ResponseEntity.ok(daoImportService.reimportDao(daoId.intValue()));
+    }
+
+    // get: /entities
+    @Override
+    public ResponseEntity<EntitiesResponse> getEntities(@Valid String code, 
+    		                                            @Valid String uuid,
                                                         @Min(0) @Valid Integer page,
                                                         @Min(1) @Max(1000) @Valid Integer pageSize) {        
         return ResponseEntity.ok(archivalEntityService.getEntities(code, uuid, page, pageSize));
     }
 
+    // get: /findingaids
     @Override
-    public ResponseEntity<FindingAidsResponse> getFindingAids(@Valid String code, @Valid String uuid,
+    public ResponseEntity<FindingAidsResponse> getFindingAids(@Valid String code, 
+    		                                                  @Valid String uuid,
                                                               @Min(0) @Valid Integer page,
                                                               @Min(1) @Max(1000) @Valid Integer pageSize) {
         return ResponseEntity.ok(findingAidService.getFindingAids(code, uuid, page, pageSize));
     }
 
+    // get: /funds
+    @Override
+    public ResponseEntity<FundsResponse> getFunds(@Valid String code, 
+    		                                      @Valid String uuid, 
+    		                                      @Min(0) @Valid Integer page,
+                                                  @Min(1) @Max(1000) @Valid Integer pageSize) {
+        return ResponseEntity.ok(fundService.getFunds(code, uuid, page, pageSize));
+    }
 }
