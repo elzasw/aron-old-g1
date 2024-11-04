@@ -268,7 +268,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
             if(!ifi.getCAMOriginatorIds().isEmpty()) {
 				var camUuids = ifi.getCAMOriginatorIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
 				archivalEntityService.registerAccessibleEntities(camUuids, null,
-						fund.getApuSource());
+						fnd.getApuSource());
 			}
             attachmentService.updateAttachments(fnd.getApuSource(), apusrcBuilder, attachments);
             if (daoFileStore3Service!=null) {

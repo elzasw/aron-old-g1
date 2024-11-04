@@ -138,7 +138,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
             "ZP2015_MAJOR_LANG",
             ElzaTypes.ZP2015_APPLIED_RESTRICTION,
             ElzaTypes.ZP2015_APPLIED_RESTRICTION_CHANGE,
-
+            "ZP2015_SIZE_OTHER"
     };
 
     /**
@@ -282,7 +282,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
             if (ranges.isEmpty()) {
                 copyDateRangeFromParent(context, CoreTypes.PT_ARCH_DESC, CoreTypes.UNIT_DATE);
             }
-        }        
+        }
 
         if (configArchDesc.isImportAttachments()) {
             Path dir = inputFile.getParent();
