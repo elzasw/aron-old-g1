@@ -91,7 +91,8 @@ public class EdxApRefConvertor implements EdxItemConvertor {
             for(var aei: archEntityInfo) {
             	if (!ctx.isArchEntityReferenced(apUuid)) {
             		uuids.add(aei.getUuid());
-            		ctx.addArchEntityRef(aei);
+            		// vytvorim znovu ArchEntityInfo abych pridal srcEntityClass kvuli pevaoriginator
+            		ctx.addArchEntityRef(new ArchEntityInfo(aei.getUuid(), aei.getEntityClass(), ap.getApe().getT()));
             	}
             }
             apusBuilder.addApuRefsFirstVisible(ctx.getActivePart(), targetType, uuids);
