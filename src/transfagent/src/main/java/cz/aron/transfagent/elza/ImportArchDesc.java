@@ -138,7 +138,18 @@ public class ImportArchDesc implements EdxItemCovertContext {
             "ZP2015_MAJOR_LANG",
             ElzaTypes.ZP2015_APPLIED_RESTRICTION,
             ElzaTypes.ZP2015_APPLIED_RESTRICTION_CHANGE,
-            "ZP2015_SIZE_OTHER"
+            "ZP2015_SIZE_OTHER",
+            "ZP2015_UNIT_INFO_RIGHTS",
+            "ZP2015_ITEM_MAT_LATKA_ZAZNAMU",
+            "ZP2015_ITEM_TITLE",
+            "ZP2015_ENTITY_ROLE_TEXT",
+            "ZP2015_UNIT_DATE_PRE",
+            "ZP2015_UNIT_DATE_POST",
+            "ZP2015_UNIT_COPY_RIGHTS",
+            "ZP2015_COPY_SOURCE",
+            "ZP2015_ITEM_MAT_TECHNIKA",
+            "ZP2015_ITEM_MAT_NOSIC",
+            "ZP2015_ITEM_MAT_ADJUSTACE",
     };
 
     /**
@@ -664,7 +675,10 @@ public class ImportArchDesc implements EdxItemCovertContext {
             // TODO proc se navaze na geo entitu z pevy?
             if (!ImportPevaGeo.ENTITY_CLASS.equals(apr.getEntityClass())) {
                 var parentCode = apTypeService.getParentCode(apr.getEntityClass());
-                Validate.notNull(parentCode, "Failed to get parent code for class: %s", apr.getEntityClass());
+                if (parentCode==null) {
+	                parentCode = apTypeService.getParentCode(apr.getSrcEntityClass());
+                }
+                Validate.notNull(parentCode, "Failed to get parent code for class: %s, srcclass %s, uuid %s", apr.getEntityClass(), apr.getSrcEntityClass(), apr.getUuid().toString());
 
                 String itemType = rctMap.get(parentCode);
                 Validate.notNull(itemType, "Failed to get itemType for parentCode: %s", parentCode);
