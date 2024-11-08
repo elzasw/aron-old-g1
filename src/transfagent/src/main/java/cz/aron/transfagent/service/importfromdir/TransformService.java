@@ -249,6 +249,66 @@ public class TransformService {
         return true;
     }
 
+    public static class TileThumbnailUrl {
+    	
+    	private final String tileUrl;
+    	
+    	private final String thumbnailUrl;
+
+		public TileThumbnailUrl(String tileUrl, String thumbnailUrl) {
+			this.tileUrl = tileUrl;
+			this.thumbnailUrl = thumbnailUrl;
+		}
+
+		public String getTileUrl() {
+			return tileUrl;
+		}
+
+		public String getThumbnailUrl() {
+			return thumbnailUrl;
+		}
+    	
+    }
+    
+    public boolean transformHttpUrlsWithThumbnails(Path daoDir, List<TileThumbnailUrl> urls) throws JAXBException, IOException {
+    	 if (urls.isEmpty()) {
+             return false;
+         }
+
+         var daoUuid = daoDir.getFileName().toString();
+         var daoUuidXmlFile = daoDir.resolve("dao-" + daoUuid + ".xml");
+         var filesDir = daoDir.resolve("files");
+         Files.createDirectories(filesDir);
+
+         // mapovani (nazev souboru,typ transformace)->pridelene uuid
+         var filesToTransformAsync = getExistingMappings(daoUuid, true);
+
+         DaoBuilder daoBuilder = new DaoBuilder();
+         daoBuilder.setUuid(daoUuid);
+         DaoBundle hiResView = daoBuilder.createDaoBundle(DaoBundleType.HIGH_RES_VIEW);
+         DaoBundle thumbnailView  = daoBuilder.createDaoBundle(DaoBundleType.THUMBNAIL);
+
+         var pos = 1;
+         for (var ttUrl : urls) {
+             processHttp(ttUrl.getTileUrl(),filesDir, hiResView, pos, filesToTransformAsync);
+             if (ttUrl.getThumbnailUrl()!=null) {
+            	 processHttp(ttUrl.getThumbnailUrl(),filesDir, thumbnailView, pos, filesToTransformAsync);
+             }
+             pos++;
+         }
+
+         // vytvoreni dao-uuid.xml
+         log.debug("Creating file {}", daoUuidXmlFile);
+         Marshaller marshaller = ApuxFactory.createMarshaller();
+         try (OutputStream os = Files.newOutputStream(daoUuidXmlFile)) {
+             marshaller.marshal(daoBuilder.build(), os);
+         }
+
+         scheduleAsyncTransforms(daoUuid, filesToTransformAsync, true);
+         return true;
+    }
+    
+
     private void processHttp(String url, Path filesDir, DaoBundle hiResView, int pos,
                              Map<FileTransformKey, String> filesToTransformAsync) {
         if (url == null) {

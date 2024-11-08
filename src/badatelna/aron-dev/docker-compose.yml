@@ -12,7 +12,7 @@ services:
     volumes:
       - type: bind
         source: ../aron-web/dist/ 
-        target: /usr/local/apache2/htdocs/
+        target: /usr/local/apache2/htdocs/aron/
         consistency: delegated
 networks:
   backend:
