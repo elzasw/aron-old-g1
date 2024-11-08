@@ -6,6 +6,7 @@ interface ImageLoadProps {
   alternativeImage: ReactNode;
   className: string;
   referencedFile?: boolean;
+  url?: string;
 }
 
 export function ImageLoad({
@@ -13,14 +14,18 @@ export function ImageLoad({
   alternativeImage,
   className,
   referencedFile,
+  url
 }: ImageLoadProps): ReactElement {
   const [imgUrl, setImgUrl] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const { blob } = await getFile(id, referencedFile);
-
-      setImgUrl(blob ? URL.createObjectURL(blob) : null);
+      if (!url) {
+        const { blob } = await getFile(id, referencedFile);
+        setImgUrl(blob ? URL.createObjectURL(blob) : null);
+      } else {
+        setImgUrl(url);
+      }
     })();
   }, [id]);
 

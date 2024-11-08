@@ -18,6 +18,7 @@ export function Thumbnail({
   const classes = useStyles();
   const name = file.published?.metadata?.find((item) => item.type === "name")?.value;
   const isReferencedFile = !!file?.thumbnail?.name;
+  const url = file.thumbnail?.referencedFile?.startsWith("http") ? file.thumbnail.referencedFile : undefined;
 
   return (
     <div
@@ -43,6 +44,7 @@ export function Thumbnail({
         referencedFile={isReferencedFile}
         alternativeImage={<div />}
         className={classNames(classes.daoThumbnail)}
+        url={url}
       />
     </div>
   );
