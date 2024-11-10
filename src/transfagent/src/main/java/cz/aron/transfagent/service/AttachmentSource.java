@@ -8,7 +8,7 @@ public interface AttachmentSource {
     
     public List<AttachmentDesc> getFundAttachments(String archiveCode, String fundCode, Integer subFundCode) throws IOException;
 
-    public List<AttachmentDesc> getFindingAidAttachments(String archiveCode, String findingAidCode) throws IOException;
+    public List<AttachmentDesc> getFindingAidAttachments(String archiveCode, String findingAidCode, String findingAidPartNumber) throws IOException;
     
     public static class AttachmentDesc {
 
