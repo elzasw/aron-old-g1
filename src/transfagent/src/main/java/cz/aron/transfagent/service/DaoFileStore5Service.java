@@ -73,9 +73,10 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource {
 	@Override
 	public void importDaoFile(Dao dao, Path daoDir) {
 		FileStore5Handle handle = FileStore5Handle.fromHandle(dao.getHandle());
-		List<String> daoLinks = getLinks(handle.getIfKey());
+		List<ImageUrl> daoLinks = getLinks(handle.getIfKey());
 		if (daoLinks != null) {
-			var links = daoLinks.stream().map(url->new TileThumbnailUrl(url+".dzi",url)).collect(Collectors.toList());
+			var links = daoLinks.stream().map(imageUrl -> new TileThumbnailUrl(imageUrl.getUrl() + ".dzi",
+					imageUrl.getUrl(), imageUrl.isSelected())).collect(Collectors.toList());
 			try {
 				transformService.transformHttpUrlsWithThumbnails(daoDir, links);
 				dao.setState(DaoState.READY);
@@ -199,7 +200,7 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource {
 	}
 	
 	
-	private List<String> getLinks(InstitutionFindingAidKey ifKey) {
+	private List<ImageUrl> getLinks(InstitutionFindingAidKey ifKey) {
 		FindingAidDaoLinks resource = links.get(ifKey);
 		if (resource == null) {
 			String shortcut = null;
@@ -287,26 +288,50 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource {
 		}
 
 	}
+	
+	private static class ImageUrl {
+		
+		private final String url;
+		
+		private final boolean selected;
 
-	private class FindingAidDaoLinks extends MonitoredFileResource<List<String>> {
+		public ImageUrl(String url, boolean selected) {
+			this.url = url;
+			this.selected = selected;
+		}
+
+		public String getUrl() {
+			return url;
+		}
+
+		public boolean isSelected() {
+			return selected;
+		}
+		
+	}
+	
+
+	private class FindingAidDaoLinks extends MonitoredFileResource<List<ImageUrl>> {
 
 		public FindingAidDaoLinks(Path path) {
 			super(path);
 		}
 
 		@Override
-		public List<String> reloadResources() {
+		public List<ImageUrl> reloadResources() {
 			if (monitoredPath == null || !Files.isRegularFile(monitoredPath)) {
 				log.info("ApDaoLinks path not exist {}", monitoredPath);
 				return null;
 			}
-			var ret = new ArrayList<String>();
+			var ret = new ArrayList<ImageUrl>();
 			try (Reader in = new FileReader(monitoredPath.toFile());) {
 				Iterable<CSVRecord> records = CSVFormat.DEFAULT.builder().setDelimiter(';').setTrim(true).build()
 						.parse(in);
 				for (CSVRecord record : records) {
-					String url = DaoFileStore5Service.this.config.getImageServer() + record.get(0);
-					ret.add(url.replaceAll("\\\\", "/"));
+					String url = DaoFileStore5Service.this.config.getImageServer()
+							+ record.get(0).replaceAll("\\\\", "/");
+					var selected = "1".equals(record.get(1));
+					ret.add(new ImageUrl(url, selected));
 				}
 			} catch (FileNotFoundException e) {
 			} catch (IOException e) {

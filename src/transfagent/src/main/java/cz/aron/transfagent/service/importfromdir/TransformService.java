@@ -234,7 +234,7 @@ public class TransformService {
 
         var pos = 1;
         for (String url : urls) {
-            processHttp(url,filesDir, hiResView, pos, filesToTransformAsync);
+            processHttp(url,filesDir, hiResView, pos, filesToTransformAsync, false);
             pos++;
         }
 
@@ -254,10 +254,13 @@ public class TransformService {
     	private final String tileUrl;
     	
     	private final String thumbnailUrl;
+    	
+    	private final boolean selected;
 
-		public TileThumbnailUrl(String tileUrl, String thumbnailUrl) {
+		public TileThumbnailUrl(String tileUrl, String thumbnailUrl, boolean selected) {
 			this.tileUrl = tileUrl;
 			this.thumbnailUrl = thumbnailUrl;
+			this.selected = selected;
 		}
 
 		public String getTileUrl() {
@@ -267,7 +270,11 @@ public class TransformService {
 		public String getThumbnailUrl() {
 			return thumbnailUrl;
 		}
-    	
+
+		public boolean isSelected() {
+			return selected;
+		}
+
     }
     
     public boolean transformHttpUrlsWithThumbnails(Path daoDir, List<TileThumbnailUrl> urls) throws JAXBException, IOException {
@@ -290,9 +297,9 @@ public class TransformService {
 
          var pos = 1;
          for (var ttUrl : urls) {
-             processHttp(ttUrl.getTileUrl(),filesDir, hiResView, pos, filesToTransformAsync);
+             processHttp(ttUrl.getTileUrl(),filesDir, hiResView, pos, filesToTransformAsync, ttUrl.isSelected());
              if (ttUrl.getThumbnailUrl()!=null) {
-            	 processHttp(ttUrl.getThumbnailUrl(),filesDir, thumbnailView, pos, filesToTransformAsync);
+            	 processHttp(ttUrl.getThumbnailUrl(),filesDir, thumbnailView, pos, filesToTransformAsync, false);
              }
              pos++;
          }
@@ -310,7 +317,7 @@ public class TransformService {
     
 
     private void processHttp(String url, Path filesDir, DaoBundle hiResView, int pos,
-                             Map<FileTransformKey, String> filesToTransformAsync) {
+                             Map<FileTransformKey, String> filesToTransformAsync, boolean selected) {
         if (url == null) {
             throw new IllegalStateException(
                     "Source dir cannot be empty whe sending reaferences to digital object file.");
@@ -327,6 +334,9 @@ public class TransformService {
         var uuid = daoFile.getUuid();
         DaoBuilder.addReferenceFlag(daoFile);
         DaoBuilder.addPath(daoFile, url);
+        if (selected) {
+        	DaoBuilder.addSelectedFlag(daoFile);
+        }
         hiResView.getFile().add(daoFile);
         if (existingUuid==null) {
             filesToTransformAsync.put(new FileTransformKey(url, TRANSFORM_IDENTITY), uuid);
