@@ -52,4 +52,6 @@ public class DigitalObjectFile extends DomainObject<DigitalObjectFile> {
     private String contentType;
 
     private Long size;
+    
+    private Boolean selected;
 }

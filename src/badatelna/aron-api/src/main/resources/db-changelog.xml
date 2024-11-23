@@ -254,4 +254,9 @@
             <column name="pos" />
         </createIndex>
     </changeSet>
+    <changeSet id="aron:10" author="zacek@lightcomp.cz">
+        <addColumn tableName="digital_object_file">
+            <column name="selected" type="boolean"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

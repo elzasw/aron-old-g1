@@ -34,6 +34,8 @@ public class FileInputProcessor {
     private static String ATTR_REFERENCE = "reference";
     // size of file
     private static String ATTR_SIZE = "size";
+    
+    private static String ATTR_SELECTED = "selected";
 
     @Inject private FileManager fileManager;
 
@@ -101,6 +103,7 @@ public class FileInputProcessor {
         digitalObjectFile.setPermalink(daoFile.getPrmLnk());
         digitalObjectFile.setDigitalObject(digitalObject);
         digitalObjectFile.setFile(null);
+        digitalObjectFile.setSelected(isSelected(daoFile)?true:null);
 
         var attributes = processMetadata(daoFile, digitalObjectFile);
         digitalObjectFile.setReferencedFile(attributes.get(ATTR_PATH));
@@ -195,6 +198,17 @@ public class FileInputProcessor {
             }
         }
         return false;
+    }
+
+    public static boolean isSelected(DaoFile daoFile) {
+        if (daoFile.getMtdt() != null) {
+            for (MetadataItem itm : daoFile.getMtdt().getItms()) {
+                if (ATTR_SELECTED.equals(itm.getCode()) && "1".equals(itm.getValue())) {
+                    return true;
+                }
+            }
+        }
+        return false;    	
     }
 
 }
