@@ -120,6 +120,8 @@ function useFiltersContext({
       name: string,
       defaultValue: number,
     ) => {
+      if(!params.get(name)){return defaultValue;}
+
       const param = Number(params.get(name));
       return !isNaN(param) ? param : defaultValue;
     };
