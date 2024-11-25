@@ -6,6 +6,8 @@ export interface FileObject {
   tile?: DaoFile;
   published?: DaoFile;
   thumbnail?: DaoFile;
+  selected?: boolean;
+  order: number;
 }
 
 export interface IconProps {

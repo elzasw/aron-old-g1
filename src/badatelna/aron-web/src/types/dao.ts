@@ -13,6 +13,7 @@ export interface DaoFile extends LinkedEntity {
   file: DaoFileFileType;
   name?: string;
   referencedFile?: string | null;
+  selected?: boolean;
 }
 
 interface DaoFileFileType {

@@ -3,7 +3,10 @@ import { DaoBundleType } from '../../../enums';
 import { Dao, DaoFile } from '../../../types';
 import { FileObject } from './types';
 
-export const getExistingFile = (fileObject: FileObject, publishedFirst = false) => {
+export const getExistingFile = (
+  fileObject: FileObject,
+  publishedFirst = false
+) => {
   if (fileObject) {
     const { tile, published, thumbnail } = fileObject;
 
@@ -49,9 +52,11 @@ export const getFiles = (item: Dao) => {
     if (published || thumbnail || tile) {
       files.push({
         id: tile?.id || published?.id || thumbnail?.id || '',
+        order: tile?.order || published?.order || thumbnail?.order || 0,
         tile,
         published,
         thumbnail,
+        selected: tile?.selected || published?.selected || thumbnail?.selected,
       });
 
       i++;
@@ -60,5 +65,7 @@ export const getFiles = (item: Dao) => {
     }
   }
 
-  return files;
+  const sortedFiles = files.sort((fileA, fileB) => fileA.order - fileB.order);
+
+  return sortedFiles;
 };
