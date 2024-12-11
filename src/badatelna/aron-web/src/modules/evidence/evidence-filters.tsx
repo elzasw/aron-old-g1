@@ -103,18 +103,56 @@ function useFiltersContext({
    *********************************/
 
   const [loading, setLoading] = useState(false);
+
+  // Inicialization flag given to context
   const [initialized, setInitialized] = useState(false);
 
   const [relationshipNames, setRelationshipNames] = useState<
     RelationshipName[]
   >([] as RelationshipName[]);
 
-  const [{ page, pageSize, query, filtersString }, updateState] = useState({
-    page: 1,
-    pageSize: 10,
-    query: '',
-    filtersString: '',
-  });
+  // Returns expected parameters from url 
+  // with added filters string parsed to json
+  const getParamsFromUrl = (location: Location) => {
+    const params = new URLSearchParams(location.search);
+
+    const getNumberParam = (
+      name: string,
+      defaultValue: number,
+    ) => {
+      if(!params.get(name)){return defaultValue;}
+
+      const param = Number(params.get(name));
+      return !isNaN(param) ? param : defaultValue;
+    };
+
+    const newPage: number = getNumberParam('p', 1);
+    const newPageSize: number = getNumberParam('s', 10);
+    const newQuery = params.get("q") || "";
+    const newFiltersString = params.get("f");
+    let newFiltersFromUrl = [];
+
+    try {
+      if (newFiltersString) {
+        newFiltersFromUrl = JSON.parse(newFiltersString);
+      }
+    } catch (error) {
+      console.error("Invalid filter JSON", newFiltersString);
+      throw error;
+    }
+
+    return {
+      page: newPage,
+      pageSize: newPageSize,
+      query: newQuery,
+      filtersString: newFiltersString,
+      filtersObject: newFiltersFromUrl,
+    };
+  }
+
+  const defaultState = getParamsFromUrl(window.location);
+
+  const [{ page, pageSize, query, filtersObject, filtersString }, updateState] = useState(defaultState);
 
   const [filters, setFilters] = useState<FilterConfig[]>([]);
 
@@ -221,45 +259,19 @@ function useFiltersContext({
 
   const updateFromUrl = useCallback(
     (location) => {
-      const params = new URLSearchParams(location.search);
-
-      const getParam = (
-        param: string,
-        defaultValue: any,
-        isNumber?: boolean
-      ) => {
-        let parsed: any = params.get(param);
-
-        parsed = isNumber
-          ? !isNaN(Number(parsed))
-            ? Number(parsed)
-            : null
-          : parsed;
-
-        return parsed || defaultValue;
-      };
-
-      const newPage = getParam('p', 1, true);
-      const newPageSize = getParam('s', 10, true);
-      const newQuery = getParam('q', '');
-      const newFiltersString = getParam('f', '');
-
-      if (!initialized && !newFiltersString) {
-        setInitialized(true);
-      }
+      const params = getParamsFromUrl(location)
 
       if (
-        newPage !== page ||
-        newPageSize !== pageSize ||
-        newQuery !== query ||
-        newFiltersString !== filtersString
+        params.page !== page ||
+        params.pageSize !== pageSize ||
+        params.query !== query ||
+        params.filtersString !== filtersString
       ) {
-        updateState({
-          page: newPage,
-          pageSize: newPageSize,
-          query: newQuery,
-          filtersString: newFiltersString,
-        });
+        updateState(params);
+      }
+
+      if (!initialized && !params.filtersString) {
+        setInitialized(true);
       }
     },
     [page, pageSize, query, filtersString, initialized]
@@ -272,17 +284,10 @@ function useFiltersContext({
       setInitialized(true);
     }
 
-    let newFiltersFromUrl = [];
-
-    try {
-      newFiltersFromUrl = JSON.parse(filtersString);
-    } catch (error) {
-      newFiltersFromUrl = [];
-    }
     const mappedFilters = await mapFilters(
       facets,
       apuPartItemTypes,
-      newFiltersFromUrl,
+      filtersObject,
       [typeFilter, queryFilter, ...pathSpecificFilters]
     );
 
@@ -356,7 +361,8 @@ function useFiltersContext({
   }, []);
 
   useEffect(() => {
-    setTimeout(parseFacets);
+    // setTimeout(parseFacets); // TODO - Why is it here?
+    parseFacets(); 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtersString, query]);
 

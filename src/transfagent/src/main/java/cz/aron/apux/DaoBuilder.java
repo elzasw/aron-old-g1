@@ -64,6 +64,10 @@ public class DaoBuilder {
     	getMetadata(daoFile).getItms().add(createMetadataItem("reference", "1"));
     }
     
+    public static void addSelectedFlag(DaoFile daoFile) {
+    	getMetadata(daoFile).getItms().add(createMetadataItem("selected", "1"));
+    }
+    
     public static void addPath(DaoFile daoFile, String path) {
     	getMetadata(daoFile).getItms().add(createMetadataItem("path", path));
     }

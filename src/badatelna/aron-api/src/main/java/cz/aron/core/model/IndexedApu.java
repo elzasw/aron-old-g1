@@ -111,7 +111,13 @@ public class IndexedApu extends DomainIndexedObject<ApuEntity, ApuEntity> {
                 Object data;
                 switch (itemType.getType()) {
                     case STRING:
-                        data = value;
+                    	if ("INT~NAME~INDEX".equals(item.getType())) {
+                    		// alternativni hodnota pro indexovani "name"
+                    		name = value;
+                    		continue;
+                    	} else {
+                    		data = value;
+                    	}
                         break;
                     case ENUM:
                         data = value;

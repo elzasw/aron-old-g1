@@ -105,8 +105,10 @@ function EvidenceDao({
     }
   }, [daoId, fileId])
 
-  const file = selectedFile || getFiles(selectedDao || items[0])[0];
+
   const dao = selectedDao || items[0];
+  const daoFiles = getFiles(dao);
+  const file = selectedFile || daoFiles.find(({selected}) => selected) || daoFiles[0];
 
   return layoutType !== LayoutType.ONE_COLUMN ? <EvidenceDetailDaoDialog
     // items={items} 

@@ -1,5 +1,9 @@
 package cz.aron.transfagent.config;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class ConfigPeva2FundProperties {
 	
 	// do edice prida prvni radek z interni zmeny
@@ -69,6 +73,8 @@ public class ConfigPeva2FundProperties {
     // vyplni tematicke skupiny
     private boolean thematicEvidenceGroups;
     
+    private boolean thematicEvidenceGroupsVirtual;
+    
     // agregace priloh z pomucek
     private boolean aggregateAttachments;
     
@@ -90,6 +96,10 @@ public class ConfigPeva2FundProperties {
     
     // posle odkazy na puvodce z CAM
     private boolean camOriginators = false;
+    
+    private boolean departments = false;
+    
+    private Set<String> nameSearchComponents = new HashSet<>();
 
 	public boolean isParseInternalChanges() {
 		return parseInternalChanges;
@@ -227,6 +237,14 @@ public class ConfigPeva2FundProperties {
 		this.thematicEvidenceGroups = thematicEvidenceGroups;
 	}
 
+	public boolean isThematicEvidenceGroupsVirtual() {
+		return thematicEvidenceGroupsVirtual;
+	}
+
+	public void setThematicEvidenceGroupsVirtual(boolean thematicEvidenceGroupsVirtual) {
+		this.thematicEvidenceGroupsVirtual = thematicEvidenceGroupsVirtual;
+	}
+
 	public boolean isAggregateAttachments() {
 		return aggregateAttachments;
 	}
@@ -329,6 +347,27 @@ public class ConfigPeva2FundProperties {
 
 	public void setLengthOld(boolean lengthOld) {
 		this.lengthOld = lengthOld;
+	}
+
+	public void setNameSearch(List<String> attrs) {
+		nameSearchComponents.addAll(attrs);
+	}
+
+	/**
+	 * Dotaz jestli je atribut soucasti textu pro vyhledavani nazvu fondu
+	 * @param attributeName
+	 * @return true - je soucasti vyhledavani, false - neni soucasti vyhledavani
+	 */
+	public boolean isNameSearch(String attributeName) {
+		return nameSearchComponents.contains(attributeName);
+	}
+
+	public boolean isDepartments() {
+		return departments;
+	}
+
+	public void setDepartments(boolean departments) {
+		this.departments = departments;
 	}
 
 }

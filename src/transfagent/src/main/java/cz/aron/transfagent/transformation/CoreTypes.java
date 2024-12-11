@@ -6,6 +6,9 @@ package cz.aron.transfagent.transformation;
  *
  */
 public class CoreTypes {
+	
+	// interni
+	public final static String INT_NAME_INDEX = "INT_NAME_INDEX";
 
     // Obecne typy
     public final static String PT_NAME = "PT_NAME";
@@ -28,6 +31,7 @@ public class CoreTypes {
     // Informace o archivní pomuckě
     public final static String PT_FINDINGAID_INFO = "PT_FINDINGAID_INFO";
     public final static String FINDINGAID_ID = "FINDINGAID_ID";
+    public final static String FINDINGAID_PART_ID = "FINDINGAID_PART_ID";
     public final static String FINDINGAID_RELEASE_DATE_PLACE = "FINDINGAID_RELEASE_DATE_PLACE";
     public final static String FINDINGAID_TYPE = "FINDINGAID_TYPE";
     public final static String FINDINGAID_DATE_RANGE = "FINDINGAID_DATE_RANGE";

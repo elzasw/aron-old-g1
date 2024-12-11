@@ -7,7 +7,7 @@ plugins {
 }
 
 group 'cz.aron.badatelna'
-version '0.0.22'
+version '0.0.24'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
