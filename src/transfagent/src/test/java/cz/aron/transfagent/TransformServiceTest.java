@@ -1,5 +1,6 @@
 package cz.aron.transfagent;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import cz.aron.apux.ApuxFactory;
 import cz.aron.apux._2020.Dao;
 import cz.aron.apux._2020.DaoBundle;
+import de.digitalcollections.openjpeg.OpenJpeg;
 
 //@Disabled
 @SpringBootTest
@@ -26,6 +28,13 @@ public class TransformServiceTest extends AbstractCommonTest {
     private final static String DAO_UUID = "61259486-3786-4877-85b5-f845ee038132";
 
     private final String DIR_DAO = "dao";
+    
+    @Test
+	public void testJp2library() {
+    	assertDoesNotThrow(() -> {
+    		OpenJpeg oj = new OpenJpeg();
+    	}, "OpenJpeg library is not available");
+	}
 
     @Test
     public void testTransformService() throws IOException, JAXBException {
