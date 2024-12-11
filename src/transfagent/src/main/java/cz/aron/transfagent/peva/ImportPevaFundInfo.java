@@ -12,6 +12,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -48,6 +49,7 @@ import cz.aron.peva2.wsdl.Quantity;
 import cz.aron.transfagent.config.ConfigPeva2FundProperties;
 import cz.aron.transfagent.domain.EntityStatus;
 import cz.aron.transfagent.elza.ApTypeService;
+import cz.aron.transfagent.peva.codelist.Peva2ThematicEvidenceGroup;
 import cz.aron.transfagent.peva.jsoncomponent.Column;
 import cz.aron.transfagent.peva.jsoncomponent.JSONComponent;
 import cz.aron.transfagent.peva.jsoncomponent.Table;
@@ -90,6 +92,8 @@ public class ImportPevaFundInfo {
     private final List<String> findingAids = new ArrayList<>();
     
     private final List<String> geos = new ArrayList<>();
+    
+    private final StringJoiner nameSearchComponent = new StringJoiner(" ");
             
     public static void main(String[] args) {
         Path inputFile = Path.of(args[0]);
@@ -164,12 +168,15 @@ public class ImportPevaFundInfo {
 		createTitlePart(apu, nadHeader);
 
 		Part partFundInfo = ApuSourceBuilder.addPart(apu, CoreTypes.PT_FUND_INFO);
-		apusBuilder.addApuRef(partFundInfo, "INST_REF", instInfo.getUuid());
-
+		processInstitution(subsheet, partFundInfo, instInfo);
 		processArchDesc(partFundInfo);
 		processEvidenceNumber(primarySheet, subsheet, partFundInfo);
 		processNadHeaderCommon(nadHeader, partFundInfo);
 		processNadSheetSubNadSheetCommon(subsheet, partFundInfo);
+		
+		if (nameSearchComponent.length()>0) {
+			ApuSourceBuilder.addString(partFundInfo, CoreTypes.INT_NAME_INDEX, nameSearchComponent.toString()).setVisible(false);;			
+		}
 	}
 
 	private void importPrimarySheet(NadPrimarySheet primarySheet) {
@@ -181,12 +188,15 @@ public class ImportPevaFundInfo {
 		createTitlePart(apu, nadHeader);
 
 		Part partFundInfo = ApuSourceBuilder.addPart(apu, CoreTypes.PT_FUND_INFO);
-		apusBuilder.addApuRef(partFundInfo, "INST_REF", instInfo.getUuid());
-
+		processInstitution(primarySheet, partFundInfo, instInfo);
 		processArchDesc(partFundInfo);
 		processEvidenceNumber(primarySheet, null, partFundInfo);
 		processNadHeaderCommon(nadHeader, partFundInfo);
 		processNadSheetSubNadSheetCommon(primarySheet, partFundInfo);
+		
+		if (nameSearchComponent.length()>0) {
+			ApuSourceBuilder.addString(partFundInfo, CoreTypes.INT_NAME_INDEX, nameSearchComponent.toString()).setVisible(false);			
+		}
 	}
     
 	private void createTitlePart(Apu apu, NadHeader nadHeader) {
@@ -207,7 +217,10 @@ public class ImportPevaFundInfo {
 		return instInfo;
 	}
     
-	private String createFundName(InstitutionInfo institutionInfo, NadSheet nadSheet) {
+	private String createFundName(InstitutionInfo institutionInfo, NadSheet nadSheet) {		
+		if (fundProperties.isNameSearch("name")) {
+			nameSearchComponent.add(nadSheet.getHeader().getName());
+		}		
 		if (fundProperties.isComposedFundName()) {
 			return institutionInfo.getName() + ": " + nadSheet.getHeader().getName() + " "
 					+ (nadSheet.getHeader().getTimeRange()!=null?Peva2Utils.getAsString(nadSheet.getHeader().getTimeRange()):"");
@@ -216,6 +229,22 @@ public class ImportPevaFundInfo {
 					+ (nadSheet.getHeader().getTimeRange()!=null?Peva2Utils.getAsString(nadSheet.getHeader().getTimeRange()):"");
 		} else {
 			return nadSheet.getHeader().getName();
+		}
+	}
+	
+	/**
+	 * Vytvori referenci na instituci a department
+	 */
+	private void processInstitution(NadSheet sheet, Part partFundInfo, InstitutionInfo instInfo) {
+		apusBuilder.addApuRef(partFundInfo, "INST_REF", instInfo.getUuid());
+		if (fundProperties.isDepartments()) {
+			var department = sheet.getDepartment();
+			if (department != null) {
+				var p2Department = codeListProvider.getCodeLists().getDepartment(department);
+				if (p2Department!=null) {
+					ApuSourceBuilder.addEnum(partFundInfo,"DEPARTMENT", p2Department.getNumber());
+				}
+			}
 		}
 	}
 	
@@ -230,21 +259,31 @@ public class ImportPevaFundInfo {
 
 	private void processEvidenceNumber(NadPrimarySheet primarySheet, NadSubsheet subsheet, Part partFundInfo) {
 		if (StringUtils.isNotBlank(primarySheet.getEvidenceNumber())) {
-			if (subsheet!=null&&subsheet.getNumber()!=null) {
-				ApuSourceBuilder.addString(partFundInfo, "CISLO_NAD", primarySheet.getEvidenceNumber()+"/"+subsheet.getNumber());
-				nadNumber = primarySheet.getEvidenceNumber()+"_"+subsheet.getNumber();
+			if (subsheet != null && subsheet.getNumber() != null) {
+				ApuSourceBuilder.addString(partFundInfo, "CISLO_NAD",
+						primarySheet.getEvidenceNumber() + "/" + subsheet.getNumber());
+				nadNumber = primarySheet.getEvidenceNumber() + "_" + subsheet.getNumber();
+				if (fundProperties.isNameSearch("CISLO_NAD")) {
+					nameSearchComponent.add(primarySheet.getEvidenceNumber() + "/" + subsheet.getNumber());
+				}
 			} else {
 				ApuSourceBuilder.addString(partFundInfo, "CISLO_NAD", primarySheet.getEvidenceNumber());
 				nadNumber = primarySheet.getEvidenceNumber();
+				if (fundProperties.isNameSearch("CISLO_NAD")) {
+					nameSearchComponent.add(primarySheet.getEvidenceNumber());
+				}
 			}
-		}		
+		}
 	}
 	
     private void processNadHeaderCommon(NadHeader nadHeader, Part partFundInfo) {
     	var mark = nadHeader.getMark();
         if(mark!=null) {
         	ApuSourceBuilder.addString(partFundInfo, "FUND_MARK", mark);
-        }        
+			if (fundProperties.isNameSearch("FUND_MARK")) {
+				nameSearchComponent.add(mark);
+			}
+        }    
         // datace
         if (nadHeader.getTimeRange()!=null) {
         	Peva2Utils.fillDateRange(nadHeader.getTimeRange(), partFundInfo, apusBuilder);
@@ -991,6 +1030,20 @@ public class ImportPevaFundInfo {
 				ApuSourceBuilder.addString(partFundInfo, "FUND_THEMATIC_GROUP_TEXT", sj.toString());
 			}
 		}
+		
+		if (fundProperties.isThematicEvidenceGroupsVirtual()) {			
+			var roots = new HashSet<Peva2ThematicEvidenceGroup>();
+			for(var groupUUID:nadSheet.getGroups().getGroup()) {
+				var virtualGroup = codeListProvider.getCodeLists().getThematicGroupProvider().getVirtualGroup(groupUUID);
+				if (virtualGroup!=null) {
+					roots.add(virtualGroup);
+				}				
+			}
+			for(var root:roots) {
+				ApuSourceBuilder.addEnum(partFundInfo, "FUND_THEMATIC_GROUP_VIRT", root.getName(), false);	
+			}
+		}
+
 	}
 
 	private String correctString(String original) {

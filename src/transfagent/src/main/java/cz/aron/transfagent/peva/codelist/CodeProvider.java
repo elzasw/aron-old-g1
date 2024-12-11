@@ -32,6 +32,7 @@ public abstract class CodeProvider<T> {
 		try {
 			T item = downloadItem(id);
 			cache.put(id, item);
+			itemAdded(item);
 			return item;
 		} catch (SOAPFaultException sfEx) {
 			if (Peva2Constants.DELETED_OBJECT.equals(sfEx.getMessage())) {
@@ -47,4 +48,6 @@ public abstract class CodeProvider<T> {
 
 	public abstract T downloadItem(String id);
 
+	protected void itemAdded(T item) {}
+	
 }

@@ -98,10 +98,12 @@ public class ImportPevaFindingAidInfo {
 
 		// add info part
 		Part partInfo = ApuSourceBuilder.addPart(apu, CoreTypes.PT_FINDINGAID_INFO);
-		ApuSourceBuilder.addString(partInfo, CoreTypes.FINDINGAID_ID, findingAid.getEvidenceNumber());
 		findingAidCode = findingAid.getEvidenceNumber();
 		findingAidPartNumber = findingAid.getPartNumber();
-		
+		ApuSourceBuilder.addString(partInfo, CoreTypes.FINDINGAID_ID, findingAidCode);
+		if (StringUtils.isNoneBlank(findingAidPartNumber)) {
+			ApuSourceBuilder.addString(partInfo, CoreTypes.FINDINGAID_PART_ID, findingAidCode);
+		}
 		
 		/**
 		var releaseDatePlace = ead3XmlReader.getReleaseDatePlace();
