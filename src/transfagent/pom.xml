@@ -206,10 +206,11 @@
 			<version>1.9.0</version>
 		</dependency>
 
+<!-- JPEG2000 Support, see: https://github.com/dbmdz/imageio-jnr -->
 <dependency>
     <groupId>de.digitalcollections.imageio</groupId>
     <artifactId>imageio-openjpeg</artifactId>
-    <version>0.6.2</version>
+    <version>0.6.8</version>
 </dependency>
 
 		<!-- pro testy -->
