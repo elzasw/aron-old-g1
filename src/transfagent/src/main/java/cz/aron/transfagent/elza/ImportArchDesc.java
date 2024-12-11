@@ -58,6 +58,7 @@ import cz.aron.transfagent.elza.dao.ArchDescLevelDaoImporter;
 import cz.aron.transfagent.elza.datace.ItemDateRangeAppender;
 import cz.aron.transfagent.peva.ArchiveFundId;
 import cz.aron.transfagent.peva.ImportPevaGeo;
+import cz.aron.transfagent.peva.ImportPevaOriginator;
 import cz.aron.transfagent.service.DaoFileStoreService;
 import cz.aron.transfagent.service.LevelEnrichmentService;
 import cz.aron.transfagent.transformation.ArchEntityInfo;
@@ -673,7 +674,9 @@ public class ImportArchDesc implements EdxItemCovertContext {
 
         for(var apr: apLevelRefs.values()) {
             // TODO proc se navaze na geo entitu z pevy?
-            if (!ImportPevaGeo.ENTITY_CLASS.equals(apr.getEntityClass())) {
+        	// TODO proc se navaze na puvodce z pevy
+            if (!ImportPevaGeo.ENTITY_CLASS.equals(apr.getEntityClass()) &&
+            		!ImportPevaOriginator.ENTITY_CLASS.equals(apr.getEntityClass())) {
                 var parentCode = apTypeService.getParentCode(apr.getEntityClass());
                 if (parentCode==null) {
 	                parentCode = apTypeService.getParentCode(apr.getSrcEntityClass());

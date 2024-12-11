@@ -93,6 +93,10 @@ itemTypes:
     #
     # Moznost vypnuti indexaxe hodnoty
     indexed: true
+  - code: INT_NAME_INDEX
+    name: Generovaný text pro vyhledávání v názvu APU, pouzije se jako index pro pole NAME
+    type: STRING
+    indexed: true
   - code: TITLE
     name: Název
     type: STRING
@@ -615,6 +619,10 @@ itemTypes:
     name: Instituce
     type: APU_REF
     indexed: true
+  - code: DEPARTMENT
+    name: Oddělení
+    type: ENUM
+    indexed: true
   - code: ORIGINATOR_REF
     name: Původce
     type: APU_REF
@@ -691,6 +699,10 @@ itemTypes:
     name: Tematická skupina
     type: ENUM
     indexed: true
+  - code: FUND_THEMATIC_GROUP_VIRT
+    name: Tematická skupina
+    type: ENUM
+    indexed: true
   - code: FUND_THEMATIC_GROUP_TEXT
     name: Tematická skupina
     type: STRING
@@ -703,6 +715,10 @@ itemTypes:
   #
   - code: FINDINGAID_ID
     name: Číslo archivní pomůcky
+    type: STRING
+    indexed: true
+  - code: FINDINGAID_PART_ID
+    name: Číslo části archivní pomůcky
     type: STRING
     indexed: true
   - code: FINDINGAID_RELEASE_DATE_PLACE

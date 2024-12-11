@@ -2,6 +2,7 @@ package cz.aron.transfagent.peva;
 
 import cz.aron.transfagent.peva.codelist.AccessibilityProvider;
 import cz.aron.transfagent.peva.codelist.DatingMethodProvider;
+import cz.aron.transfagent.peva.codelist.DepartmentProvider;
 import cz.aron.transfagent.peva.codelist.EvidenceUnitTypeProvider;
 import cz.aron.transfagent.peva.codelist.FindingAidFormTypeProvider;
 import cz.aron.transfagent.peva.codelist.FindingAidTypeProvider;
@@ -10,6 +11,7 @@ import cz.aron.transfagent.peva.codelist.IntegrityProvider;
 import cz.aron.transfagent.peva.codelist.LanguageProvider;
 import cz.aron.transfagent.peva.codelist.OriginatorSubClassProvider;
 import cz.aron.transfagent.peva.codelist.Peva2DatingMethod;
+import cz.aron.transfagent.peva.codelist.Peva2Department;
 import cz.aron.transfagent.peva.codelist.Peva2EvidenceUnitType;
 import cz.aron.transfagent.peva.codelist.Peva2GeoObjectType;
 import cz.aron.transfagent.peva.codelist.Peva2Language;
@@ -31,12 +33,14 @@ public class Peva2CodeLists {
     private final DatingMethodProvider datingMethods;
     private final ThematicEvidenceGroupProvider thematicGroups;
     private final GeoObjectTypeProvider geoTypes;
+    private final DepartmentProvider departments;
     
 	public Peva2CodeLists(AccessibilityProvider accessibilities, PhysicalStateProvider physicalStates,
 			IntegrityProvider integrity, FindingAidTypeProvider findingAidTypes, LanguageProvider languages,
 			EvidenceUnitTypeProvider evidenceUnitTypes, FindingAidFormTypeProvider findingAidFormTypes,
 			OriginatorSubClassProvider originatorSubClasses, DatingMethodProvider datingMethods,
-			ThematicEvidenceGroupProvider thematicGroups, GeoObjectTypeProvider geoTypes) {
+			ThematicEvidenceGroupProvider thematicGroups, GeoObjectTypeProvider geoTypes,
+			DepartmentProvider departments) {
 		this.accessibilities = accessibilities;
 		this.physicalStates = physicalStates;
 		this.integrity = integrity;
@@ -48,6 +52,7 @@ public class Peva2CodeLists {
 		this.datingMethods = datingMethods;
 		this.thematicGroups = thematicGroups;
 		this.geoTypes = geoTypes;
+		this.departments = departments;
 	}
 
     public String getAccessibilityName(String id) {
@@ -90,8 +95,16 @@ public class Peva2CodeLists {
 		return thematicGroups.getItemById(id);
 	}
 	
+	public ThematicEvidenceGroupProvider getThematicGroupProvider() {
+		return thematicGroups;
+	}
+	
 	public Peva2GeoObjectType getGeoType(String id) {
 		return geoTypes.getItemById(id);
 	}
 
+	public Peva2Department getDepartment(String id) {
+		return departments.getItemById(id);
+	}
+	
 }

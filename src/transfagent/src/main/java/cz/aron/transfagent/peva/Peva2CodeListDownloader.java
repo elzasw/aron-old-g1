@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import cz.aron.transfagent.peva.codelist.AccessibilityProvider;
 import cz.aron.transfagent.peva.codelist.DatingMethodProvider;
+import cz.aron.transfagent.peva.codelist.DepartmentProvider;
 import cz.aron.transfagent.peva.codelist.EvidenceUnitTypeProvider;
 import cz.aron.transfagent.peva.codelist.FindingAidFormTypeProvider;
 import cz.aron.transfagent.peva.codelist.FindingAidTypeProvider;
@@ -31,7 +32,8 @@ public class Peva2CodeListDownloader {
                 FindingAidTypeProvider.create(peva2), LanguageProvider.create(peva2),
                 EvidenceUnitTypeProvider.create(peva2), FindingAidFormTypeProvider.create(peva2),
                 OriginatorSubClassProvider.create(peva2), DatingMethodProvider.create(peva2),
-                ThematicEvidenceGroupProvider.create(peva2), GeoObjectTypeProvider.create(peva2));
+                ThematicEvidenceGroupProvider.create(peva2), GeoObjectTypeProvider.create(peva2),
+                DepartmentProvider.create(peva2));
     }
 
 }
