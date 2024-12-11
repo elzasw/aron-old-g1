@@ -13,21 +13,19 @@ cache:
   paths:
     - .m2/repository
 
-build:
+build-doc:
+  image: $CI_REGISTRY/lightcomp/docker-images/sphinxdoc7:latest
   stage: build
+  tags:
+   - docker
   script:
-    - pip install sphinx sphinx-rtd-theme
     - rm -f -r ./aron-doc
     - mkdir aron-doc
-    - cd doc    
+    - cd doc
     - make html
     - cd build/html 
     - mv * ../../../aron-doc/
     - cd ../../..
-    - export JAVA_HOME=/etc/alternatives/jre_11
-    - cd src
-    - mvn $MAVEN_CLI_OPTS package
-    - cd ..
   artifacts:
     paths:
       - aron-doc
@@ -35,11 +33,33 @@ build:
     - master
 
 deploy-portal-user-doc:
+  tags:
+   - docker
+   - shell
+   - zip
   stage: deploy
+  image: $CI_REGISTRY/lightcomp/docker-images/alpine-ssh-client:latest
   script:
+    ##
+    ## Run ssh-agent (inside the build environment)
+    ##
+    - eval $(ssh-agent -s)
+    ##
+    ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
+    ## We're using tr to fix line endings which makes ed25519 keys work
+    ## without extra base64 encoding.
+    ## https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556
+    ##
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    ##
+    ## Create the SSH directory and give it the right permissions
+    ##
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -t rsa,ecdsa,ed25519 vlas1.lightcomp.cz >> "${HOME}/.ssh/known_hosts"
     - rm -f -r ./aron-doc.tar.gz
     - tar czf aron-doc.tar.gz ./aron-doc
-    - scp aron-doc.tar.gz cdrobot@frnk.lightcomp.cz:/home/cdrobot/deploy
-    - ssh cdrobot@frnk.lightcomp.cz "./cdscripts/deploy-aron-doc.sh"
+    - scp aron-doc.tar.gz cdrobot@vlas1.lightcomp.cz:/home/cdrobot/deploy
+    - ssh cdrobot@vlas1.lightcomp.cz "./deploy-aron-doc.sh" $CI_COMMIT_REF_NAME
   only:
     - master

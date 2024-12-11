@@ -124,7 +124,8 @@ public class Peva2ImportFindingAids extends Peva2Downloader {
 						Files.copy(attachmentFile, faDir.resolve(attachmentFile.getFileName()));
 					}
 				}
-				copyAttachments(findingAid.getInstitution().getExternalId(), findingAid.getEvidenceNumber(), faDir);
+				copyAttachments(findingAid.getInstitution().getExternalId(), findingAid.getEvidenceNumber(),
+						findingAid.getPartNumber(), faDir);
                 Path name = faDir.resolve(PREFIX_DASH + id + ".xml");
                 Peva2XmlReader.marshalGetFindingAidResponse(gfar, name);
 			} catch (Exception e) {
@@ -176,12 +177,12 @@ public class Peva2ImportFindingAids extends Peva2Downloader {
 		}
 	}
 	
-    private void copyAttachments(String institutionCode, String findingAidCode, Path findingAidDir)
+    private void copyAttachments(String institutionCode, String findingAidCode, String findingAidPartNumber, Path findingAidDir)
             throws IOException {
         if (attachmentSource == null) {
             return;
         }
-        var attachments = attachmentSource.getFindingAidAttachments(institutionCode, findingAidCode);
+        var attachments = attachmentSource.getFindingAidAttachments(institutionCode, findingAidCode, findingAidPartNumber);
         for (var attachment : attachments) {
             Files.copy(attachment.getPath(), findingAidDir.resolve(attachment.getName()));
         }

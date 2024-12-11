@@ -23,6 +23,7 @@ public class AttachmentFileStoreService implements AttachmentSource {
         this.attachmentsDir = attachmentsDir;
     }
 
+    @Override
     public List<AttachmentDesc> getFundAttachments(String archiveCode, String fundCode, Integer subFundCode)
             throws IOException {
         Path attachmentDir = attachmentsDir.resolve(archiveCode).resolve("AS").resolve(fundCode);
@@ -32,10 +33,12 @@ public class AttachmentFileStoreService implements AttachmentSource {
         return readAttachments(attachmentDir);
     }
 
-    public List<AttachmentDesc> getFindingAidAttachments(String archiveCode, String findingAidCode) throws IOException {
-        Path attachmentDir = attachmentsDir.resolve(archiveCode).resolve("AP").resolve(findingAidCode);
-        return readAttachments(attachmentDir);
-    }
+	@Override
+	public List<AttachmentDesc> getFindingAidAttachments(String archiveCode, String findingAidCode,
+			String findingAidPartNumber) throws IOException {
+		Path attachmentDir = attachmentsDir.resolve(archiveCode).resolve("AP").resolve(findingAidCode);
+		return readAttachments(attachmentDir);
+	}
 
     private List<AttachmentDesc> readAttachments(Path path) throws IOException {
         if (!Files.isDirectory(path)) {

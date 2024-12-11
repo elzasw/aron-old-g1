@@ -1,0 +1,1801 @@
+openapi: 3.0.2
+info:
+  title: ELZA API
+  version: 1.0.0
+tags:
+  - name: admin
+    description: Administrativní funkce
+  - name: externalsystems
+    description: Externí systémy
+  - name: funds
+    description: Archivní soubory
+  - name: accesspoints
+    description: Přístupové body a archivní entity
+  - name: search
+    description: Vyhledávání
+  - name: io
+    description: Vstup a výstup informací
+servers:
+  - url: http://localhost
+    description: Výchozí server
+  - url: http://localhost:8080
+    description: Devel server
+paths:
+  /fund:
+    post:
+      summary: Založené nového archivního souboru
+      operationId: createFund
+      tags:
+        - funds
+      requestBody:
+        description: Data pro založení
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/CreateFund'
+      responses:
+        200:
+          description: Úspěšné založení archivního souboru
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/Fund'
+        400:
+          description: Neplatné údaje pro založení AS
+    get:
+      summary: Vyhledání archivních souborů
+      operationId: findFunds
+      tags:
+        - funds
+      parameters:
+        - name: fulltext
+          description: Vyhledávaný výraz
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: institutionIdentifier
+          description: Identifikátor instituce (podpora pro kód instituce i UUID přístupového bodu)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: max
+          description: Maximální počet výsledků na stránku
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 200
+        - name: from
+          description: Od kolikátého záznamu se mají výsledky vracet (0 = žádné se nepřeskočí)
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        200:
+          description: Výsledek hledání AS
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/FindFundsResult'
+  /fund/{id}:
+    get:
+      summary: Získání detailu AS
+      operationId: getFund
+      tags:
+        - funds
+      parameters:
+        - name: id
+          description: Identifikátor AS
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Detail AS
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/FundDetail'
+        404:
+          description: AS neexistuje
+    put:
+      summary: Změna AS
+      operationId: updateFund
+      tags:
+        - funds
+      parameters:
+        - name: id
+          description: Identifikátor AS
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Data pro založení
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/UpdateFund'
+      responses:
+        200:
+          description: Detail AS
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/FundDetail'
+        400:
+          description: Neplatné údaje pro úpravu AS
+        404:
+          description: AS neexistuje
+  /fund/{id}/import:
+    put:
+      summary: Import additional data to the existing fund.
+      operationId: importFundData
+      tags:
+        - funds
+      parameters:
+        - name: id
+          description: Fund ID. Might be ID or fund UUID.
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Doplnění způsobu importu
+        content:
+          'multipart/form-data':
+            schema:
+              $ref: '#/components/schemas/ImportFundData'
+      responses:
+        200:
+          description: Potvrzení o úspěšném importu
+        404:
+          description: Fund neexistuje
+        406:
+          description: Chybný formát vstupního souboru 
+  /fund/{id}/structuredObject:
+    delete:
+      summary: Smazání seznamu hodnot strukturovaného datového typu
+      operationId: deleteStructureData
+      tags:
+        - funds
+      parameters:
+        - name: id
+          description: Identifikátor AS
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Seznam id hodnot strukturovaného datového typu
+        content:
+          'application/json':
+            schema:
+              type: array
+              items:
+                type: integer
+      responses:
+        200:
+          description: Seznam smazaných id hodnot strukturovaného datového typu
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+  /accesspoint/{id}:
+    delete:
+      tags:
+        - accesspoints
+      operationId: AccessPoint_deleteAccessPoint
+      description: Invalidation of ApAccessPoint (delete/replace)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id of accesspoint
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      requestBody:
+        description: addition for method of invalidation
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteAccessPointDetail'
+  /accesspoint/{id}/autoitems:
+    get:
+      tags:
+        - accesspoints
+      operationId: AccessPoint_getAutoitems
+      description: List of automatically generated elements of the description
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id of accesspoint
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultAutoItems'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+  /accesspoints/{id}/copy:
+    put:
+      tags:
+        - accesspoints
+      operationId: copyAccessPoint
+      description: Copying an archive entity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id of accesspoint
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityRef'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      requestBody:
+        description: additional copy options
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopyAccessPointDetail'
+  /accesspoint/{id}/part/{partId}:
+    delete:
+      tags:
+        - accesspoints
+      operationId: AccessPoint_deletePart
+      description: Delete part of ApAccessPoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id of accesspoint
+          schema:
+            type: integer
+        - name: partId
+          in: path
+          required: true
+          description: partId of ApAccessPoint
+          schema:
+            type: integer
+        - name: apVersion
+          in: query
+          required: false
+          description: actual version of ApAccessPoint
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: integer
+        404:
+          description: AP neexistuje
+  /accesspoint/{id}/part/{partId}/prefer-name:
+    put:
+      tags:
+        - accesspoints
+      operationId: AccessPoint_setPreferName
+      description: Set the preferred name of ApAccessPoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id of accesspoint
+          schema:
+            type: integer
+        - name: partId
+          in: path
+          required: true
+          description: partId of ApAccessPoint
+          schema:
+            type: integer
+        - name: apVersion
+          in: query
+          required: false
+          description: actual version of ApAccessPoint
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: integer
+  /accesspoint/{id}/revision/merge:
+    post:
+      tags:
+        - accesspoints
+      operationId: AccessPoint_mergeRevision
+      description: Merge ApRevision & ApAccessPoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id of accesspoint
+          schema:
+            type: integer
+        - name: apVersion
+          in: query
+          required: false
+          description: actual version of ApAccessPoint
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: integer
+      requestBody:
+        description: data for change ApState
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApStateUpdate'
+  /accesspoint/{id}/revision/part/{partId}:
+    delete:
+      tags:
+        - accesspoints
+      operationId: AccessPoint_deleteRevisionPart
+      description: Delete part of revision of ApAccessPoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id of accesspoint
+          schema:
+            type: integer
+        - name: partId
+          in: path
+          required: true
+          description: partId of revision
+          schema:
+            type: integer
+        - name: apVersion
+          in: query
+          required: false
+          description: actual version of ApAccessPoint
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: integer
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+  /accesspoint/{id}/revision/part/{partId}/prefer-name:
+    put:
+      tags:
+        - accesspoints
+      operationId: AccessPoint_setPreferNameRevision
+      description: Set the preferred name of revision of ApAccessPoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id of accesspoint
+          schema:
+            type: integer
+        - name: partId
+          in: path
+          required: true
+          description: partId of revision
+          schema:
+            type: integer
+        - name: apVersion
+          in: query
+          required: false
+          description: actual version of ApAccessPoint
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: integer
+        404:
+          description: AP nebo revize neexistuje
+  /accesspoint/{id}/revision/state:
+    put:
+      tags:
+        - accesspoints
+      operationId: AccessPoint_changeStateRevision
+      description: Change state of revision of ApAccessPoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id of accesspoint
+          schema:
+            type: integer
+        - name: apVersion
+          in: query
+          required: false
+          description: actual version of ApAccessPoint
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: integer
+        404:
+          description: AP nebo revize neexistuje
+      requestBody:
+        description: data for change state of revision of ApAccessPoint
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevStateChange'
+  /accesspoint/{id}/state:
+    put:
+      tags:
+        - accesspoints
+      operationId: AccessPoint_changeState
+      description: Change state of ApAccessPoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id of accesspoint
+          schema:
+            type: integer
+        - name: apVersion
+          in: query
+          required: false
+          description: actual version of ApAccessPoint
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: integer
+      requestBody:
+        description: data for change ApState
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApStateUpdate'
+  /accesspoints/{id}/restore:
+    put: 
+      summary: Obnovení neplatné entity a návrat do původního stavu
+      operationId: restoreAccessPoint
+      tags:
+        - accesspoints
+      parameters:
+        - name: id
+          description: Identifikátor archivní entity
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Entita byla obnovena
+        404:
+          description: AP neexistuje
+  /accesspoints/{id}/validate:
+    put: 
+      summary: Ověřování entity
+      operationId: validateAccessPoint
+      tags:
+        - accesspoints
+      parameters:
+        - name: id
+          description: Identifikátor archivní entity
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Entita byla ověřena
+        404:
+          description: AP neexistuje
+  /accesspoints:
+    delete:
+      summary: Zneplatnění přístupovych bodu
+      operationId: deleteAccessPoints
+      tags:
+        - accesspoints
+      requestBody:
+        description: Seznam přístupových bodů
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/DeleteAccessPointsDetail'
+      responses:
+        200:
+          description: Potvrzení o úspěšném odstranění
+        404:
+          description: AP neexistuje
+  /revision/{id}:
+    post:
+      summary: Vytvoření nové revize přístupového bodu
+      operationId: createRevision
+      tags:
+        - accesspoints
+      parameters:
+        - name: id
+          description: Identifikátor archivní entity
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Potvrzení o úspěšném založení
+        404:
+          description: AP neexistuje
+    delete:
+      summary: Smazání revize přístupového bodu
+      operationId: deleteRevision
+      tags:
+        - accesspoints
+      parameters:
+        - name: id
+          description: Identifikátor archivní entity
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        200:
+          description: Potvrzení o úspěšném smazání
+        404:
+          description: AP nebo revize neexistuje
+  /revision/{id}/autoitems:
+    get:
+      summary: Vrátí seznam automaticky generovaných prvků popisu pro revizi
+      operationId: getRevAutoitems
+      tags:
+        - accesspoints
+      parameters:
+        - name: id
+          description: Identifikátor archivní entity
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Seznam navržených prvků popisu
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResultAutoItems"
+        404:
+          description: AP neexistuje
+  /daos/{id}/change-scenario:
+    post:
+      summary: Změna scénáře napojení dao
+      operationId: changeLinkScenario
+      tags:
+        - daos
+      parameters:
+        - name: id
+          description: Identifikátor dao
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        description: Nový scénář
+        required: true
+        content:
+          'application/json':
+            schema:
+              type: string
+      responses:
+        200:
+          description: Změna scénáře provedena
+        404:
+          description: Dao neexistuje
+  /search-ap:
+    post:
+      tags:
+        - search
+      summary: searches for entity
+      operationId: searchEntity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchParams"
+        description: search parameters
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Result_EntityRef"
+        "400":
+          description: Bad Request, query with incorrect parameters
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+  /search-arr:
+    post:
+      tags:
+        - search
+#        - accesspoints
+      summary: searches for entity
+      operationId: searchArchDesc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchParams"
+        description: search parameters
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Result_EntityRef"
+        "400":
+          description: Bad Request, query with incorrect parameters
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden          
+  /admin/admin/arrangement/missing-cached-nodes:
+    get:
+      tags:
+        - admin
+      operationId: Admin_syncNodeCache
+      description: Creating missing items in arr_cached_node
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+  /admin/info:
+    get:
+      tags:
+        - admin
+      operationId: Admin_info
+      description: Return basic statistical info
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminInfo'
+  /admin/info/logged-users:
+    get:
+      tags:
+        - admin
+      operationId: Admin_loggedUsers
+      description: Return list of logged users
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoggedUsers'
+  /admin/user/{userId}/copy-permissions:
+    post:
+      tags:
+        - admin
+      operationId: Admin_copyPermissions
+      description: |-
+        Copy user permissions from another user
+
+        Method will append all permissions to given user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of target user
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Admin.CopyPermissionParams'
+  /daorepository:
+    get:
+      operationId: DaoRepository_fsRepos
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FsRepo'
+  /extsystem/property:
+    get:
+      tags:
+        - externalsystems
+      operationId: ExternalSystem_allProperties
+      description: Return list of all properties of external system
+      parameters:
+        - name: extSystemId
+          in: query
+          required: false
+          description: external system id
+          schema:
+            type: integer
+        - name: userId
+          in: query
+          required: false
+          description: user id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExtSystemProperty'
+    post:
+      tags:
+        - externalsystems
+      operationId: ExternalSystem_storeProperties
+      description: Store one or more property of external system
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      requestBody:
+        description: request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExtSystemProperty'
+    delete:
+      tags:
+        - externalsystems
+      operationId: ExternalSystem_deleteProperties
+      description: Delete one property of external system
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      requestBody:
+        description: external system property id
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+  /fund/{fundId}/fsrepo/{fsrepoId}/item-data:
+    get:
+      tags:
+        - funds
+      operationId: Fund_fsRepoItemData
+      parameters:
+        - $ref: '#/components/parameters/FundIdParameter'
+        - $ref: '#/components/parameters/FsRepoIdParameter'
+        - name: path
+          in: query
+          required: true
+          description: file path in the repository
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+  /fund/{fundId}/fsrepo/{fsrepoId}/items:
+    get:
+      tags:
+        - funds
+      operationId: Fund_fsRepoItems
+      parameters:
+        - $ref: '#/components/parameters/FundIdParameter'
+        - $ref: '#/components/parameters/FsRepoIdParameter'
+        - name: filterType
+          in: query
+          required: false
+          description: >-
+            Optional filter to return only folders or files. If not specified
+            all items are returned
+          schema:
+            type: string
+            enum:
+              - FOLDER
+              - FILE
+        - name: path
+          in: query
+          required: false
+          description: Optional path in the repository
+          schema:
+            type: string
+        - name: lastKey
+          in: query
+          required: false
+          description: Optional parameter to return next batch of items. See FsItems for more details.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FsItems'
+  /fund/{fundId}/fsrepo/{fsrepoId}/linkitem/{nodeId}:
+    put:
+      tags:
+        - funds
+      operationId: Fund_fsCreateDAOLink
+      parameters:
+        - $ref: '#/components/parameters/FundIdParameter'
+        - $ref: '#/components/parameters/FsRepoIdParameter'
+        - $ref: '#/components/parameters/NodeIdParameter'
+        - name: path
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: integer
+  /fund/{fundId}/fsrepos:
+    get:
+      tags:
+        - funds
+      operationId: Fund_fsRepos
+      description: Return list of filesystem repositories
+      parameters:
+        - $ref: '#/components/parameters/FundIdParameter'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FsRepo'
+  /fund/{fundId}/usedItemtypes/{fundVersionId}:
+    get:
+      tags:
+        - funds
+      operationId: Fund_usedItemTypes
+      description: Return list of item type id & count
+      parameters:
+        - $ref: '#/components/parameters/FundIdParameter'
+        - $ref: '#/components/parameters/FundVersionIdParameter'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsedItemType'
+                x-typespec-name: UsedItemType[]
+  /io/export:
+    post:
+      tags:
+        - io
+      operationId: Io_exportRequest
+      description: Create export file of funds or access points
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: integer
+      requestBody:
+        description: Export request parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportParams'
+  /io/export-status/{requestId}:
+    get:
+      tags:
+        - io
+      operationId: Io_getExportStatus
+      description: Getting the export status by request id
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportRequestStatus'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+  /io/file/{requestId}:
+    get:
+      tags:
+        - io
+      operationId: Io_getExportFile
+      description: Getting the generated file by request id
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '102':
+          description: Informational
+        '200':
+          description: The request has succeeded.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+components:
+  parameters:
+    FsRepoIdParameter:
+      name: fsrepoId
+      in: path
+      required: true
+      description: FileSystem repository ID
+      schema:
+        type: integer
+    FundIdParameter:
+      name: fundId
+      in: path
+      required: true
+      description: Fund ID
+      schema:
+        type: integer
+    FundVersionIdParameter:
+      name: fundVersionId
+      in: path
+      required: true
+      description: Fund ID Version
+      schema:
+        type: integer
+    NodeIdParameter:
+      name: nodeId
+      in: path
+      required: true
+      description: Node ID
+      schema:
+        type: integer
+  schemas:
+    Admin.CopyPermissionParams:
+      type: object
+      required:
+        - fromUserId
+      properties:
+        fromUserId:
+          type: integer
+    AdminInfo:
+      type: object
+      required:
+        - funds
+        - levels
+        - accessPoints
+        - users
+        - loggedUsers
+      properties:
+        funds:
+          type: integer
+          format: int32
+          description: Number of funds
+        levels:
+          type: integer
+          format: int32
+          description: Number of valid levels
+        accessPoints:
+          type: integer
+          format: int32
+          description: Number of valid access points
+        users:
+          type: integer
+          format: int32
+          description: Number of users
+        loggedUsers:
+          type: integer
+          format: int32
+          description: Number of logged users
+      description: Basic statistics about Elza instance
+    ApStateApproval:
+      type: string
+      enum:
+        - NEW
+        - TO_APPROVE
+        - APPROVED
+        - TO_AMEND
+      description: States of ApState
+    ApStateUpdate:
+      type: object
+      required:
+        - stateApproval
+      properties:
+        typeId:
+          type: integer
+          description: id of type
+        scopeId:
+          type: integer
+          description: id of scope
+        comment:
+          type: string
+          description: comment
+        stateApproval:
+          allOf:
+            - $ref: '#/components/schemas/ApStateApproval'
+          description: state of ApState
+      description: Data for changing state of ApAccessPoint
+    AutoValue:
+      type: object
+      properties:
+        itemTypeId:
+          type: integer
+          description: identifier of the type of the description element
+        itemSpecId:
+          type: integer
+          description: identifier of the specification of the description element
+        value:
+          type: string
+          description: value of the element
+      description: Automatically generated elements of the description
+    BaseException:
+      type: object
+      required:
+        - type
+        - code
+      properties:
+        type:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+        level:
+          type: string
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+        stackTrace:
+          type: string
+      description: Error specification for the client
+    CopyAccessPointDetail:
+      type: object
+      required:
+        - scope
+      properties:
+        scope:
+          type: string
+          description: code of scope or id
+        replace:
+          type: boolean
+          description: if the original AP should be replaced
+        skipItems:
+          type: array
+          items:
+            type: integer
+          description: list of description element IDs not to copy
+      description: Additional copy options
+    DeleteAccessPointDetail:
+      type: object
+      properties:
+        replacedBy:
+          type: string
+          description: Id of the entity being replaced
+        replaceType:
+          allOf:
+            - $ref: '#/components/schemas/ReplaceType'
+          description: method of replacing
+      description: Data for detele/replace ApAccessPoint
+    EntityRef:
+      type: object
+      required:
+        - id
+        - label
+      properties:
+        id:
+          type: string
+          description: id of entity
+        label:
+          type: string
+          description: visible name of entity
+        note:
+          type: string
+          description: optional description of entity
+      description: Return value when copying ApAccessPoint
+    ExportParams:
+      type: object
+      properties:
+        apIds:
+          type: array
+          items:
+            type: integer
+        fundsSections:
+          type: array
+          items:
+            $ref: '#/components/schemas/FundSections'
+        exportFilterId:
+          type: integer
+        includeUUID:
+          type: boolean
+          default: true
+        includeAccessPoints:
+          type: boolean
+          default: true
+      description: Parameters of archive file export
+    ExportRequestState:
+      type: string
+      enum:
+        - PENDING
+        - PREPARING
+        - FINISHED
+    ExportRequestStatus:
+      type: object
+      required:
+        - state
+      properties:
+        state:
+          $ref: '#/components/schemas/ExportRequestState'
+        progress:
+          type: integer
+      description: Status of export
+    ExtSystemProperty:
+      type: object
+      required:
+        - extSystemId
+        - name
+        - value
+      properties:
+        id:
+          type: integer
+          description: ext system property id
+        userId:
+          type: integer
+          description: user id
+        extSystemId:
+          type: integer
+          description: external system id
+        name:
+          type: string
+          description: name of property
+        value:
+          type: string
+          description: value of property
+      description: Pairs name-value for external system and user
+    FsItem:
+      type: object
+      required:
+        - itemType
+        - name
+        - lastChange
+      properties:
+        itemType:
+          allOf:
+            - $ref: '#/components/schemas/FsItemType'
+          description: 'Type of item: file or folder'
+        name:
+          type: string
+          description: File or folder name
+        size:
+          type: integer
+          description: File size
+        lastChange:
+          type: string
+          format: date-time
+          description: Time of last change
+      description: Single file system item
+    FsItemType:
+      type: string
+      enum:
+        - FOLDER
+        - FILE
+      description: File system item type
+    FsItems:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FsItem'
+        lastKey:
+          type: string
+          description: Optional string to request next items. It is used if there are more items.
+      description: Collection of file system items
+    FsRepo:
+      type: object
+      required:
+        - fsRepoId
+        - name
+        - path
+      properties:
+        fsRepoId:
+          type: integer
+          format: int32
+          description: Repository ID
+        code:
+          type: string
+          description: Optional code of repository
+        name:
+          type: string
+          description: Repository name
+        path:
+          type: string
+          description: Repository path
+    FundSections:
+      type: object
+      required:
+        - fundVersionId
+      properties:
+        fundVersionId:
+          type: integer
+        mergeSections:
+          type: boolean
+          default: false
+        rootNodeIds:
+          type: array
+          items:
+            type: integer
+      description: Specifies multiple sections for fund version
+    LoggedUser:
+      type: object
+      required:
+        - userId
+        - user
+        - remoteAddr
+      properties:
+        userId:
+          type: integer
+          description: User ID
+        user:
+          type: string
+          description: username
+        remoteAddr:
+          type: string
+          description: Remote address
+      description: Logged user
+    LoggedUsers:
+      type: object
+      required:
+        - users
+        - totalCount
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoggedUser'
+          description: User list
+        totalCount:
+          type: integer
+          format: int32
+          description: Total number of logged users
+      description: List of logged users
+    ReplaceType:
+      type: string
+      enum:
+        - SIMPLE
+        - COPY_ALL
+      description: Method of replacing ApAccessPoint
+    ResultAutoItems:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AutoValue'
+      description: List of automatically generated items
+    RevStateChange:
+      type: object
+      required:
+        - state
+      properties:
+        typeId:
+          type: integer
+          description: id of type
+        comment:
+          type: string
+          description: comment
+        state:
+          allOf:
+            - $ref: '#/components/schemas/RevisionState'
+          description: state of ApRevision
+      description: Data for changing revision state of ApAccessPoint
+    RevisionState:
+      type: string
+      enum:
+        - ACTIVE
+        - TO_APPROVE
+        - TO_AMEND
+      description: States of ApRevState
+    UsedItemType:
+      type: object
+      properties:
+        rulItemTypeId:
+          type: integer
+        count:
+          type: integer
+      description: Fund node item type id and quantity
+      required:
+        - rulItemTypeId
+        - count
+    CreateFund:
+      required:
+        - name
+        - ruleSetCode
+        - institutionIdentifier
+        - scopes
+      type: object
+      description: Zakládaný archivní souboru
+      properties:
+        name:
+          description: Název
+          type: string
+        ruleSetCode:
+          description: Kód pravidel
+          type: string
+        institutionIdentifier:
+          description: Identifikátor instituce (podpora pro kód instituce i UUID přístupového bodu)
+          type: string
+        internalCode:
+          description: Interní kód
+          type: string
+        uuid:
+          description: UUID - identifikátor AS (pokud není vyplněno, bude vygenerováno)
+          type: string
+        fundNumber:
+          description: Číslo archivního souboru
+          type: integer
+          format: int32
+        unitdate:
+          description: Datace
+          type: string
+        mark:
+          description: Značka archivního souboru
+          type: string
+        adminUsers:
+          description: Seznam uživatelů, kteří mají administrátorská oprávnění pro zakládaný AS
+          type: array
+          items:
+            type: integer
+            format: int32
+        adminGroups:
+          description: Seznam skupin, kteří mají administrátorská oprávnění pro zakládaný AS
+          type: array
+          items:
+            type: integer
+            format: int32
+        scopes:
+          description: Seznam oblastí entit
+          type: arrays
+          items:
+            type: string
+          minItems: 1
+    UpdateFund:
+      type: object
+      description: Změny archivního souboru
+      properties:
+        name:
+          description: Název
+          type: string
+        ruleSetCode:
+          description: Kód pravidel
+          type: string
+        institutionIdentifier:
+          description: Identifikátor instituce (podpora pro kód instituce i UUID přístupového bodu)
+          type: string
+        internalCode:
+          description: Interní kód
+          type: string
+        fundNumber:
+          description: Číslo archivního souboru
+          type: integer
+          format: int32
+        unitdate:
+          description: Datace
+          type: string
+        mark:
+          description: Značka archivního souboru
+          type: string
+        scopes:
+          description: Seznam oblastí entit
+          type: array
+          items:
+            type: string
+    Fund:
+      required:
+        - id
+        - uuid
+        - name
+        - institutionIdentifier
+      type: object
+      description: Archivní soubor
+      properties:
+        id:
+          description: Identifikátor
+          type: integer
+          format: int32
+        uuid:
+          description: UUID
+          type: string
+        name:
+          description: Název
+          type: string
+        institutionIdentifier:
+          description: Identifikátor instituce (vždy kód instituce)
+          type: string
+        internalCode:
+          description: Interní kód
+          type: string
+        createDate:
+          description: Datum založení
+          type: string
+          format: date-time
+        fundNumber:
+          description: Číslo archivního souboru
+          type: integer
+          format: int32
+        unitdate:
+          description: Datace
+          type: string
+        mark:
+          description: Značka archivního souboru
+          type: string
+    FundDetail:
+      required:
+        - id
+        - uuid
+        - name
+        - institutionIdentifier
+        - scopes
+      type: object
+      description: Zakládaný archivní souboru
+      properties:
+        id:
+          description: Identifikátor
+          type: integer
+          format: int32
+        uuid:
+          description: UUID
+          type: string
+        name:
+          description: Název
+          type: string
+        institutionIdentifier:
+          description: Identifikátor instituce (vždy kód instituce)
+          type: string
+        internalCode:
+          description: Interní kód
+          type: string
+        createDate:
+          description: Datum založení
+          type: string
+          format: date-time
+        fundNumber:
+          description: Číslo archivního souboru
+          type: integer
+          format: int32
+        unitdate:
+          description: Datace
+          type: string
+        mark:
+          description: Značka archivního souboru
+          type: string
+        scopes:
+          description: Seznam oblastí entit
+          type: array
+          items:
+            type: string
+    FindFundsResult:
+      required:
+        - funds
+        - totalCount
+      type: object
+      description: Zakládaný archivní souboru
+      properties:
+        funds:
+          description: Seznam oblastí entit
+          type: array
+          items:
+            $ref: '#/components/schemas/Fund'
+        totalCount:
+          description: Celkový počet dohledaných AS
+          type: integer
+          format: int32
+    DeleteAccessPointsDetail:
+      type: object
+      description: Seznam přístupových bodů
+      properties:
+        ids:
+          description: Seznam id nebo uuid
+          type: array
+          items:
+            type: string
+    AbstractFilter:
+      title: Abstract filter
+      description: Used as a parent for all other filters
+      type: object
+      discriminator:
+        propertyName: filterType
+        mapping:
+          fieldValue: "#/components/schemas/FieldValueFilter"
+          contains: "#/components/schemas/MultimatchContainsFilter"
+          logical: "#/components/schemas/LogicalFilter"
+      properties:
+        filterType:
+          type: string
+      required:
+        - filterType
+    FieldValueFilter:
+      title: FieldValueFilter
+      description: Compares specified attribute of the entity with specified value using specified operation.
+      allOf:
+        - $ref: '#/components/schemas/AbstractFilter'
+        - type: object
+          properties:
+            field:
+              title: Searched field
+              type: string
+            operation:
+              description: Operator
+              type: string
+              enum:
+                - EQ
+                - NEQ
+                - GT
+                - LT
+                - GTE
+                - LTE
+                - STARTWITH
+                - ENDWITH
+                - CONTAINS
+                - IS_NULL
+                - NOT_NULL
+            value:
+              description: Searched value
+              type: string
+          required:
+            - field
+            - operation
+            - value
+    MultimatchContainsFilter:
+      title: Fulltext filter
+      description: Performs fulltext search over the whole entity.
+      allOf:
+        - $ref: '#/components/schemas/AbstractFilter'
+        - type: object
+          properties:
+            value:
+              description: Searched value
+              type: string
+          required:
+            - value
+    LogicalFilter:
+      title: LogicalFilter
+      description: Join subfilters using logical operator, result may be used in other LogicalFilter as one of subfilter.
+      allOf:
+        - $ref: '#/components/schemas/AbstractFilter'
+        - type: object
+          properties:
+            filters:
+              description: Collection of filters
+              type: array
+              items:
+                $ref: "#/components/schemas/AbstractFilter"
+            operation:
+              description: Operation type
+              type: string
+              enum:
+                - AND
+                - OR
+          required:
+            - filters
+            - operation
+    SearchParams:
+      type: object
+      properties:
+        filters:
+          description: Array of conditions. Conditions are joined by AND operator.
+          type: array
+          items:
+            $ref: "#/components/schemas/AbstractFilter"
+        offset:
+          description: Page offset
+          type: integer
+          format: int32
+        size:
+          description: Page size
+          type: integer
+          format: int32
+        sort:
+          description: Array of sort conditions
+          type: array
+          items:
+            $ref: "#/components/schemas/Sorting"
+      title: Search parameters
+      description: Query is defined by filter, optional sort conditions,
+         page size and page offset.
+    Sorting:
+      title: Sorting
+      description: Allows to define sorting.
+      type: object
+      properties:
+        field:
+          type: string
+          description: Attribute name to sort on.
+        order:
+          type: string
+          description: Order of sorting.
+          enum:
+            - asc
+            - desc
+      required:
+        - field
+    Result_EntityRef:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int64
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityRef"
+      required:
+        - count
+      title: Result«EntityRef»
+    CreatedPart:
+      type: object
+      properties:
+        partId:
+          description: Identifikátor vytvořené částí archivní entity
+          type: integer
+          format: int32
+        apVersion:
+          description: Aktualizovaná verze archivní entity
+          type: integer
+          format: int32
+    ImportFundData:
+      type: object
+      properties:
+        importType:
+          description: "Import type. Only 'CSV' is supported."
+          type: string
+        dataFile:
+          type: string
+          description: File to upload
+          format: binary
+      required:
+        - importType
+        - dataFile

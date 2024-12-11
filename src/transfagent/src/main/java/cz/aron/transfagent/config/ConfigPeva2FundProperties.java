@@ -56,6 +56,10 @@ public class ConfigPeva2FundProperties {
     // vyplni digitalni velikost fondu
     private boolean digitalLength;
     
+    // stary format length
+    @Deprecated
+    private boolean lengthOld;
+    
     // vyplni evidencni status
     private boolean evidenceStatus;
     
@@ -317,6 +321,14 @@ public class ConfigPeva2FundProperties {
 
 	public void setCamOriginators(boolean camOriginators) {
 		this.camOriginators = camOriginators;
-	}	
+	}
+
+	public boolean isLengthOld() {
+		return lengthOld;
+	}
+
+	public void setLengthOld(boolean lengthOld) {
+		this.lengthOld = lengthOld;
+	}
 
 }

@@ -6,6 +6,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,19 +19,39 @@ import cz.aron.transfagent.transformation.CoreTypes;
 
 public class Peva2Utils {
 	
+	private static final String EXP_CENTURY = "(\\d+)((st)|(\\.[ ]?st\\.))";
+	 
+	private static final Pattern CENTURY_PATTERN = Pattern.compile(EXP_CENTURY);
+	
 	public static void fillDateRange(UniversalTimeRange timeRange, Part partFundInfo, ApuSourceBuilder apusBuilder) {    	
     	String timeRangeFrom = timeRange.getTimeRangeFrom();
-    	String timeRangeTo = timeRange.getTimeRangeTo();    	
+    	String timeRangeTo = timeRange.getTimeRangeTo();
+    	
+    	String fromFormat = "Y";
+    	String toFormat = "Y";
+    	
     	var itemDateRange = new ItemDateRange();    	
     	if (timeRangeFrom!=null) {
-        	itemDateRange.setF(getDate(timeRangeFrom));
+    		var fromDate = getDate(timeRangeFrom);
+    		if (isCentury(fromDate)) {
+    			fromFormat = "C";
+				itemDateRange.setF(getCentury(fromDate, true));
+    		} else {
+    			itemDateRange.setF(fromDate);
+    		}
         	itemDateRange.setFe(isEstimate(timeRangeFrom));    		
     	}    	
     	if (timeRangeTo!=null) {
-        	itemDateRange.setTo(getDate(timeRangeTo));
+    		var toDate = getDate(timeRangeTo);
+    		if (isCentury(toDate)) {
+    			toFormat = "C";
+				itemDateRange.setTo(getCentury(toDate, false));
+    		} else {
+    			itemDateRange.setTo(toDate);
+    		}
         	itemDateRange.setToe(isEstimate(timeRangeTo));    		
     	}    	
-    	itemDateRange.setFmt("Y-Y");
+		itemDateRange.setFmt(fromFormat + "-" + toFormat);
     	itemDateRange.setType(CoreTypes.UNIT_DATE);
     	itemDateRange.setVisible(true);    	
     	ApuSourceBuilder.addDateRange(partFundInfo, itemDateRange);
@@ -44,8 +65,26 @@ public class Peva2Utils {
     	}
     }
     
+    public static String getCentury(String date, boolean start) {
+		Matcher matcher = CENTURY_PATTERN.matcher(date);    		
+        if (matcher.find()) {
+            int c = Integer.parseInt(matcher.group(1));
+            if (start) {
+            	return ""+((c-1)*100+1);	
+            } else {
+            	return ""+(c*100);
+            }            
+        } else {
+            throw new IllegalStateException("Invalid century format");
+        }    		
+    }
+    
     public static boolean isEstimate(String date) {
     	return date.startsWith("[");
+    }
+    
+    public static boolean isCentury(String date) {
+    	return date.endsWith(" st.");
     }
 
     public static String getAsString(UniversalTimeRange timeRange) {    	

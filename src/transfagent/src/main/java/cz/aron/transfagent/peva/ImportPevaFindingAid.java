@@ -37,6 +37,7 @@ import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.FindingAid;
 import cz.aron.transfagent.domain.Fund;
 import cz.aron.transfagent.peva.ImportPevaFindingAidInfo.PevaFundNotExist;
+import cz.aron.transfagent.peva.dao.FindingAidDaoImporter;
 import cz.aron.transfagent.repository.FindingAidRepository;
 import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
@@ -87,12 +88,15 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 	
 	private final DaoFileStore3Service daoFileStore3Service;
 	
+	private final List<FindingAidDaoImporter> daoImporters;
+	
 	public ImportPevaFindingAid(StorageService storageService, FindingAidService findingAidService,
 			FindingAidRepository findingAidRepository, FundRepository fundRepository,
 			InstitutionRepository institutionRepository, DatabaseDataProvider databaseDataProvider,
 			ConfigurationLoader configurationLoader, TransactionTemplate transactionTemplate,
 			Peva2CodeListProvider codeListProvider, ConfigPeva2 configPeva2,DaoImportService daoImportService,
-            @Nullable DaoFileStore3Service daoFileStore3Service) {
+            @Nullable DaoFileStore3Service daoFileStore3Service,
+            List<FindingAidDaoImporter> daoImporters) {
 		this.storageService = storageService;
 		this.findingAidService = findingAidService;
 		this.findingAidRepository = findingAidRepository;
@@ -105,6 +109,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 		this.configPeva2 = configPeva2;
 		this.daoImportService = daoImportService;
 		this.daoFileStore3Service = daoFileStore3Service;
+		this.daoImporters = daoImporters;
 	}
 
 	@Override
@@ -195,7 +200,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
         processFindingAidCopies(builder, findingaidUuid);
         processFindingAidAuthors(builder, ifai.getAuthorUUIDs());
         List<Path> attachments = readAllAttachments(dir, builder);
-        Collection<DaoSource> daos = addDaos(builder,ifai.getInstitutionCode(),ifai.getFindingAidCode());
+        Collection<DaoSource> daos = addDaos(builder,ifai.getInstitutionCode(),ifai.getFindingAidCode(),ifai.getFindingAidPartNumber());
         try (var fos = Files.newOutputStream(dir.resolve("apusrc.xml"))) {
             builder.setUuid(apusourceUuid);
             builder.build(fos, new ApuValidator(configurationLoader.getConfig()));
@@ -230,10 +235,9 @@ public class ImportPevaFindingAid implements FindingAidImporter {
                                                    configPeva2.getFundProperties().isAggregateAttachments(), send);
                 fa = findingAid;
             }
-            if (daoFileStore3Service != null) {
+            if (daoFileStore3Service != null || !daoImporters.isEmpty()) {
                 daoImportService.updateDaos(fa.getApuSource(), daos);
             }
-
         });
     	return true;
 	}
@@ -366,7 +370,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			processFindingAidAuthors(builder, ifai.getAuthorUUIDs());
 			List<Path> attachments = createRelativeAttachmentPaths(readAllAttachments(apuPath, builder),
 					relativeDataDir);
-			Collection<DaoSource> daos = addDaos(builder,ifai.getInstitutionCode(),ifai.getFindingAidCode());
+			Collection<DaoSource> daos = addDaos(builder,ifai.getInstitutionCode(),ifai.getFindingAidCode(),ifai.getFindingAidPartNumber());
 
 			// compare original apusrc.xml and newly generated
 			var apuSrcXmlPath = apuPath.resolve(StorageService.APUSRC_XML);
@@ -382,7 +386,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			transactionTemplate.executeWithoutResult(c -> {
 				findingAidService.updateFindingAid(findingAid, relativeDataDir, apuPath, builder, attachments,
 						configPeva2.getFundProperties().isAggregateAttachments(), send);
-				if (daoFileStore3Service != null) {
+				if (daoFileStore3Service != null||!daoImporters.isEmpty()) {
 				    this.daoImportService.updateDaos(apuSource, daos);
 				}
 			});
@@ -409,7 +413,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
     	}    	
     }
 
-    private Collection<DaoSource> addDaos(ApuSourceBuilder apuSourceBuilder, String archiveCode, String findingAidCode) {
+    private Collection<DaoSource> addDaos(ApuSourceBuilder apuSourceBuilder, String archiveCode, String findingAidCode, String findingAidPartNumber) {
         if (daoFileStore3Service != null) {
             var handle = daoFileStore3Service.getFindingAidDaoHandle(archiveCode, findingAidCode);
             if (handle != null) {
@@ -423,6 +427,21 @@ public class ImportPevaFindingAid implements FindingAidImporter {
                 return Collections.singletonList(daoSource);
             }
         }
+
+        // TODO funguje pouze pro jedno DAO
+        for(var importer:daoImporters) {
+        	var handle = importer.getFindingAidDaoHandle(archiveCode, findingAidCode, findingAidPartNumber);
+        	if (handle != null) {
+        		var mainUUID = UUID.fromString(apuSourceBuilder.getMainApu().getUuid());
+                var daoRefs = new HashSet<DaoSourceRef>();                
+                daoRefs.add(new DaoSourceRef(mainUUID,handle));                
+                var daoSource = new DaoSource(importer.getName(),daoRefs);
+                ApuSourceBuilder.addDao(apuSourceBuilder.getMainApu(), mainUUID);
+                var part = ApuSourceBuilder.getFirstPart(apuSourceBuilder.getMainApu(), CoreTypes.PT_FINDINGAID_INFO);
+                ApuSourceBuilder.addEnum(part, "DIGITAL", "Ano", false);
+                return Collections.singletonList(daoSource);
+        	}
+        }        
         return Collections.emptyList();
     }
 

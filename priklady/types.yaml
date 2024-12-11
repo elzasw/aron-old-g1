@@ -909,6 +909,11 @@ itemTypes:
     type: STRING
     indexed: true
     indexFolding: false
+  - code: SCALE_NUMERICAL
+    name: Měřítko
+    type: STRING
+    indexed: true
+    indexFolding: false
   - code: UNIT_COUNT
     name: Počet
     type: STRING

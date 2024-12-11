@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.Collator;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -33,9 +35,11 @@ import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.apux._2020.Apu;
 import cz.aron.apux._2020.ApuType;
 import cz.aron.apux._2020.Part;
+import cz.aron.peva2.wsdl.DigitalUnitType;
 import cz.aron.peva2.wsdl.EvidenceUnit;
 import cz.aron.peva2.wsdl.EvidenceUnitProcedure;
 import cz.aron.peva2.wsdl.GetNadSheetResponse;
+import cz.aron.peva2.wsdl.LengthUnitType;
 import cz.aron.peva2.wsdl.NadHeader;
 import cz.aron.peva2.wsdl.NadPrimarySheet;
 import cz.aron.peva2.wsdl.NadSheet;
@@ -56,6 +60,10 @@ import cz.aron.transfagent.transformation.PropertiesDataProvider;
 public class ImportPevaFundInfo {
 	
 	private static final Logger log = LoggerFactory.getLogger(ImportPevaFundInfo.class);
+	
+	private static final Locale CZ_LOCALE = new Locale("cs", "CZ");
+	
+	private static NumberFormat DECIMAL_FORMAT = DecimalFormat.getInstance(CZ_LOCALE);
 		
 	private ApuSourceBuilder apusBuilder = new ApuSourceBuilder();
     
@@ -697,37 +705,73 @@ public class ImportPevaFundInfo {
 		return ejProcedure;
 	}
 	
+	// kvuli zpetne kompatibilite
+	@Deprecated
+	private void processEvidenceUnitProcedureOld(String name, EvidenceUnitProcedure evidenceUnitProcedure,
+			StringJoiner sj) {
+		if (evidenceUnitProcedure == null) {
+			return;
+		}
+		StringJoiner sjInt = new StringJoiner(", ", name, "");
+		String val = null;		
+		val = processQuantity(evidenceUnitProcedure.getDamaged(), "Poškozeno: ");
+		if (val != null) {
+			sjInt.add(val);
+		}
+		val = processQuantity(evidenceUnitProcedure.getInventory(), "Inventarizováno: ");
+		if (val != null) {
+			sjInt.add(val);
+		}
+		val = processQuantity(evidenceUnitProcedure.getNotProcessed(), "Nezpracováno: ");
+		if (val != null) {
+			sjInt.add(val);
+		}
+		val = processQuantity(evidenceUnitProcedure.getProcessed(), "Zpracováno: ");
+		if (val != null) {
+			sjInt.add(val);
+		}
+		if (val != null) {
+			sj.add(sjInt.toString());
+		}
+	}
+	
 	private void processEvidenceUnitProcedure(String name, EvidenceUnitProcedure evidenceUnitProcedure,
 			StringJoiner sj) {
 		if (evidenceUnitProcedure == null) {
 			return;
 		}
-		boolean add = false;
+		if (fundProperties.isLengthOld()) {
+			processEvidenceUnitProcedureOld(name, evidenceUnitProcedure, sj);
+			return;
+		}
+		String val = null;
 		StringJoiner sjInt = new StringJoiner(", ", name, "");
-		if (processQuantity(evidenceUnitProcedure.getDamaged(), "Poškozeno: ", sjInt)) {
-			add = true;
+		val = processQuantity(evidenceUnitProcedure.getDamaged(), "Poškozeno: ");
+		if (val != null) {
+			sjInt.add(val);
 		}
-		if (processQuantity(evidenceUnitProcedure.getInventory(), "Inventarizováno: ", sjInt)) {
-			add = true;
+		val = processQuantity(evidenceUnitProcedure.getNotProcessed(), "Nezpracováno: ");
+		if (val != null) {
+			sjInt.add(val);
 		}
-		if (processQuantity(evidenceUnitProcedure.getNotProcessed(), "Nezpracováno: ", sjInt)) {
-			add = true;
+		val = processQuantity(evidenceUnitProcedure.getProcessed(), "Zpracováno: ");
+		if (val != null) {
+			String val2 = processQuantity(evidenceUnitProcedure.getInventory(), " (z toho Inventarizováno: ");
+			if (val2 != null) {
+				val = val + val2 + ")";
+			}
+			sjInt.add(val);
 		}
-		if (processQuantity(evidenceUnitProcedure.getProcessed(), "Zpracováno: ", sjInt)) {
-			add = true;
-		}
-		if (add) {
+		if (val != null) {
 			sj.add(sjInt.toString());
 		}
 	}
-
-	private boolean processQuantity(Quantity quantity, String name, StringJoiner sj) {
-		if (quantity!=null&&quantity.getAmount().compareTo(BigDecimal.ZERO) > 0) {
-			sj.add(name + quantity.getAmount()
-					+ getUnit(quantity));
-			return true;
+	
+	private String processQuantity(Quantity quantity, String name) {
+		if (quantity != null && quantity.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+			return (name + DECIMAL_FORMAT.format(quantity.getAmount()) + getUnit(quantity));
 		}
-		return false;
+		return null;
 	}
 	
 	private String getUnit(Quantity quantity) {
@@ -744,13 +788,54 @@ public class ImportPevaFundInfo {
 			}		
 		}
 		if (quantity.getDigitalUnit() != null) {
-			return " " + quantity.getDigitalUnit();
+			return " " + convertDigitalUnit(quantity.getDigitalUnit());
 		}
 		if (quantity.getLengthUnit() != null) {
-			return " " + quantity.getLengthUnit();
+			return " " + convertLengthUnit(quantity.getLengthUnit());
 		}
 		return "";
 	}
+	
+	private String convertLengthUnit(LengthUnitType lengthUnit) {
+		switch (lengthUnit) {
+		case M:
+			return "bm";
+		case CM:
+			return "cm";
+		case MM:
+			return "mm";
+		case KM:
+			return "km";
+		case IN:
+			return "in";
+		case FT:
+			return "ft";
+		case YD:
+			return "yd";
+		case MI:
+			return "mi";
+		default:
+			throw new IllegalArgumentException("Unknown LenghthUnitType "+lengthUnit);
+		}
+	}
+	
+	private String convertDigitalUnit(DigitalUnitType digitalUnit) {
+		switch (digitalUnit) {
+		case BYTE:
+			return "B";
+		case KB:
+			return "kB";
+		case MB:
+			return "MB";
+		case GB:
+			return "GB";
+		case TB:
+			return "TB";
+		default:
+			throw new IllegalArgumentException("Unknown LenghthUnitType "+digitalUnit);
+		}		
+	}
+	
 	
 	private void processPlacesOfOrigin(NadSheet nadSheet, Part partFundInfo) {
 		if (!fundProperties.isPlacesOfOrigin()) {

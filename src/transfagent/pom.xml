@@ -9,7 +9,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>transfagent</artifactId>
-	<version>0.0.32</version>
+	<version>0.0.36-ui</version>
 	<name>Transformation agent</name>
 	<description>Transformation agent for ArchivOnline</description>
 
@@ -17,6 +17,7 @@
 		<!--<java.version>11</java.version> -->
 		<cxf.version>3.3.7</cxf.version>
 		<junit.jupiter.version>5.7.0</junit.jupiter.version>
+        <openapiGenerator.version>7.9.0</openapiGenerator.version>
 	</properties>
 
 	<dependencies>
@@ -134,6 +135,12 @@
 			<version>1.1</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>0.2.6</version>
+		</dependency>
+
 		<!-- 
 		<dependency>
 			<groupId>gov.nist.isg</groupId>
@@ -158,13 +165,28 @@
 			<version>0.4.11</version>
 		</dependency>
 
-<!--		
+		<!--		
 		<dependency>
 			<groupId>com.github.jai-imageio</groupId>
 			<artifactId>jai-imageio-jpeg2000</artifactId>
 			<version>1.4.0</version>
 		</dependency>
 -->
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>4.12.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>logging-interceptor</artifactId>
+                <version>4.12.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.gsonfire</groupId>
+                <artifactId>gson-fire</artifactId>
+                <version>1.9.0</version>
+            </dependency>
 
 		<dependency>
 			<groupId>org.apache.tika</groupId>
@@ -312,6 +334,7 @@
 								<source>${project.build.directory}/generated-sources/cxf</source>
 								<source>${project.build.directory}/generated-sources/jaxb</source>
 								<source>${project.build.directory}/generated-sources/ead3</source>
+								<source>${project.build.directory}/generated-sources/elza-client</source>
 								<source>${project.build.directory}/generated-sources/api/rest</source>
 							</sources>
 						</configuration>
@@ -481,10 +504,35 @@
 			<plugin>
 				<groupId>org.openapitools</groupId>
 				<artifactId>openapi-generator-maven-plugin</artifactId>
-				<version>6.5.0</version>
+				<version>${openapiGenerator.version}</version>
 				<executions>
 					<execution>
-						<id>discard-statistics-api</id>
+						<id>elza-client-java</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<generatorName>java</generatorName>
+							<inputSpec>
+								${project.basedir}/src/main/resources/rest/elza-openapi.yml</inputSpec>
+							<output>
+								${project.build.directory}/generated-sources/elza-client</output>
+							<apiPackage>cz.tacr.elza.client</apiPackage>
+							<modelPackage>cz.tacr.elza.client.vo</modelPackage>
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<configOptions>
+								<sourceFolder>/</sourceFolder>
+								<interfaceOnly>true</interfaceOnly>
+								<!--  disables default interface methods for
+								testing  -->
+								<useTags>true</useTags>
+							</configOptions>
+						</configuration>
+					</execution>
+					<execution>
+						<id>transformagent-api</id>
 						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>

@@ -11,4 +11,4 @@ Java 11+
 
 ## Documentation
 
-[Documentation in Czech](https://www.lightcomp.cz/documentation/aron)
+[Documentation in Czech](https://docs.lightcomp.cz/aron)
