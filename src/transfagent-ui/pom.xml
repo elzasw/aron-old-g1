@@ -3,13 +3,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.lightcomp.nda</groupId>
-    <artifactId>dependencies</artifactId>
-    <version>1.7-SNAPSHOT</version>
-	<relativePath/>
-  </parent>
-
+  <groupId>cz.aron</groupId>
   <artifactId>transfagent</artifactId>
   <name>Transfagent</name>
   <version>1.0.0</version>
@@ -37,4 +31,104 @@
       </plugin>
     </plugins>
   </build>
+
+	<profiles>
+		<!-- npm -->
+		<profile>
+			<id>npm</id>
+			<properties>
+<!--
+				<npm.skip>true</npm.skip>
+-->
+				<npm.workingDirectory>frontend</npm.workingDirectory>
+				<npm.buildPath>target/static/ui/</npm.buildPath>
+			</properties>
+			<activation>
+				<property>
+					<name>release</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<configuration>
+							<skip>${npm.skip}</skip>
+							<executable>npm</executable>
+							<workingDirectory>${npm.workingDirectory}</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>npm-install</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<arguments>
+										<argument>clean-install</argument>
+										<argument>--legacy-peer-deps</argument>
+									</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>npm-build</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<BUILD_PATH>${npm.buildPath}</BUILD_PATH>
+									</environmentVariables>
+									<arguments>
+										<argument>run</argument>
+										<argument>build</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- web develop server -->
+		<profile>
+			<id>dev-start</id>
+			<properties>
+				<frontendServerPort>3000</frontendServerPort>
+				<npm.workingDirectory>frontend</npm.workingDirectory>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<configuration>
+							<environmentVariables>
+								<PORT>${frontendServerPort}</PORT>
+								<BROWSER>NONE</BROWSER>
+							</environmentVariables>
+							<executable>npm</executable>
+							<arguments>
+								<argument>start</argument>
+							</arguments>
+							<workingDirectory>${npm.workingDirectory}</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+
 </project>

@@ -151,6 +151,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
             "ZP2015_ITEM_MAT_TECHNIKA",
             "ZP2015_ITEM_MAT_NOSIC",
             "ZP2015_ITEM_MAT_ADJUSTACE",
+            "ZP2015_ALTERNATIVE_DESCRIPTION_INLINE",
     };
 
     /**

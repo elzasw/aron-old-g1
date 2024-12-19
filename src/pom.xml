@@ -23,6 +23,7 @@
     </properties>
     <modules>
         <module>aron-common</module>
+        <module>transfagent-ui</module>
         <module>transfagent</module>
     </modules>
 </project>

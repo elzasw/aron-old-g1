@@ -102,7 +102,7 @@ public class ImportPevaFindingAidInfo {
 		findingAidPartNumber = findingAid.getPartNumber();
 		ApuSourceBuilder.addString(partInfo, CoreTypes.FINDINGAID_ID, findingAidCode);
 		if (StringUtils.isNoneBlank(findingAidPartNumber)) {
-			ApuSourceBuilder.addString(partInfo, CoreTypes.FINDINGAID_PART_ID, findingAidCode);
+			ApuSourceBuilder.addString(partInfo, CoreTypes.FINDINGAID_PART_ID, findingAidPartNumber);
 		}
 		
 		/**
