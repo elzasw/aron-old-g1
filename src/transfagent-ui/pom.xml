@@ -5,7 +5,7 @@
 
   <groupId>cz.aron</groupId>
   <artifactId>transfagent</artifactId>
-  <name>Transfagent</name>
+  <name>Transfagent UI</name>
   <version>1.0.0</version>
 
   <build>
@@ -23,7 +23,7 @@
             </goals>
             <configuration>
                 <generatorName>typescript-fetch</generatorName>
-                <inputSpec>../transfagent/src/main/resources/openapi/transfagent-api.yaml</inputSpec>
+                <inputSpec>${project.basedir}/../transfagent/src/main/resources/openapi/transfagent-api.yaml</inputSpec>
                 <output>${project.basedir}/frontend/src/generated/api/main</output>
             </configuration>
           </execution>
