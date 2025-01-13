@@ -33,8 +33,10 @@ public class EntityDefVO extends EntityDef {
             break;
         default:
             // ignore
-        }        
-        setUuid(archivalEntity.getUuid().toString());
+        }
+        if (archivalEntity.getUuid()!=null) {
+        	setUuid(archivalEntity.getUuid().toString());
+        }
     }
     
 }

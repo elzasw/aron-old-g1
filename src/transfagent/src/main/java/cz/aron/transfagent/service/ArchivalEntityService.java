@@ -328,12 +328,24 @@ public class ArchivalEntityService {
             return;
         }
         Predicate p = cb.conjunction();
-        if (code != null) {
-            p = cb.and(p, cb.like(root.get("code"), "%" + code + "%"));
+        if (code != null) {        	
+        	try {
+        		var tmpUUID = UUID.fromString(code);
+        		p = cb.and(p, cb.equal(root.get("uuid"), tmpUUID));        		
+        	} catch (IllegalArgumentException e) {
+        		// ignore
+        	}
+        	try {
+        		var tmpElzaId = Integer.parseInt(code);
+        		p = cb.and(p, cb.equal(root.get("elzaId"), tmpElzaId));
+        	} catch (NumberFormatException e) {
+        		// ignore	
+        	}
         }
+        /* z UI nyni chodi pouze code
         if (uuid != null) {
             p = cb.and(p, cb.equal(root.get("uuid"), UUID.fromString(uuid)));
-        }
+        }*/
         cq.where(p);
     }
 
