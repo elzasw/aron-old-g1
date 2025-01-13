@@ -9,6 +9,9 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -32,7 +35,10 @@ import cz.aron.transfagent.service.FundService;
 @CrossOrigin
 @RestController
 @RequestMapping("/api")
+@ConditionalOnProperty(value="ui.enabled", havingValue = "true")
 public class TransformAgentController implements TransfagentApi {
+	
+	private static final Logger log = LoggerFactory.getLogger(TransformAgentController.class);
 
     private final ApuSourceService apuSourceService;
 
@@ -54,6 +60,7 @@ public class TransformAgentController implements TransfagentApi {
         this.fundService = fundService;
         this.findingAidService = findingAidService;
         this.archivalEntityService = archivalEntityService;
+        log.info("UI controller started");
     }
 
     // get: /apus

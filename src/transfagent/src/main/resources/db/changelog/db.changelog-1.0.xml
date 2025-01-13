@@ -482,5 +482,31 @@
             tableName="core_queue"/>
  </changeSet>
 
+ <changeSet author="karel.zacek@lightcomp.cz" id="9">
+    <createTable tableName="users">
+      <column name="username" type="varchar(128)">
+        <constraints primaryKey="true" />
+      </column>
+      <column name="password" type="varchar(128)">
+        <constraints nullable="false" />
+      </column>
+      <column name="enabled" type="boolean">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+    <createTable tableName="authorities">
+      <column name="username" type="varchar(128)">
+        <constraints nullable="false" />
+      </column>
+      <column name="authority" type="varchar(128)">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+    <addForeignKeyConstraint
+      baseTableName="authorities" baseColumnNames="username"
+      constraintName="fk_authorities_users"
+      referencedTableName="users"
+      referencedColumnNames="username"/>
+ </changeSet>
 
 </databaseChangeLog>
