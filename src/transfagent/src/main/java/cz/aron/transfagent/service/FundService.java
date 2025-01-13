@@ -159,11 +159,23 @@ public class FundService {
         }
         Predicate p = cb.conjunction();
         if (code!=null) {
-            p = cb.and(p, cb.like(root.get("code"), "%"+code+"%"));
+        	boolean codeUuid = false;
+        	try {
+        		var tmpUUID = UUID.fromString(code);
+        		p = cb.and(p, cb.equal(root.get("uuid"), tmpUUID));
+        		codeUuid = true;
+        	} catch (IllegalArgumentException e) {
+        		// ignore
+        	}
+        	if (!codeUuid) {
+        		p = cb.and(p, cb.like(root.get("code"), "%"+code+"%"));
+        	}
         }
+        
+        /* Z UI se nyni zasila pouze code
         if (uuid!=null) {
             p = cb.and(p, cb.equal(root.get("uuid"), UUID.fromString(uuid)));
-        }        
+        }*/        
         cq.where(p);
     }
 }
