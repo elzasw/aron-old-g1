@@ -3,16 +3,37 @@ import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import url from "node:url";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv, PluginOption } from "vite";
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react(), reactVirtualized()],
-});
+
+const defaultEndpoint = 'http://localhost:8088';
+export default ({ mode }) => {
+  // Load environment variables
+  process.env = { ...process.env, ...loadEnv(mode, process.cwd(), "") }
+  const endpoint = process.env.ENDPOINT || defaultEndpoint;
+
+  // https://vitejs.dev/config/
+  return defineConfig({
+    plugins: [react(), reactVirtualized()],
+    server: {
+      port: 3000,
+      hmr: {
+        port: 3001
+      },
+      proxy: {
+        '/api': {
+          target: endpoint,
+          changeOrigin: true,
+        },
+      },
+    },
+  });
+}
 
 const WRONG_CODE = `import { bpfrpt_proptype_WindowScroller } from "../WindowScroller.js";`;
 
 function reactVirtualized(): PluginOption {
+
   return {
     name: "flat:react-virtualized",
     // Note: we cannot use the `transform` hook here
