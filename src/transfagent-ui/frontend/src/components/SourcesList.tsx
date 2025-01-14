@@ -144,7 +144,7 @@ export const SourcesList = () => {
                         onClick={() => doDelete(apuId)}
                         iconOnly={true}
                         title={formatMessage({ id: "delete" })}
-                        disabled={true /*item.deleted === true*/}
+                        disabled={item.deleted === true}
                     >
                         <FaTrashAlt />
                     </Button>
@@ -166,6 +166,14 @@ export const SourcesList = () => {
     };
 
     const doDelete = (apuId: number) => {
+        Api.transfagent.deleteApu({ apuId })
+            .then((res) => {
+                toast.success(formatMessage({ id: "delete.success" }));
+                requestData();
+            })
+            .catch((err) => {
+                console.log("Došlo k chybě", err);
+            });
         console.log("DELETE action");
     };
 
