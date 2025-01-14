@@ -11,6 +11,7 @@ public class FindingAidDefVO extends FindingAidDef {
         setFindingAidId(findingAid.getId().longValue());
         setInstitutionId(findingAid.getInstitution().getId().longValue());
         setUuid(findingAid.getUuid().toString());
+        setDeleted(findingAid.getApuSource().isDeleted());
     }
 
 }

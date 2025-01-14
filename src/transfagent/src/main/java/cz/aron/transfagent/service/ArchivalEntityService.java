@@ -17,6 +17,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -311,6 +312,7 @@ public class ArchivalEntityService {
             CriteriaBuilder cb = em.getCriteriaBuilder();
             CriteriaQuery<ArchivalEntity> cq = cb.createQuery(ArchivalEntity.class);
             Root<ArchivalEntity> root = cq.from(ArchivalEntity.class);
+            root.fetch(ArchivalEntity.JPA_APUSOURCE, JoinType.INNER);
             addArchivalEntityPredicate(cq, cb, root, code, uuid);
             List<ArchivalEntity> rows = em.createQuery(cq).setFirstResult(page * pageSize)
                     .setMaxResults(pageSize).getResultList();

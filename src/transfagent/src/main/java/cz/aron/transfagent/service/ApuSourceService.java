@@ -115,6 +115,7 @@ public class ApuSourceService {
             // no filter
             return;
         }
+        Integer id = null;
         if (uuid == null) {
             try {
                 uuid = UUID.fromString(datadir).toString();
@@ -122,6 +123,14 @@ public class ApuSourceService {
             } catch (Exception e) {
                 // ignore
             }
+            if (uuid == null) {
+            	try {
+            		id = Integer.parseInt(datadir);
+            		datadir = null;
+            	} catch (NumberFormatException e) {
+					// ignore
+				}
+			}
         }        
         Predicate p = cb.conjunction();
         if (datadir != null) {
@@ -129,7 +138,10 @@ public class ApuSourceService {
         }
         if (uuid != null) {
             p = cb.and(p, cb.equal(root.get("uuid"), UUID.fromString(uuid)));
-        }        
+        }
+        if (id != null) {
+        	p = cb.and(p, cb.equal(root.get(ApuSource.JPA_ID), id));
+        }
         cq.where(p);
     }
 }

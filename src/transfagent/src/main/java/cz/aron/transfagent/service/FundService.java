@@ -9,6 +9,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -142,6 +143,7 @@ public class FundService {
             CriteriaBuilder cb = em.getCriteriaBuilder();
             CriteriaQuery<Fund> cq = cb.createQuery(Fund.class);
             Root<Fund> root = cq.from(Fund.class);
+            root.fetch(Fund.JPA_APUSOURCE, JoinType.INNER);
             addFundPredicate(cq, cb, root, code, uuid);
             List<Fund> rows = em.createQuery(cq).setFirstResult(page* pageSize)
                     .setMaxResults(pageSize).getResultList();

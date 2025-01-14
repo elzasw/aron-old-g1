@@ -11,6 +11,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -162,6 +163,7 @@ public class FindingAidService {
             CriteriaBuilder cb = em.getCriteriaBuilder();
             CriteriaQuery<FindingAid> cq = cb.createQuery(FindingAid.class);
             Root<FindingAid> root = cq.from(FindingAid.class);
+            root.fetch(FindingAid.JPA_APUSOURCE, JoinType.INNER);
             addFindingAidPredicate(cq, cb, root, code, uuid);
             List<FindingAid> rows = em.createQuery(cq).setFirstResult(page* pageSize)
                     .setMaxResults(pageSize).getResultList();

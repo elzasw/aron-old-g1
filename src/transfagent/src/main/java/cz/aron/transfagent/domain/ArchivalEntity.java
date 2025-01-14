@@ -18,6 +18,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "archival_entity")
 public class ArchivalEntity {
+	
+	public static final String JPA_APUSOURCE = "apuSource";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -363,6 +363,8 @@ components:
           type: string
         state:
           $ref: '#/components/schemas/EntityStateDef'
+        deleted:
+          type: boolean
       description: Entity definition
     EntityStateDef:
       type: string
@@ -388,6 +390,8 @@ components:
         institutionId:
           type: integer
           format: int64
+        deleted:
+          type: boolean          
       description: Fnding aid definition
     FindingAidsResponse:
       type: object
@@ -421,6 +425,8 @@ components:
         institutionId:
           type: integer
           format: int64
+        deleted:
+          type: boolean          
       description: Fund definition
     FundsResponse:
       type: object

@@ -20,6 +20,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "fund")
 public class Fund {
+	
+    public static final String JPA_APUSOURCE = "apuSource";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

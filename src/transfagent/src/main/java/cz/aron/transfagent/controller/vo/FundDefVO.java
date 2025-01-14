@@ -12,6 +12,7 @@ public class FundDefVO extends FundDef {
         setInstitutionId(fund.getInstitution().getId().longValue());
         setSource(fund.getSource());
         setUuid(fund.getUuid().toString());
+        setDeleted(fund.getApuSource().isDeleted());
     }
 
 }

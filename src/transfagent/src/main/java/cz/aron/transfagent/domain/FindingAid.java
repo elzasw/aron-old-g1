@@ -19,6 +19,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "finding_aid")
 public class FindingAid {
+	
+	public static final String JPA_APUSOURCE = "apuSource";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

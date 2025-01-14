@@ -37,6 +37,7 @@ public class EntityDefVO extends EntityDef {
         if (archivalEntity.getUuid()!=null) {
         	setUuid(archivalEntity.getUuid().toString());
         }
+        setDeleted(archivalEntity.getApuSource().isDeleted());
     }
     
 }
