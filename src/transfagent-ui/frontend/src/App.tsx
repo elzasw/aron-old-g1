@@ -6,7 +6,7 @@ import {
     createRoutesFromElements,
 } from "react-router-dom";
 import RootLayout from "./RootLayout";
-import { DaosList, FundsList, SourcesList, EntityList, AidsList } from "./components";
+import { DaosList, FundsList, SourcesList, EntityList, AidsList, ArchDescList } from "./components";
 
 //@ts-ignore
 const serverContextPath = window.serverContextPath;
@@ -19,6 +19,7 @@ const router = createBrowserRouter(
             <Route path="/daos" element={<DaosList />} />
             <Route path="/funds" element={<FundsList />} />
             <Route path="/entities" element={<EntityList />} />
+            <Route path="/archdescs" element={<ArchDescList />} />
             <Route path="/aids" element={<AidsList />} />
         </Route>
     ),

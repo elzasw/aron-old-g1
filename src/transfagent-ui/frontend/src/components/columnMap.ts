@@ -1,4 +1,13 @@
-export const columnInfo = [
+import {
+    IColumnInfo
+} from "jareco/dist/resizable-columns-grid";
+import { ApuSourceDef, ArchDescDef, DaoDef, EntityDef, FindingAidDef, FundDef } from "../api";
+
+interface ColumnInfo<T> extends IColumnInfo {
+    code: keyof T | "actions",
+}
+
+export const columnInfo: ColumnInfo<ApuSourceDef>[] = [
     {
         code: "actions",
         width: 80,
@@ -33,7 +42,7 @@ export const columnInfo = [
     },
 ]
 
-export const cInfoDaos = [
+export const cInfoDaos: ColumnInfo<DaoDef>[] = [
     {
         code: "actions",
         fixedWidth: true,
@@ -73,7 +82,7 @@ export const cInfoDaos = [
     },
 ]
 
-export const cInfoFunds = [
+export const cInfoFunds: ColumnInfo<FundDef>[] = [
     {
         code: "actions",
         fixedWidth: true,
@@ -109,7 +118,7 @@ export const cInfoFunds = [
     },
 ]
 
-export const cInfoEntities = [
+export const cInfoEntities: ColumnInfo<EntityDef>[] = [
     {
         code: "actions",
         fixedWidth: true,
@@ -149,7 +158,7 @@ export const cInfoEntities = [
     },
 ]
 
-export const cInfoAids = [
+export const cInfoAids: ColumnInfo<FindingAidDef>[] = [
     {
         code: "actions",
         fixedWidth: true,
@@ -177,6 +186,34 @@ export const cInfoAids = [
     },
     {
         code: "institutionId",
+        width: 170,
+    },
+]
+
+export const archDescColumnInfo: ColumnInfo<ArchDescDef>[] = [
+    {
+        code: "actions",
+        fixedWidth: true,
+        width: 80,
+    },
+    {
+        code: "archDescId",
+        width: 120,
+    },
+    {
+        code: "uuid",
+        width: 300,
+    },
+    {
+        code: "deleted",
+        width: 150,
+    },
+    {
+        code: "apusourceId",
+        width: 170,
+    },
+    {
+        code: "fundId",
         width: 170,
     },
 ]

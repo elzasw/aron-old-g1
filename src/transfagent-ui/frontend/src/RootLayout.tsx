@@ -43,5 +43,10 @@ function renderNavigation() {
             <FormattedMessage id="navigation.entities" />
         </NavButton>
     );
+    navLeft.push(
+        <NavButton key="archdescs" to="archdescs">
+            <FormattedMessage id="navigation.archdescs" />
+        </NavButton>
+    );
     return <Navigation>{navLeft}</Navigation>;
 }
