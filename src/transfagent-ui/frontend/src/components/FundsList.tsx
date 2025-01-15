@@ -259,6 +259,7 @@ export const FundsList = () => {
                     getItemId={getChildId}
                     rowHeight={32}
                     noItemsText={formatMessage({ id: "noItems" })}
+                    getItemIndex={(itemId) => items.findIndex(({ fundId }) => fundId === itemId)}
                 />
             </div>
         </ListContainer>

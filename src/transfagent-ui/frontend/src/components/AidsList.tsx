@@ -259,6 +259,7 @@ export const AidsList = () => {
                     getItemId={getChildId}
                     rowHeight={32}
                     noItemsText={formatMessage({ id: "noItems" })}
+                    getItemIndex={(itemId) => items.findIndex(({ findingAidId }) => findingAidId === itemId)}
                 />
             </div>
         </ListContainer>
