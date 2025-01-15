@@ -15,6 +15,10 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "arch_desc")
 public class ArchDesc {
+	
+	public static final String JPA_APUSOURCE = "apuSource";
+	
+	public static final String JPA_FUND = "fund";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

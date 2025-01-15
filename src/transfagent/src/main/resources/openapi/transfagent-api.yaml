@@ -210,6 +210,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FundsResponse'
+  /archdescs:
+    get:
+      tags:
+        - Transfagent                
+      operationId: getArchDescs
+      description: Return list of arch descs filtered by required criteria
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: code of archdesc
+          schema:
+            type: string
+        - $ref: '#/components/parameters/uuidOptional'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchDescResponse'
+
 components:
   parameters:
     apuId:
@@ -460,6 +484,38 @@ components:
           type: integer
           format: int32
       description: Returned list of funds
+    ArchDescDef:
+      type: object
+      properties:
+        archDescId:
+          type: integer
+          format: int64
+        uuid:
+          type: string
+        fundId:
+          type: integer
+          format: int64
+        apusourceId:
+          type: integer
+          format: int64
+        deleted:
+          type: boolean          
+      description: Fund definition
+    ArchDescResponse:
+      type: object
+      required:
+        - items
+        - totalCount
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArchDescDef'
+        totalCount:
+          type: integer
+          format: int32
+      description: Returned list of arch descs
+
     ReimportType:
       type: string
       enum:

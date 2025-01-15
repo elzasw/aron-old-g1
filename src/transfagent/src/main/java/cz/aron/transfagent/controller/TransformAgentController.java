@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import cz.aron.api.rest.TransfagentApi;
 import cz.aron.api.rest.model.ApuSourceDef;
 import cz.aron.api.rest.model.ApuSourceResponse;
+import cz.aron.api.rest.model.ArchDescResponse;
 import cz.aron.api.rest.model.DaoDef;
 import cz.aron.api.rest.model.DaosResponse;
 import cz.aron.api.rest.model.EntitiesResponse;
@@ -29,6 +30,7 @@ import cz.aron.api.rest.model.FindingAidsResponse;
 import cz.aron.api.rest.model.FundsResponse;
 import cz.aron.api.rest.model.ReimportType;
 import cz.aron.transfagent.service.ApuSourceService;
+import cz.aron.transfagent.service.ArchDescService;
 import cz.aron.transfagent.service.ArchivalEntityService;
 import cz.aron.transfagent.service.DaoImportService;
 import cz.aron.transfagent.service.FindingAidService;
@@ -51,17 +53,21 @@ public class TransformAgentController implements TransfagentApi {
     private final FindingAidService findingAidService;
 
     private final ArchivalEntityService archivalEntityService;
+    
+    private final ArchDescService archDescService;
 
     public TransformAgentController(ApuSourceService apuSourceService, 
     							    DaoImportService daoImportService,
                                     FundService fundService,
                                     FindingAidService findingAidService, 
-                                    ArchivalEntityService archivalEntityService) {
+                                    ArchivalEntityService archivalEntityService,
+                                    ArchDescService archDescService) {
         this.apuSourceService = apuSourceService;
         this.daoImportService = daoImportService;
         this.fundService = fundService;
         this.findingAidService = findingAidService;
         this.archivalEntityService = archivalEntityService;
+        this.archDescService = archDescService;
         log.info("UI controller started");
     }
 
@@ -152,4 +158,10 @@ public class TransformAgentController implements TransfagentApi {
 		return ResponseEntity.ok().build();
 	}
 
+	@Override
+	public ResponseEntity<ArchDescResponse> getArchDescs(@Valid String query, @Valid String uuid,
+			@Min(0) @Valid Integer page, @Min(1) @Max(1000) @Valid Integer pageSize) {		
+		return ResponseEntity.ok(archDescService.getArchDesc(query, page, pageSize));
+	}	
+	
 }
