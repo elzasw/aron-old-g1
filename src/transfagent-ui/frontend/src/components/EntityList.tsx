@@ -1,5 +1,6 @@
 import {
     ActionBar,
+    ActionButton,
     ActionsContainer,
     Button,
     CancelButton,
@@ -8,6 +9,8 @@ import {
     ListItem,
     StyledInput,
 } from "jareco/dist/common-ui-elements";
+import { confirm } from "jareco/dist/modal";
+import { ConfirmationDialogResult } from "jareco/dist/modal/ConfirmationDialog";
 import { Pagination } from "jareco/dist/pagination";
 import {
     ItemProps,
@@ -15,10 +18,11 @@ import {
     ResizableColumnsGrid,
 } from "jareco/dist/resizable-columns-grid";
 import { useEffect, useState } from "react";
-import { FaFileImport, FaFilter } from "react-icons/fa";
+import { FaFileImport, FaFilter, FaRedo, FaSync, FaTrashAlt } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
+import { toast } from "react-toastify";
 import styled from "styled-components";
-import { Api, EntityDef } from "../api";
+import { Api, EntityDef, ReimportType } from "../api";
 import { cInfoEntities } from "./columnMap";
 
 const TableCell = styled.div`
@@ -114,40 +118,83 @@ export const EntityList = () => {
     const getCellContent = (item: any, propCode: string) => {
         if (propCode === "actions") {
             return renderActions(item);
+        } else if (propCode === "state") {
+            return formatMessage({ id: `entity.state.${item[propCode]}` });
         }
         return item[propCode];
     };
 
     const renderActions = (item: EntityDef) => {
-        const entityId = item.entityId;
+        const apuId = item.apusourceId;
         return (
             <div style={{ display: "inline-flex" }}>
-                {/*entityId && (
+                {apuId && <>
                     <Button
-                        onClick={() => doReImport(entityId)}
+                        onClick={() => handleReImport(apuId, item)}
                         iconOnly={true}
                         title={formatMessage({ id: "reimport" })}
-                        disabled={true}
+                    // disabled={item.reimport === true}
                     >
                         <FaFileImport />
                     </Button>
-                )*/}
+                    <Button
+                        onClick={() => handleDelete(apuId, item)}
+                        iconOnly={true}
+                        title={formatMessage({ id: "delete" })}
+                        disabled={item.deleted === true}
+                    >
+                        <FaTrashAlt />
+                    </Button>
+                </>
+                }
             </div>
         );
     };
 
-    const doReImport = (daoId: number) => {
-        /*
-        Api.transfagent.reimportDao({daoId}).then((res) => {
-            requestData();
-        }).catch((err) => {
-            console.log("Došlo k chybě",err);
-        })
-        */
+    const handleReImport = (apuId: number, item: EntityDef) => {
+        confirm(formatMessage({ id: "entity.reimport.confirm.title" }), formatMessage({ id: "entity.reimport.confirm.message" }, { id: item.entityId }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent
+                    .reimportApu({ apuId })
+                    .then((res) => {
+                        toast.success(formatMessage({ id: "reimport.success" }));
+                        requestData();
+                    })
+                    .catch((err) => {
+                        toast.error(formatMessage({ id: "reimport.error" }));
+                        console.log("Došlo k chybě", err);
+                    });
+            }
+        });
     };
 
+    const handleDelete = (apuId: number, item: EntityDef) => {
+        confirm(formatMessage({ id: "entity.delete.confirm.title" }), formatMessage({ id: "entity.delete.confirm.message" }, { id: item.entityId }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent
+                    .deleteApu({ apuId })
+                    .then((res) => {
+                        toast.success(formatMessage({ id: "delete.success" }));
+                        requestData();
+                    })
+                    .catch((err) => {
+                        toast.error(formatMessage({ id: "delete.error" }));
+                        console.log("Došlo k chybě", err);
+                    });
+            }
+        });
+    };
+
+    const handleReimportAll = () => {
+        confirm(formatMessage({ id: "entity.reimportAll.confirm.title" }), formatMessage({ id: "entity.reimportAll.confirm.message" }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent.reimportAllApusOfType({ apuType: ReimportType.ArchEntity })
+            }
+        });
+    }
+
     return (
-        <ListContainer style={{ height: "100%" }}>
+        <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
                     <Pagination
@@ -197,6 +244,13 @@ export const EntityList = () => {
                         )}
                     </form>
                 </ActionsContainer>
+                <ActionsContainer>
+                    <ActionButton onClick={handleReimportAll}>
+                        <FaFileImport />
+                        &nbsp;
+                        <FormattedMessage id="reimportAll" />
+                    </ActionButton>
+                </ActionsContainer>
             </ActionBar>
             <div id="list" style={{ height: "100%" }}>
                 <ResizableColumnsGrid
@@ -208,6 +262,7 @@ export const EntityList = () => {
                     getItemId={getChildId}
                     rowHeight={32}
                     noItemsText={formatMessage({ id: "noItems" })}
+                    getItemIndex={(itemId) => items.findIndex(({ entityId }) => entityId === itemId)}
                 />
             </div>
         </ListContainer>

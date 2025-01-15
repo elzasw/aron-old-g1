@@ -37,7 +37,7 @@ export const cInfoDaos = [
     {
         code: "actions",
         fixedWidth: true,
-        width: 50,
+        width: 80,
     },
     {
         code: "daoId",
@@ -77,7 +77,7 @@ export const cInfoFunds = [
     {
         code: "actions",
         fixedWidth: true,
-        width: 50,
+        width: 80,
     },
     {
         code: "fundId",
@@ -86,6 +86,10 @@ export const cInfoFunds = [
     {
         code: "uuid",
         width: 300,
+    },
+    {
+        code: "deleted",
+        width: 150,
     },
     {
         code: "code",
@@ -109,7 +113,7 @@ export const cInfoEntities = [
     {
         code: "actions",
         fixedWidth: true,
-        width: 50,
+        width: 80,
     },
     {
         code: "entityId",
@@ -118,6 +122,10 @@ export const cInfoEntities = [
     {
         code: "uuid",
         width: 300,
+    },
+    {
+        code: "deleted",
+        width: 150,
     },
     {
         code: "elzaId",
@@ -145,7 +153,7 @@ export const cInfoAids = [
     {
         code: "actions",
         fixedWidth: true,
-        width: 50,
+        width: 80,
     },
     {
         code: "findingAidId",
@@ -154,6 +162,10 @@ export const cInfoAids = [
     {
         code: "uuid",
         width: 300,
+    },
+    {
+        code: "deleted",
+        width: 150,
     },
     {
         code: "code",

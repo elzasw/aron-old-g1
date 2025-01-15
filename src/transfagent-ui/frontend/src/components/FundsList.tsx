@@ -1,5 +1,6 @@
 import {
     ActionBar,
+    ActionButton,
     ActionsContainer,
     Button,
     CancelButton,
@@ -8,6 +9,8 @@ import {
     ListItem,
     StyledInput,
 } from "jareco/dist/common-ui-elements";
+import { confirm } from "jareco/dist/modal";
+import { ConfirmationDialogResult } from "jareco/dist/modal/ConfirmationDialog";
 import { Pagination } from "jareco/dist/pagination";
 import {
     ItemProps,
@@ -15,10 +18,11 @@ import {
     ResizableColumnsGrid,
 } from "jareco/dist/resizable-columns-grid";
 import { useEffect, useState } from "react";
-import { FaFileImport, FaFilter } from "react-icons/fa";
+import { FaFileImport, FaFilter, FaTrashAlt } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
+import { toast } from "react-toastify";
 import styled from "styled-components";
-import { Api, FundDef } from "../api";
+import { Api, FundDef, ReimportType } from "../api";
 import { cInfoFunds } from "./columnMap";
 
 const TableCell = styled.div`
@@ -119,35 +123,75 @@ export const FundsList = () => {
     };
 
     const renderActions = (item: FundDef) => {
-        const fundId = item.fundId;
+        const apuId = item.apusourceId;
         return (
             <div style={{ display: "inline-flex" }}>
-                {fundId && (
+                {apuId && <>
                     <Button
-                        onClick={() => doReImport(fundId)}
+                        onClick={() => handleReImport(apuId, item)}
                         iconOnly={true}
                         title={formatMessage({ id: "reimport" })}
-                        disabled={true}
+                    // disabled={item.reimport === true}
                     >
                         <FaFileImport />
                     </Button>
-                )}
+                    <Button
+                        onClick={() => handleDelete(apuId, item)}
+                        iconOnly={true}
+                        title={formatMessage({ id: "delete" })}
+                        disabled={item.deleted === true}
+                    >
+                        <FaTrashAlt />
+                    </Button>
+                </>
+                }
             </div>
         );
     };
 
-    const doReImport = (daoId: number) => {
-        /*
-        Api.transfagent.reimportDao({daoId}).then((res) => {
-            requestData();
-        }).catch((err) => {
-            console.log("Došlo k chybě",err);
-        })
-        */
+    const handleReImport = (apuId: number, item: FundDef) => {
+        confirm(formatMessage({ id: "fund.reimport.confirm.title" }), formatMessage({ id: "fund.reimport.confirm.message" }, { id: item.fundId }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent
+                    .reimportApu({ apuId })
+                    .then((res) => {
+                        toast.success(formatMessage({ id: "reimport.success" }));
+                        requestData();
+                    })
+                    .catch((err) => {
+                        toast.error(formatMessage({ id: "reimport.error" }));
+                        console.log("Došlo k chybě", err);
+                    });
+            }
+        });
     };
 
+    const handleDelete = (apuId: number, item: FundDef) => {
+        confirm(formatMessage({ id: "fund.delete.confirm.title" }), formatMessage({ id: "fund.delete.confirm.message" }, { id: item.fundId }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent.deleteApu({ apuId })
+                    .then((res) => {
+                        toast.success(formatMessage({ id: "delete.success" }));
+                        requestData();
+                    })
+                    .catch((err) => {
+                        toast.error(formatMessage({ id: "delete.error" }));
+                        console.log("Došlo k chybě", err);
+                    });
+            }
+        });
+    };
+
+    const handleReimportAll = () => {
+        confirm(formatMessage({ id: "fund.reimportAll.confirm.title" }), formatMessage({ id: "fund.reimportAll.confirm.message" }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent.reimportAllApusOfType({ apuType: ReimportType.Fund })
+            }
+        });
+    }
+
     return (
-        <ListContainer style={{ height: "100%" }}>
+        <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
                     <Pagination
@@ -196,6 +240,13 @@ export const FundsList = () => {
                             </CancelButton>
                         )}
                     </form>
+                </ActionsContainer>
+                <ActionsContainer>
+                    <ActionButton onClick={handleReimportAll}>
+                        <FaFileImport />
+                        &nbsp;
+                        <FormattedMessage id="reimportAll" />
+                    </ActionButton>
                 </ActionsContainer>
             </ActionBar>
             <div id="list" style={{ height: "100%" }}>

@@ -11,6 +11,8 @@ import {
     Spinner,
     StyledInput,
 } from "jareco/dist/common-ui-elements";
+import { confirm } from "jareco/dist/modal";
+import { ConfirmationDialogResult } from "jareco/dist/modal/ConfirmationDialog";
 import { Pagination } from "jareco/dist/pagination";
 import {
     ItemProps,
@@ -19,10 +21,10 @@ import {
 } from "jareco/dist/resizable-columns-grid";
 import Upload from "rc-upload";
 import { useEffect, useState } from "react";
-import { FaCheck, FaFileImport, FaFilter, FaUpload } from "react-icons/fa";
+import { FaCheck, FaFileImport, FaFilter, FaTrashAlt, FaUpload } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
 import { toast } from "react-toastify";
-import { Api, DaoDef } from "../api";
+import { Api, DaoDef, DaoStateDef } from "../api";
 import { TableCell } from "../styles";
 import { cInfoDaos } from "./columnMap";
 
@@ -120,36 +122,74 @@ export const DaosList = () => {
             return renderActions(item);
         } else if (propCode === "transferred") {
             return item[propCode] && <FaCheck />;
+        } else if (propCode === "state") {
+            return formatMessage({ id: `dao.state.${item[propCode]}` });
         }
+
         return item[propCode];
     };
 
     const renderActions = (item: DaoDef) => {
-        const daoId = item.daoId;
+        const apuId = item.apusourceId;
+        const isReady = item.state === DaoStateDef.Ready;
+        const isInaccessible = item.state === DaoStateDef.Inaccessible;
+
         return (
             <div style={{ display: "inline-flex" }}>
-                {daoId && (
+                {apuId && <>
                     <Button
-                        onClick={() => doReImport(daoId)}
+                        onClick={() => handleReImport(apuId, item)}
                         iconOnly={true}
                         title={formatMessage({ id: "reimport" })}
+                        disabled={isInaccessible}
                     >
                         <FaFileImport />
                     </Button>
-                )}
+                    <Button
+                        onClick={() => handleDelete(apuId, item)}
+                        iconOnly={true}
+                        title={formatMessage({ id: "delete" })}
+                        disabled={!isReady}
+                    >
+                        <FaTrashAlt />
+                    </Button>
+                </>
+                }
             </div>
         );
     };
 
-    const doReImport = (daoId: number) => {
-        Api.transfagent
-            .reimportDao({ daoId })
-            .then((res) => {
-                requestData();
-            })
-            .catch((err) => {
-                console.log("Došlo k chybě", err);
-            });
+    const handleReImport = (apuId: number, item: DaoDef) => {
+        confirm(formatMessage({ id: "aid.reimport.confirm.title" }), formatMessage({ id: "aid.reimport.confirm.message" }, { id: item.daoId }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent
+                    .reimportApu({ apuId })
+                    .then((res) => {
+                        toast.success(formatMessage({ id: "reimport.success" }));
+                        requestData();
+                    })
+                    .catch((err) => {
+                        toast.error(formatMessage({ id: "reimport.error" }));
+                        console.log("Došlo k chybě", err);
+                    });
+            }
+        });
+    };
+
+    const handleDelete = (apuId: number, item: DaoDef) => {
+        confirm(formatMessage({ id: "aid.delete.confirm.title" }), formatMessage({ id: "aid.delete.confirm.message" }, { id: item.daoId }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent.deleteApu({ apuId })
+                    .then((res) => {
+                        toast.success(formatMessage({ id: "delete.success" }));
+                        requestData();
+                    })
+                    .catch((err) => {
+                        toast.error(formatMessage({ id: "delete.error" }));
+                        console.log("Došlo k chybě", err);
+                    });
+            }
+        });
     };
 
     const handleFileUpload = async (file: IRcFile, fileList: IRcFile[]) =>
@@ -169,7 +209,7 @@ export const DaosList = () => {
         });
 
     return (
-        <ListContainer style={{ height: "100%" }}>
+        <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
                     <Pagination
@@ -223,7 +263,7 @@ export const DaosList = () => {
                     <Upload
                         component={ActionButton}
                         beforeUpload={handleFileUpload}
-                        // accept={".csv, .txt"}
+                    // accept={".csv, .txt"}
                     >
                         <FaUpload />
                         &nbsp;

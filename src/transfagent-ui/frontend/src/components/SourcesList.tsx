@@ -8,6 +8,8 @@ import {
     ListItem,
     StyledInput,
 } from "jareco/dist/common-ui-elements";
+import { confirm } from "jareco/dist/modal";
+import { ConfirmationDialogResult } from "jareco/dist/modal/ConfirmationDialog";
 import { Pagination } from "jareco/dist/pagination";
 import {
     ItemProps,
@@ -121,6 +123,8 @@ export const SourcesList = () => {
             return renderActions(item);
         } else if (propCode === "deleted" || propCode === "reimport") {
             return item[propCode] && <FaCheck />;
+        } else if (propCode === "sourceType") {
+            return formatMessage({ id: `apu.type.${item[propCode]}` });
         }
         return item[propCode];
     };
@@ -131,7 +135,7 @@ export const SourcesList = () => {
             <div style={{ display: "inline-flex" }}>
                 {apuId && (
                     <Button
-                        onClick={() => doReImport(apuId)}
+                        onClick={() => handleReImport(apuId, item)}
                         iconOnly={true}
                         title={formatMessage({ id: "reimport" })}
                         disabled={item.reimport === true}
@@ -141,7 +145,7 @@ export const SourcesList = () => {
                 )}
                 {apuId && (
                     <Button
-                        onClick={() => doDelete(apuId)}
+                        onClick={() => handleDelete(apuId, item)}
                         iconOnly={true}
                         title={formatMessage({ id: "delete" })}
                         disabled={item.deleted === true}
@@ -153,32 +157,42 @@ export const SourcesList = () => {
         );
     };
 
-    const doReImport = (apuId: number) => {
-        Api.transfagent
-            .reimportApu({ apuId })
-            .then((res) => {
-                toast.success(formatMessage({ id: "reimport.success" }));
-                requestData();
-            })
-            .catch((err) => {
-                console.log("Došlo k chybě", err);
-            });
+    const handleReImport = (apuId: number, item: ApuSourceDef) => {
+        confirm(formatMessage({ id: "apu.reimport.confirm.title" }), formatMessage({ id: "entity.reimport.confirm.message" }, { id: item.apusourceId }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent
+                    .reimportApu({ apuId })
+                    .then((res) => {
+                        toast.success(formatMessage({ id: "reimport.success" }));
+                        requestData();
+                    })
+                    .catch((err) => {
+                        toast.error(formatMessage({ id: "reimport.error" }));
+                        console.log("Došlo k chybě", err);
+                    });
+            }
+        });
     };
 
-    const doDelete = (apuId: number) => {
-        Api.transfagent.deleteApu({ apuId })
-            .then((res) => {
-                toast.success(formatMessage({ id: "delete.success" }));
-                requestData();
-            })
-            .catch((err) => {
-                console.log("Došlo k chybě", err);
-            });
-        console.log("DELETE action");
+    const handleDelete = (apuId: number, item: ApuSourceDef) => {
+        confirm(formatMessage({ id: "apu.delete.confirm.title" }), formatMessage({ id: "entity.delete.confirm.message" }, { id: item.apusourceId }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent
+                    .deleteApu({ apuId })
+                    .then((res) => {
+                        toast.success(formatMessage({ id: "delete.success" }));
+                        requestData();
+                    })
+                    .catch((err) => {
+                        toast.error(formatMessage({ id: "delete.error" }));
+                        console.log("Došlo k chybě", err);
+                    });
+            }
+        });
     };
 
     return (
-        <ListContainer style={{ height: "100%" }}>
+        <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
                     <Pagination
