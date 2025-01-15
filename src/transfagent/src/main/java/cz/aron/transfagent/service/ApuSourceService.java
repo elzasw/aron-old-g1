@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import cz.aron.api.rest.model.ApuSourceDef;
 import cz.aron.api.rest.model.ApuSourceResponse;
+import cz.aron.api.rest.model.ReimportType;
 import cz.aron.transfagent.controller.vo.ApuSourceDefVO;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.SourceType;
@@ -65,6 +66,25 @@ public class ApuSourceService {
 	public ApuSource reimport(ApuSource apuSource) {
 		apuSource.setReimport(true);
 		return apuSourceRepository.save(apuSource);
+	}
+	
+	public void reimportAll(ReimportType reimportType) {		
+		SourceType sourceType = null;
+		switch(reimportType) {
+		case FUND:
+			sourceType = SourceType.FUND;
+			break;
+		case FINDINGAID:
+			sourceType = SourceType.FINDING_AID;
+			break;
+		case ARCH_ENTITY:
+			sourceType = SourceType.ARCH_ENTITY;
+			break;
+		default:
+			throw new IllegalArgumentException();
+		}
+		apuSourceRepository.reimportAllByType(sourceType);
+		log.info("Reimport all apu sources of type {}", sourceType);
 	}
 
 	@Transactional

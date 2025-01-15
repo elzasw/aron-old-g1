@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ import cz.aron.api.rest.model.DaosResponse;
 import cz.aron.api.rest.model.EntitiesResponse;
 import cz.aron.api.rest.model.FindingAidsResponse;
 import cz.aron.api.rest.model.FundsResponse;
+import cz.aron.api.rest.model.ReimportType;
 import cz.aron.transfagent.service.ApuSourceService;
 import cz.aron.transfagent.service.ArchivalEntityService;
 import cz.aron.transfagent.service.DaoImportService;
@@ -143,4 +145,11 @@ public class TransformAgentController implements TransfagentApi {
                                                   @Min(1) @Max(1000) @Valid Integer pageSize) {
         return ResponseEntity.ok(fundService.getFunds(code, uuid, page, pageSize));
     }
+
+	@Override
+	public ResponseEntity<Void> reimportAllApusOfType(@NotNull @Valid ReimportType apuType) {
+		apuSourceService.reimportAll(apuType);
+		return ResponseEntity.ok().build();
+	}
+
 }

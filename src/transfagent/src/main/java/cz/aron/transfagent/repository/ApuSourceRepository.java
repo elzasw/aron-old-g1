@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import cz.aron.transfagent.domain.ApuSource;
+import cz.aron.transfagent.domain.SourceType;
 
 @Repository
 public interface ApuSourceRepository extends JpaRepository<ApuSource, Integer> {
@@ -42,5 +43,9 @@ public interface ApuSourceRepository extends JpaRepository<ApuSource, Integer> {
     		+ "SET last_sent=:lastSent "
     		+ "WHERE a.apusource_id=:apuSourceId")
     void setLastSent(@Param("apuSourceId") int apuSourceId, @Param("lastSent") long lastSent);
+    
+    @Modifying
+    @Query("UPDATE ApuSource a SET a.reimport = true WHERE a.sourceType = :type")
+    void reimportAllByType(SourceType type);
     
 }

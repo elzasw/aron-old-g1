@@ -203,13 +203,13 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource {
 	private List<ImageUrl> getLinks(InstitutionFindingAidKey ifKey) {
 		FindingAidDaoLinks resource = links.get(ifKey);
 		if (resource == null) {
-			String shortcut = null;
+			String shortcut = "";
 			for (var inst : config.getInstitutions()) {
 				if (Objects.equals(ifKey.getInstitutionCode(), inst.getInstitutionCode())) {
 					shortcut = inst.getShortcut();
 					break;
 				}
-			}
+			}			
 			String fileName = null;
 			if (ifKey.getFindingAidPartNumber() != null) {
 				fileName = String.format("ap%1$04d-%2$03d.csv", ifKey.getFindingAidCode(),
