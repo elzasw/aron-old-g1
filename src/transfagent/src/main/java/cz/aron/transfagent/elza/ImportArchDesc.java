@@ -139,7 +139,6 @@ public class ImportArchDesc implements EdxItemCovertContext {
             "ZP2015_MAJOR_LANG",
             ElzaTypes.ZP2015_APPLIED_RESTRICTION,
             ElzaTypes.ZP2015_APPLIED_RESTRICTION_CHANGE,
-            "ZP2015_SIZE_OTHER",
             "ZP2015_UNIT_INFO_RIGHTS",
             "ZP2015_ITEM_MAT_LATKA_ZAZNAMU",
             "ZP2015_ITEM_TITLE",
@@ -528,7 +527,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
 		multiTypeMap.put(ElzaTypes.ZP2015_SIZE_WIDTH, sizeConvertor);
         multiTypeMap.put(ElzaTypes.ZP2015_SIZE_HEIGHT, sizeConvertor);
         multiTypeMap.put(ElzaTypes.ZP2015_SIZE_DEPTH, sizeConvertor);
-        multiTypeMap.put(ElzaTypes.ZP2015_SIZE_UNITS, sizeConvertor);        
+        multiTypeMap.put(ElzaTypes.ZP2015_SIZE_UNITS, sizeConvertor);
+        multiTypeMap.put(ElzaTypes.ZP2015_SIZE_OTHER, sizeConvertor);
 	}
 
     private void initConvertor() {    	

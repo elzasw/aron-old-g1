@@ -111,6 +111,17 @@ public abstract class ElzaTypes {
     public static final String ZP2015_SIZE_HEIGHT = "ZP2015_SIZE_HEIGHT";
     public static final String ZP2015_SIZE_DEPTH = "ZP2015_SIZE_DEPTH";
     public static final String ZP2015_SIZE_UNITS = "ZP2015_SIZE_UNITS";
+    public static final String ZP2015_SIZE_OTHER = "ZP2015_SIZE_OTHER";
+
+    // specifikace k ZP2015_SIZE_OTHER
+    public static final String ZP2015_SIZE_IMAGE_WIDTH = "ZP2015_SIZE_IMAGE_WIDTH";
+    public static final String ZP2015_SIZE_IMAGE_HEIGHT = "ZP2015_SIZE_IMAGE_HEIGHT";
+    public static final String ZP2015_SIZE_IMAGE_DIAMETER = "ZP2015_SIZE_IMAGE_DIAMETER";
+    public static final String ZP2015_SIZE_PLICA = "ZP2015_SIZE_PLICA";
+    public static final String ZP2015_SIZE_DIAMETER = "ZP2015_SIZE_DIAMETER";
+    public static final String ZP2015_SIZE_MAP_WIDTH = "ZP2015_SIZE_MAP_WIDTH";
+	public static final String ZP2015_SIZE_MAP_HEIGHT = "ZP2015_SIZE_MAP_HEIGHT";
+	public static final String ZP2015_SIZE_METRAGE = "ZP2015_SIZE_METRAGE";
 
     public static final Map<String, String> unitTypeMap = new HashMap<>();
     static {
