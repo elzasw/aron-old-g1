@@ -1,7 +1,7 @@
 import {
     IColumnInfo
 } from "jareco/dist/resizable-columns-grid";
-import { ApuSourceDef, ArchDescDef, DaoDef, EntityDef, FindingAidDef, FundDef } from "../api";
+import { ApuSourceDef, ArchDescDef, DaoDef, EntityDef, FindingAidDef, FundDef, InstitutionDef } from "../api";
 
 export interface ColumnInfo<T> extends IColumnInfo {
     code: keyof T | "actions",
@@ -214,6 +214,34 @@ export const archDescColumnInfo: ColumnInfo<ArchDescDef>[] = [
     },
     {
         code: "fundId",
+        width: 170,
+    },
+]
+
+export const institutionColumnInfo: ColumnInfo<InstitutionDef>[] = [
+    {
+        code: "actions",
+        fixedWidth: true,
+        width: 80,
+    },
+    {
+        code: "institutionId",
+        width: 120,
+    },
+    {
+        code: "uuid",
+        width: 300,
+    },
+    {
+        code: "deleted",
+        width: 150,
+    },
+    {
+        code: "code",
+        width: 300,
+    },
+    {
+        code: "apusourceId",
         width: 170,
     },
 ]

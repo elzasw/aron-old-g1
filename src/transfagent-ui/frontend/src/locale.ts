@@ -8,6 +8,7 @@ export default {
         "navigation.aids" : "Pomůcky",
         "navigation.entities" : "Entity",
         "navigation.archdescs" : "Archiválie",
+        "navigation.institutions" : "Instituce",
 
         "btn" : "Button",
         "filter" : "Filtrovat",

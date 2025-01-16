@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import RootLayout from "./RootLayout";
 import { DaosList, FundsList, SourcesList, EntityList, AidsList, ArchDescList } from "./components";
+import { InstitutionsList } from "./components/IntitutionsList";
 
 //@ts-ignore
 const serverContextPath = window.serverContextPath;
@@ -48,6 +49,14 @@ export const getArchDescsPath = () => {
     return URL_ARCHDESCS
 }
 
+export const URL_INSTITUTIONS = "/institutions";
+export const getInstitutionsPath = (filter?: string) => {
+    if (filter != undefined) {
+        return `${URL_INSTITUTIONS}?filter=${filter}`;
+    }
+    return URL_INSTITUTIONS
+}
+
 const router = createBrowserRouter(
     createRoutesFromElements(
         <Route path="/" element={<RootLayout />}>
@@ -58,6 +67,7 @@ const router = createBrowserRouter(
             <Route path={`${URL_ENTITIES}`} element={<EntityList />} />
             <Route path={`${URL_AIDS}`} element={<AidsList />} />
             <Route path={`${URL_ARCHDESCS}`} element={<ArchDescList />} />
+            <Route path={`${URL_INSTITUTIONS}`} element={<InstitutionsList />} />
         </Route>
     ),
     {

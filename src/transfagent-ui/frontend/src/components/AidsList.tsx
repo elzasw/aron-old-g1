@@ -24,7 +24,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import { Api, FindingAidDef, ReimportType } from "../api";
-import { getSourcesPath } from "../App";
+import { getInstitutionsPath, getSourcesPath } from "../App";
 import { cInfoAids, ColumnInfo } from "./columnMap";
 
 const TableCell = styled.div`
@@ -123,6 +123,9 @@ export const AidsList = () => {
         } else if (propCode === "apusourceId") {
             const apuId = item[propCode];
             return <Link to={getSourcesPath(apuId)}>{apuId}</Link>
+        } else if (propCode === "institutionId") {
+            const institutionId = item[propCode];
+            return <Link to={getInstitutionsPath(institutionId)}>{institutionId}</Link>
         }
         return item[propCode];
     };
