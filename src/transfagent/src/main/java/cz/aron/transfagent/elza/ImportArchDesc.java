@@ -140,16 +140,12 @@ public class ImportArchDesc implements EdxItemCovertContext {
             ElzaTypes.ZP2015_APPLIED_RESTRICTION,
             ElzaTypes.ZP2015_APPLIED_RESTRICTION_CHANGE,
             "ZP2015_UNIT_INFO_RIGHTS",
-            "ZP2015_ITEM_MAT_LATKA_ZAZNAMU",
             "ZP2015_ITEM_TITLE",
             "ZP2015_ENTITY_ROLE_TEXT",
             "ZP2015_UNIT_DATE_PRE",
             "ZP2015_UNIT_DATE_POST",
             "ZP2015_UNIT_COPY_RIGHTS",
             "ZP2015_COPY_SOURCE",
-            "ZP2015_ITEM_MAT_TECHNIKA",
-            "ZP2015_ITEM_MAT_NOSIC",
-            "ZP2015_ITEM_MAT_ADJUSTACE",
             "ZP2015_ALTERNATIVE_DESCRIPTION_INLINE",
     };
 
@@ -564,6 +560,10 @@ public class ImportArchDesc implements EdxItemCovertContext {
         stringTypeMap.put(ElzaTypes.ZP2015_LANGUAGE, new EdxEnumConvertor(CoreTypes.LANGUAGE, ElzaTypes.languageTypeMap));
         stringTypeMap.put(ElzaTypes.ZP2015_ORIENTATION, new EdxStringConvertor(CoreTypes.ORIENTATION));
         stringTypeMap.put(ElzaTypes.ZP2015_ITEM_MAT, new EdxStringConvertor(CoreTypes.ITEM_MAT));
+        stringTypeMap.put(ElzaTypes.ZP2015_ITEM_MAT_TECHNIKA, new EdxStringConvertor(CoreTypes.ITEM_MAT_TECHNIKA));
+        stringTypeMap.put(ElzaTypes.ZP2015_ITEM_MAT_NOSIC, new EdxStringConvertor(CoreTypes.ITEM_MAT_NOSIC));
+        stringTypeMap.put(ElzaTypes.ZP2015_ITEM_MAT_ADJUSTACE, new EdxStringConvertor(CoreTypes.ITEM_MAT_ADJUSTACE));
+        stringTypeMap.put(ElzaTypes.ZP2015_ITEM_MAT_LATKA_ZAZNAMU, new EdxStringConvertor(CoreTypes.ITEM_MAT_LATKA_ZAZNAMU));        
         stringTypeMap.put(ElzaTypes.ZP2015_PART, new EdxStringConvertor(CoreTypes.PART));
         stringTypeMap.put("ZP2015_STORAGE_COND",new EdxStringConvertor("STORAGE_COND"));
         stringTypeMap.put("ZP2015_RELATED_UNITS",new EdxStringConvertor("RELATED_UNITS"));

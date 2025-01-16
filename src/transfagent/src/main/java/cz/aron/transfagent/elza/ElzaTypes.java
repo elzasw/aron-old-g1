@@ -87,6 +87,11 @@ public abstract class ElzaTypes {
     public static final String ZP2015_POSITION = "ZP2015_POSITION";
     public static final String ZP2015_ORIENTATION = "ZP2015_ORIENTATION";
     public static final String ZP2015_ITEM_MAT = "ZP2015_ITEM_MAT";
+    public static final String ZP2015_ITEM_MAT_TECHNIKA ="ZP2015_ITEM_MAT_TECHNIKA";
+    public static final String ZP2015_ITEM_MAT_NOSIC = "ZP2015_ITEM_MAT_NOSIC";
+    public static final String ZP2015_ITEM_MAT_ADJUSTACE = "ZP2015_ITEM_MAT_ADJUSTACE";
+    public static final String ZP2015_ITEM_MAT_LATKA_ZAZNAMU = "ZP2015_ITEM_MAT_LATKA_ZAZNAMU";    
+    
     public static final String ZP2015_PART = "ZP2015_PART";
 
     public static final String ZP2015_WRITING = "ZP2015_WRITING";

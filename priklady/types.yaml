@@ -1063,6 +1063,26 @@ itemTypes:
     name: Technika, adjustace, nosič a látka záznamu
     type: STRING
     indexed: true
+  - code: ITEM_MAT_TECHNIKA
+    name: Technika záznamu
+    type: STRING
+    indexed: false
+  - code: ITEM_MAT_ADJUSTACE
+    name: Adjustace nosiče záznamu
+    type: STRING
+    indexed: false
+  - code: ITEM_MAT_NOSIC
+    name: Nosič záznamu
+    type: STRING
+    indexed: false
+  - code: ITEM_MAT_LATKA_ZAZNAMU
+    name: Látka záznamu
+    type: STRING
+    indexed: false
+  - code: ITEM_MAT_BAREVNOST
+    name: Barevnost
+    type: STRING
+    indexed: false
   - code: PART
     name: Díl, část, pořadí vydání jednotky popisu
     type: STRING

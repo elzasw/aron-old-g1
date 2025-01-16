@@ -70,6 +70,10 @@ public class CoreTypes {
     public static final String UNIT_ID_INDEX = "UNIT_ID_INDEX";
     public static final String ORIENTATION = "ORIENTATION";
     public static final String ITEM_MAT = "ITEM_MAT";
+    public static final String ITEM_MAT_TECHNIKA = "ITEM_MAT_TECHNIKA";
+    public static final String ITEM_MAT_NOSIC = "ITEM_MAT_NOSIC";
+    public static final String ITEM_MAT_ADJUSTACE = "ITEM_MAT_ADJUSTACE";
+    public static final String ITEM_MAT_LATKA_ZAZNAMU = "ITEM_MAT_LATKA_ZAZNAMU";    
     public static final String PART = "PART";
     public static final String WRITING = "WRITING";
     public final static String CORROBORATION = "CORROBORATION";
