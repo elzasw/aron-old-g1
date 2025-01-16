@@ -161,15 +161,22 @@ public class FundService {
         }
         Predicate p = cb.conjunction();
         if (code!=null) {
-        	boolean codeUuid = false;
+        	boolean predicateCreated = false;
         	try {
         		var tmpUUID = UUID.fromString(code);
         		p = cb.and(p, cb.equal(root.get("uuid"), tmpUUID));
-        		codeUuid = true;
+        		predicateCreated = true;
         	} catch (IllegalArgumentException e) {
         		// ignore
         	}
-        	if (!codeUuid) {
+        	try {
+        		var id = Integer.parseInt(code);
+        		p = cb.and(p, cb.equal(root.get("id"), id));
+        		predicateCreated = true;
+        	} catch (NumberFormatException e) {
+        		// ignore
+        	}        	
+        	if (!predicateCreated) {
         		p = cb.and(p, cb.like(root.get("code"), "%"+code+"%"));
         	}
         }
