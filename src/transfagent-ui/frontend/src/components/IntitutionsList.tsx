@@ -80,7 +80,7 @@ export const InstitutionsList = () => {
         return (
             <DarkListHeader style={{ flexGrow: 1 }}>
                 {formatMessage({
-                    id: "fundColumn." + institutionColumnInfo[props.columnIndex].code,
+                    id: "institutionColumn." + institutionColumnInfo[props.columnIndex].code,
                 })}
             </DarkListHeader>
         );
@@ -162,7 +162,7 @@ export const InstitutionsList = () => {
     };
 
     const handleReImport = (apuId: number, item: InstitutionDef) => {
-        confirm(formatMessage({ id: "fund.reimport.confirm.title" }), formatMessage({ id: "institution.reimport.confirm.message" }, { id: item.institutionId }), (result) => {
+        confirm(formatMessage({ id: "institution.reimport.confirm.title" }), formatMessage({ id: "institution.reimport.confirm.message" }, { id: item.institutionId }), (result) => {
             if (result === ConfirmationDialogResult.OK) {
                 Api.transfagent
                     .reimportApu({ apuId })
