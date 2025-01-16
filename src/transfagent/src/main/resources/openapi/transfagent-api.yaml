@@ -92,6 +92,30 @@ paths:
             application/json:
               schema:
                 type: string
+                
+  /institutions:                
+    get:
+      tags:
+        - Transfagent
+      operationId: getInstitutions
+      description: Returns list of institutions
+      parameters:
+        - name: code
+          in: query
+          required: false
+          description: code of fund
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstitutionResponse'
+
   /daos:
     get:
       tags:
@@ -429,6 +453,9 @@ components:
         apusourceId:
           type: integer
           format: int64
+        fundId:
+          type: integer
+          format: int64          
         institutionId:
           type: integer
           format: int64
@@ -515,7 +542,36 @@ components:
           type: integer
           format: int32
       description: Returned list of arch descs
-
+    InstitutionDef:
+      type: object
+      properties:
+        institutionId:
+          type: integer
+          format: int64
+        uuid:
+          type: string
+        code:
+          type: string
+        apusourceId:
+          type: integer
+          format: int64
+        deleted:
+          type: boolean          
+      description: Fund definition
+    InstitutionResponse:
+      type: object
+      required:
+        - items
+        - totalCount
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstitutionDef'
+        totalCount:
+          type: integer
+          format: int32
+      description: Returned list of institutions
     ReimportType:
       type: string
       enum:

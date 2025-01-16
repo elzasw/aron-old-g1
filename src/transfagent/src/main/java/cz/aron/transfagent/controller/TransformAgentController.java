@@ -28,6 +28,7 @@ import cz.aron.api.rest.model.DaosResponse;
 import cz.aron.api.rest.model.EntitiesResponse;
 import cz.aron.api.rest.model.FindingAidsResponse;
 import cz.aron.api.rest.model.FundsResponse;
+import cz.aron.api.rest.model.InstitutionResponse;
 import cz.aron.api.rest.model.ReimportType;
 import cz.aron.transfagent.service.ApuSourceService;
 import cz.aron.transfagent.service.ArchDescService;
@@ -35,6 +36,7 @@ import cz.aron.transfagent.service.ArchivalEntityService;
 import cz.aron.transfagent.service.DaoImportService;
 import cz.aron.transfagent.service.FindingAidService;
 import cz.aron.transfagent.service.FundService;
+import cz.aron.transfagent.service.InstitutionsService;
 
 @CrossOrigin
 @RestController
@@ -55,19 +57,23 @@ public class TransformAgentController implements TransfagentApi {
     private final ArchivalEntityService archivalEntityService;
     
     private final ArchDescService archDescService;
+    
+    private final InstitutionsService institutionsService;
 
     public TransformAgentController(ApuSourceService apuSourceService, 
     							    DaoImportService daoImportService,
                                     FundService fundService,
                                     FindingAidService findingAidService, 
                                     ArchivalEntityService archivalEntityService,
-                                    ArchDescService archDescService) {
+                                    ArchDescService archDescService,
+                                    InstitutionsService institutionsService) {
         this.apuSourceService = apuSourceService;
         this.daoImportService = daoImportService;
         this.fundService = fundService;
         this.findingAidService = findingAidService;
         this.archivalEntityService = archivalEntityService;
         this.archDescService = archDescService;
+        this.institutionsService = institutionsService;
         log.info("UI controller started");
     }
 
@@ -162,6 +168,14 @@ public class TransformAgentController implements TransfagentApi {
 	public ResponseEntity<ArchDescResponse> getArchDescs(@Valid String query, @Valid String uuid,
 			@Min(0) @Valid Integer page, @Min(1) @Max(1000) @Valid Integer pageSize) {		
 		return ResponseEntity.ok(archDescService.getArchDesc(query, page, pageSize));
+	}
+
+	@Override
+	public ResponseEntity<InstitutionResponse> getInstitutions(@Valid String code, @Min(0) @Valid Integer page,
+			@Min(1) @Max(1000) @Valid Integer pageSize) {
+		// TODO Auto-generated method stub
+		return ResponseEntity.ok(institutionsService.getInstitutions(code, page, pageSize));
 	}	
+
 	
 }

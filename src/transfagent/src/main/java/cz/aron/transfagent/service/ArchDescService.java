@@ -73,6 +73,7 @@ public class ArchDescService {
 		try {
 			var tmpUUID = UUID.fromString(query);
 			p = cb.and(p, cb.equal(root.get("uuid"), tmpUUID));
+			cq.where(p);
 			return;
 		} catch (IllegalArgumentException e) {
 			// ignore
@@ -80,11 +81,11 @@ public class ArchDescService {
 		try {
 			var id = Integer.parseInt(query);
 			p = cb.and(p, cb.equal(root.get("id"), id));
+			cq.where(p);
 			return;
 		} catch (NumberFormatException nfEx) {
 			// ignore
-		}
-		cq.where(p);
+		}		
     }
 
 	
