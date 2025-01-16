@@ -19,9 +19,11 @@ import {
 import { useEffect, useState } from "react";
 import { FaCheck, FaFileImport, FaFilter, FaTrashAlt } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import { Api, ApuSourceDef } from "../api";
+import { getSourcesPath } from "../App";
 import { columnInfo } from "./columnMap";
 
 const TableCell = styled.div`
@@ -34,7 +36,10 @@ export const SourcesList = () => {
     const pageSize = 200;
     const { formatMessage } = useIntl();
 
-    const [filterFulltext, setFilterFulltext] = useState("");
+    const [params] = useSearchParams();
+    const filterFulltext = params.get("filter") || "";
+    const navigate = useNavigate();
+
     const [filterFulltextInput, setFilterFulltextInput] = useState("");
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<ApuSourceDef[]>([]);
@@ -64,6 +69,10 @@ export const SourcesList = () => {
     useEffect(() => {
         requestData();
     }, [page, filterFulltext]);
+
+    useEffect(() => {
+        setFilterFulltextInput(filterFulltext || "");
+    }, [filterFulltext])
 
     const getChildId = (index: number) => items[index].apusourceId || 1;
 
@@ -98,13 +107,14 @@ export const SourcesList = () => {
 
     const handleClearFilter = () => {
         setFilterFulltextInput("");
-        setFilterFulltext("");
+        navigate(getSourcesPath());
     };
 
     const handleConfirmFilter = (e: React.FormEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        setFilterFulltext(filterFulltextInput);
+
+        navigate(getSourcesPath(filterFulltextInput));
         setPage(1);
     };
 

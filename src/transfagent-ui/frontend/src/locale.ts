@@ -2,12 +2,12 @@ export default {
   cs: {
     locale: "cs",
     messages: {
-        "navigation.sources" : "Apus",
-        "navigation.daos" : "Daos",
+        "navigation.sources" : "APU",
+        "navigation.daos" : "Digitalizáty",
         "navigation.funds" : "Fondy",
         "navigation.aids" : "Pomůcky",
         "navigation.entities" : "Entity",
-        "navigation.archdescs" : "Popisy",
+        "navigation.archdescs" : "Archiválie",
 
         "btn" : "Button",
         "filter" : "Filtrovat",

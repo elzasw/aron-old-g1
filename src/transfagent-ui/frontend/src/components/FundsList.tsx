@@ -20,10 +20,12 @@ import {
 import { useEffect, useState } from "react";
 import { FaFileImport, FaFilter, FaTrashAlt } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import { Api, FundDef, ReimportType } from "../api";
-import { cInfoFunds } from "./columnMap";
+import { getFundsPath, getSourcesPath } from "../App";
+import { cInfoFunds, ColumnInfo } from "./columnMap";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -35,7 +37,11 @@ export const FundsList = () => {
     const pageSize = 200;
     const { formatMessage } = useIntl();
 
-    const [filterFulltext, setFilterFulltext] = useState("");
+    const [params] = useSearchParams();
+    const filterFulltext = params.get("filter") || "";
+    const navigate = useNavigate();
+
+    // const [filterFulltext, setFilterFulltext] = useState("");
     const [filterFulltextInput, setFilterFulltextInput] = useState("");
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<FundDef[]>([]);
@@ -65,6 +71,10 @@ export const FundsList = () => {
     useEffect(() => {
         requestData();
     }, [page, filterFulltext]);
+
+    useEffect(() => {
+        setFilterFulltextInput(filterFulltext || "");
+    }, [filterFulltext])
 
     const getChildId = (index: number) => items[index].fundId || 1;
 
@@ -99,13 +109,14 @@ export const FundsList = () => {
 
     const handleClearFilter = () => {
         setFilterFulltextInput("");
-        setFilterFulltext("");
+        navigate(getFundsPath());
     };
 
     const handleConfirmFilter = (e: React.FormEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        setFilterFulltext(filterFulltextInput);
+
+        navigate(getFundsPath(filterFulltextInput));
         setPage(1);
     };
 
@@ -115,9 +126,12 @@ export const FundsList = () => {
         setFilterFulltextInput(e.currentTarget.value);
     };
 
-    const getCellContent = (item: any, propCode: string) => {
+    const getCellContent = (item: any, propCode: ColumnInfo<FundDef>["code"]) => {
         if (propCode === "actions") {
             return renderActions(item);
+        } else if (propCode === "apusourceId") {
+            const apuId = item[propCode];
+            return <Link to={getSourcesPath(apuId)}>{apuId}</Link>
         }
         return item[propCode];
     };

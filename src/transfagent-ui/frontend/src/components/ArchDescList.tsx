@@ -20,10 +20,12 @@ import {
 import { useEffect, useState } from "react";
 import { FaFileImport, FaFilter, FaTrashAlt } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import { Api, ArchDescDef/* , ReimportType */ } from "../api";
-import { archDescColumnInfo } from "./columnMap";
+import { getFundsPath, getSourcesPath } from "../App";
+import { archDescColumnInfo, ColumnInfo } from "./columnMap";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -115,9 +117,15 @@ export const ArchDescList = () => {
         setFilterFulltextInput(e.currentTarget.value);
     };
 
-    const getCellContent = (item: any, propCode: string) => {
+    const getCellContent = (item: any, propCode: ColumnInfo<ArchDescDef>["code"]) => {
         if (propCode === "actions") {
             return renderActions(item);
+        } else if (propCode === "apusourceId") {
+            const apuId = item[propCode];
+            return <Link to={getSourcesPath(apuId)}>{apuId}</Link>
+        } else if (propCode === "fundId") {
+            const fundId = item[propCode];
+            return <Link to={getFundsPath(fundId)}>{fundId}</Link>
         }
         return item[propCode];
     };

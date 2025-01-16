@@ -2,6 +2,7 @@ import { FormattedMessage } from "react-intl";
 import { Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { getAidsPath, getArchDescsPath, getDaosPath, getEntitiesPath, getFundsPath, getSourcesPath } from "./App";
 import { LayoutWrapper, NavButton, Navigation, PageWrapper } from "./styles";
 
 export default function RootLayout() {
@@ -19,32 +20,32 @@ export default function RootLayout() {
 function renderNavigation() {
     const navLeft: JSX.Element[] = [];
     navLeft.push(
-        <NavButton key="sources" to="sources">
+        <NavButton key="sources" to={getSourcesPath()}>
             <FormattedMessage id="navigation.sources" />
         </NavButton>
     );
     navLeft.push(
-        <NavButton key="daos" to="daos">
+        <NavButton key="daos" to={getDaosPath()}>
             <FormattedMessage id="navigation.daos" />
         </NavButton>
     );
     navLeft.push(
-        <NavButton key="funds" to="funds">
+        <NavButton key="funds" to={getFundsPath()}>
             <FormattedMessage id="navigation.funds" />
         </NavButton>
     );
     navLeft.push(
-        <NavButton key="aids" to="aids">
+        <NavButton key="aids" to={getAidsPath()}>
             <FormattedMessage id="navigation.aids" />
         </NavButton>
     );
     navLeft.push(
-        <NavButton key="entities" to="entities">
+        <NavButton key="entities" to={getEntitiesPath()}>
             <FormattedMessage id="navigation.entities" />
         </NavButton>
     );
     navLeft.push(
-        <NavButton key="archdescs" to="archdescs">
+        <NavButton key="archdescs" to={getArchDescsPath()}>
             <FormattedMessage id="navigation.archdescs" />
         </NavButton>
     );

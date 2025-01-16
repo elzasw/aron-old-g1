@@ -20,10 +20,12 @@ import {
 import { useEffect, useState } from "react";
 import { FaFileImport, FaFilter, FaTrashAlt } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import { Api, FindingAidDef, ReimportType } from "../api";
-import { cInfoAids } from "./columnMap";
+import { getSourcesPath } from "../App";
+import { cInfoAids, ColumnInfo } from "./columnMap";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -115,9 +117,12 @@ export const AidsList = () => {
         setFilterFulltextInput(e.currentTarget.value);
     };
 
-    const getCellContent = (item: any, propCode: string) => {
+    const getCellContent = (item: any, propCode: ColumnInfo<FindingAidDef>["code"]) => {
         if (propCode === "actions") {
             return renderActions(item);
+        } else if (propCode === "apusourceId") {
+            const apuId = item[propCode];
+            return <Link to={getSourcesPath(apuId)}>{apuId}</Link>
         }
         return item[propCode];
     };
