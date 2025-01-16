@@ -3,7 +3,7 @@ import {
 } from "jareco/dist/resizable-columns-grid";
 import { ApuSourceDef, ArchDescDef, DaoDef, EntityDef, FindingAidDef, FundDef } from "../api";
 
-interface ColumnInfo<T> extends IColumnInfo {
+export interface ColumnInfo<T> extends IColumnInfo {
     code: keyof T | "actions",
 }
 

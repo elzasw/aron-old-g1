@@ -23,10 +23,12 @@ import Upload from "rc-upload";
 import { useEffect, useState } from "react";
 import { FaCheck, FaFileImport, FaFilter, FaTrashAlt, FaUpload } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Api, DaoDef, DaoStateDef } from "../api";
+import { getSourcesPath } from "../App";
 import { TableCell } from "../styles";
-import { cInfoDaos } from "./columnMap";
+import { cInfoDaos, ColumnInfo } from "./columnMap";
 
 export interface IRcFile extends File {
     uid: string;
@@ -117,13 +119,16 @@ export const DaosList = () => {
         setFilterFulltextInput(e.currentTarget.value);
     };
 
-    const getCellContent = (item: any, propCode: string) => {
+    const getCellContent = (item: any, propCode: ColumnInfo<DaoDef>["code"]) => {
         if (propCode === "actions") {
             return renderActions(item);
         } else if (propCode === "transferred") {
             return item[propCode] && <FaCheck />;
         } else if (propCode === "state") {
             return formatMessage({ id: `dao.state.${item[propCode]}` });
+        } else if (propCode === "apusourceId") {
+            const apuId = item[propCode];
+            return <Link to={getSourcesPath(apuId)}>{apuId}</Link>
         }
 
         return item[propCode];

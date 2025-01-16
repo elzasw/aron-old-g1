@@ -20,10 +20,12 @@ import {
 import { useEffect, useState } from "react";
 import { FaFileImport, FaFilter, FaRedo, FaSync, FaTrashAlt } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import { Api, EntityDef, ReimportType } from "../api";
-import { cInfoEntities } from "./columnMap";
+import { getSourcesPath } from "../App";
+import { cInfoEntities, ColumnInfo } from "./columnMap";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -115,11 +117,14 @@ export const EntityList = () => {
         setFilterFulltextInput(e.currentTarget.value);
     };
 
-    const getCellContent = (item: any, propCode: string) => {
+    const getCellContent = (item: any, propCode: ColumnInfo<EntityDef>["code"]) => {
         if (propCode === "actions") {
             return renderActions(item);
         } else if (propCode === "state") {
             return formatMessage({ id: `entity.state.${item[propCode]}` });
+        } else if (propCode === "apusourceId") {
+            const apuId = item[propCode];
+            return <Link to={getSourcesPath(apuId)}>{apuId}</Link>
         }
         return item[propCode];
     };
