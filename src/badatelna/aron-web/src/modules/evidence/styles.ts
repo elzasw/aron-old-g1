@@ -108,6 +108,9 @@ export const useStyles = makeStyles((theme) => {
       borderRadius: 4,
       padding: `0.8rem 1.25rem`,
       cursor: 'pointer',
+      display: 'block',
+      textDecoration: 'none',
+      color: 'currentColor',
 
       '&:hover': {
         boxShadow: 'rgba(0, 0, 0, 0.35) 0px 5px 15px',

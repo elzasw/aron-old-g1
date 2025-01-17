@@ -1,10 +1,8 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import classNames from 'classnames';
 import Pagination from '@material-ui/lab/Pagination';
 import { FormattedMessage } from 'react-intl';
 import { get } from 'lodash';
-
-import { NavigationContext } from '@eas/common-web';
 
 import { useStyles } from './styles';
 import { useLayoutStyles } from '../../styles/layout';
@@ -14,6 +12,7 @@ import { Select, Loading, useConfiguration } from '../../components';
 import { useWindowSize, useApiListSimple } from '../../common-utils';
 import { useFilters } from './evidence-filters';
 import { ApuEntitySimplified } from '../../types';
+import { Link } from 'react-router-dom';
 
 function ItemsList() {
   const classes = useStyles();
@@ -58,8 +57,6 @@ function ItemsList() {
 
   const { width } = useWindowSize();
 
-  const { navigate } = useContext(NavigationContext);
-
   useEffect(() => {
     if (loading) {
       setInfoEnabled(true);
@@ -81,9 +78,7 @@ function ItemsList() {
             )}
           >
             {items.map(({ id, name, description }) => (
-              <div
-                key={id}
-                onClick={() => navigate(`${ModulePath.APU}/${id}`)}
+              <Link key={id} to={`${ModulePath.APU}/${id}`}
                 className={classNames(
                   classes.listItem,
                   spacingClasses.marginBottomSmall,
@@ -92,7 +87,7 @@ function ItemsList() {
               >
                 <h4>{name || 'Neznámé'}</h4>
                 {description && <p>{description}</p>}
-              </div>
+              </Link>
             ))}
             {items.length ? (
               <div
