@@ -11,6 +11,27 @@
   <build>
     <plugins>
       <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>3.4.0</version>
+          <configuration>
+              <filesets>
+                  <fileset>
+                      <directory>${project.basedir}/frontend/src/generated</directory>
+                      <includes>
+                          <include>**/*</include>
+                      </includes>
+                  </fileset>
+                  <fileset>
+                      <directory>${project.basedir}/frontend/dist</directory>
+                      <includes>
+                          <include>**/*</include>
+                      </includes>
+                  </fileset>
+              </filesets>
+         </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.openapitools</groupId>
         <artifactId>openapi-generator-maven-plugin</artifactId>
         <version>6.5.0</version>
@@ -74,7 +95,7 @@
 							</execution>
 							<execution>
 								<id>npm-build</id>
-								<phase>validate</phase>
+								<phase>compile</phase>
 								<goals>
 									<goal>exec</goal>
 								</goals>
