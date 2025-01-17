@@ -70,7 +70,7 @@ export default {
         "fundColumn.code" : "Fond",
         "fundColumn.source" : "Zdroj dat",
         "fundColumn.apusourceId" : "Apusrc id",
-        "fundColumn.institutionId" : "Id instituce",
+        "fundColumn.institutionId" : "Číslo archivu",
 
         "entity.delete.confirm.title": "Smazat archivní entitu",
         "entity.delete.confirm.message": "Přejete si smazat archivní entitu s id: {id}?",
@@ -104,7 +104,7 @@ export default {
         "aidColumn.deleted" : "Smazáno",
         "aidColumn.code" : "Fond",
         "aidColumn.apusourceId" : "Apusrc id",
-        "aidColumn.institutionId" : "Id instituce",
+        "aidColumn.institutionId" : "Číslo archivu",
 
         "archdesc.delete.confirm.title": "Smazat archivní popis",
         "archdesc.delete.confirm.message": "Přejete si smazat archivní popis s id: {id}?",
@@ -117,10 +117,7 @@ export default {
         "archdescColumn.fundId" : "Id archivního souboru",
         "archdescColumn.uuid" : "UUID",
         "archdescColumn.deleted" : "Smazáno",
-        "archdescColumn.code" : "Fond",
-        "archdescColumn.source" : "Zdroj dat",
         "archdescColumn.apusourceId" : "Apusrc id",
-        "archdescColumn.institutionId" : "Id instituce",
 
         "institution.delete.confirm.title": "Smazat archivní soubor",
         "institution.delete.confirm.message": "Přejete si smazat archivní soubor s id: {id}?",

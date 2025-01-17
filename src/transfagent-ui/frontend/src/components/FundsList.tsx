@@ -25,6 +25,7 @@ import { toast } from "react-toastify";
 import styled from "styled-components";
 import { Api, FundDef, ReimportType } from "../api";
 import { getFundsPath, getInstitutionsPath, getSourcesPath } from "../App";
+import { useGeneralContext } from "../GeneralContext";
 import { cInfoFunds, ColumnInfo } from "./columnMap";
 
 const TableCell = styled.div`
@@ -46,6 +47,8 @@ export const FundsList = () => {
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<FundDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
+
+    const { institutions } = useGeneralContext();
 
     const requestData = async () => {
         if (page >= 1) {
@@ -134,7 +137,8 @@ export const FundsList = () => {
             return <Link to={getSourcesPath(apuId)}>{apuId}</Link>
         } else if (propCode === "institutionId") {
             const institutionId = item[propCode];
-            return <Link to={getInstitutionsPath(institutionId)}>{institutionId}</Link>
+            const institution = institutions.itemsMap[institutionId];
+            return <Link to={getInstitutionsPath(institutionId)}>{institution?.code || institutionId}</Link>
         }
         return item[propCode];
     };

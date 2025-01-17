@@ -3,17 +3,20 @@ import { Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { getAidsPath, getArchDescsPath, getDaosPath, getEntitiesPath, getFundsPath, getInstitutionsPath, getSourcesPath } from "./App";
+import { GeneralContextProvider } from "./GeneralContext";
 import { LayoutWrapper, NavButton, Navigation, PageWrapper } from "./styles";
 
 export default function RootLayout() {
     return (
-        <LayoutWrapper>
-            {renderNavigation()}
-            <PageWrapper>
-                <Outlet />
-            </PageWrapper>
-            <ToastContainer theme="colored" />
-        </LayoutWrapper>
+        <GeneralContextProvider>
+            <LayoutWrapper>
+                {renderNavigation()}
+                <PageWrapper>
+                    <Outlet />
+                </PageWrapper>
+                <ToastContainer theme="colored" />
+            </LayoutWrapper>
+        </GeneralContextProvider>
     );
 }
 
