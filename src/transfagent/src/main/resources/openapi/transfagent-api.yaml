@@ -354,6 +354,11 @@ components:
       description: Types of apu source
     DaoDef:
       type: object
+      required:
+        - daoId
+        - apusourceId
+        - state
+        - source
       properties:
         daoId:
           type: integer
@@ -411,6 +416,9 @@ components:
       description: Returned list of entities
     EntityDef:
       type: object
+      required:
+        - entityId
+        - state
       properties:
         entityId:
           type: integer
@@ -442,6 +450,14 @@ components:
       description: Entity states
     FindingAidDef:
       type: object
+      required:
+        - findingAidId
+        - uuid
+        - code
+        - apuSourceId
+        - fundId
+        - institutionId
+        - deleted
       properties:
         findingAidId:
           type: integer
@@ -478,6 +494,13 @@ components:
       description: Returned list of finding aids
     FundDef:
       type: object
+      required:
+        - fundId
+        - uuid
+        - code
+        - apusourceId
+        - institutionId
+        - deleted
       properties:
         fundId:
           type: integer
@@ -513,6 +536,12 @@ components:
       description: Returned list of funds
     ArchDescDef:
       type: object
+      required:
+        - archDescId
+        - uuid
+        - fundId
+        - apusourceId
+        - deleted
       properties:
         archDescId:
           type: integer
