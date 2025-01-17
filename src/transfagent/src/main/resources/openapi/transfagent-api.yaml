@@ -544,6 +544,12 @@ components:
       description: Returned list of arch descs
     InstitutionDef:
       type: object
+      required:
+        - institutionId
+        - uuid
+        - code
+        - apusourceId
+        - deleted
       properties:
         institutionId:
           type: integer
