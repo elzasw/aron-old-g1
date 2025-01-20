@@ -24,8 +24,10 @@ import cz.aron.api.rest.model.ApuSourceResponse;
 import cz.aron.api.rest.model.ReimportType;
 import cz.aron.transfagent.controller.vo.ApuSourceDefVO;
 import cz.aron.transfagent.domain.ApuSource;
+import cz.aron.transfagent.domain.CoreQueue;
 import cz.aron.transfagent.domain.SourceType;
 import cz.aron.transfagent.repository.ApuSourceRepository;
+import cz.aron.transfagent.repository.CoreQueueRepository;
 
 @Service
 public class ApuSourceService {
@@ -33,11 +35,14 @@ public class ApuSourceService {
     private static final Logger log = LoggerFactory.getLogger(ApuSourceService.class);
 
 	private final ApuSourceRepository apuSourceRepository;
+	
+	private final CoreQueueRepository coreQueueRepository;
 
 	private final EntityManager em;
 
-	public ApuSourceService(final ApuSourceRepository apuSourceRepository, EntityManager em) {
+	public ApuSourceService(final ApuSourceRepository apuSourceRepository, CoreQueueRepository coreQueueRepository, EntityManager em) {
 		this.apuSourceRepository = apuSourceRepository;
+		this.coreQueueRepository = coreQueueRepository;
 		this.em = em;
 	}
 
@@ -60,7 +65,19 @@ public class ApuSourceService {
 
 	@Transactional
 	public void delete(Integer apuId) {
-		apuSourceRepository.deleteById(apuId);
+		apuSourceRepository.findById(apuId).ifPresentOrElse(apuSource->{
+			if (!apuSource.isDeleted()) {
+				apuSource.setDeleted(true);
+				var coreQueue = new CoreQueue();
+				coreQueue.setApuSource(apuSource);
+				coreQueueRepository.save(coreQueue);
+				log.info("Apu source {} mark to be deleted.", apuId);
+			} else {
+				log.error("Apu source {} already marked to be deleted.", apuId);
+			}
+		}, ()->{
+			log.error("Apu source {} not found, cannot be mark to be deleted", apuId);
+		});
 	}
 
 	public ApuSource reimport(ApuSource apuSource) {
