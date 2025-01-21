@@ -147,6 +147,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
             "ZP2015_UNIT_COPY_RIGHTS",
             "ZP2015_COPY_SOURCE",
             "ZP2015_ALTERNATIVE_DESCRIPTION_INLINE",
+            "ZP2015_PUBLISHED"
     };
 
     /**

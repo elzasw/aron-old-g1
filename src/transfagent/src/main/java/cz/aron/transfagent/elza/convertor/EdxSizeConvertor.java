@@ -11,6 +11,7 @@ import cz.aron.transfagent.transformation.CoreTypes;
 import cz.tacr.elza.schema.v2.DescriptionItem;
 import cz.tacr.elza.schema.v2.DescriptionItemDecimal;
 import cz.tacr.elza.schema.v2.DescriptionItemEnum;
+import cz.tacr.elza.schema.v2.DescriptionItemUndefined;
 
 public class EdxSizeConvertor implements EdxItemConvertor {
 
@@ -25,6 +26,9 @@ public class EdxSizeConvertor implements EdxItemConvertor {
 			String units = null;
 			List<OtherSize> otherSizes = new ArrayList<>();			
 			for (var descItem : lvl.getDdOrDoOrDp()) {
+				if (descItem instanceof DescriptionItemUndefined) {
+					continue;
+				}
 				switch (descItem.getT()) {
 				case ElzaTypes.ZP2015_SIZE_DEPTH:
 					depth = ((DescriptionItemDecimal) descItem).getV();
