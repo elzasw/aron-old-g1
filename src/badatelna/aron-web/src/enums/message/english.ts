@@ -94,6 +94,7 @@ export const ENGLISH = {
   [M.SEARCH_INSTITUTION]: 'Search in archives',
   [M.SEARCH_NO_FILTER]: 'Search without filter',
   [M.SEARCH_CHANGE_TYPE]: 'Change search type',
+  [M.SEARCH_SHORTENED_RESULT_MESSAGE]: 'The total number of records is limited to 10\xa0000. To display more records, use the search/filter features.',
   [M.SHARE_THROUGH_EMAIL]: 'Share through e-mail',
   [M.SHARE_THROUGH_FACEBOOK]: 'Share on Facebook',
   [M.SHARE_THROUGH_TWITTER]: 'Share on Twitter',

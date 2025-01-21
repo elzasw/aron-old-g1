@@ -418,5 +418,17 @@ export const useStyles = makeStyles((theme) => {
       padding: theme.spacing(2),
       flex: 1,
     },
+    paginationButton: {
+      width: "32px",
+      height: "32px",
+      minWidth: "32px",
+      borderRadius: "32px !important",
+    },
+    paginationButton_small: {
+      width: "26px",
+      height: "26px",
+      minWidth: "26px",
+      borderRadius: "26px !important",
+    }
   };
 });

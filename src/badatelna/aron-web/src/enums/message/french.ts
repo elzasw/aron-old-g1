@@ -94,6 +94,7 @@ export const FRENCH = {
   [M.SEARCH_INSTITUTION]: 'Recherche dans les archives',
   [M.SEARCH_NO_FILTER]: 'Recherche sans filtres',
   [M.SEARCH_CHANGE_TYPE]: 'Change search type',
+  [M.SEARCH_SHORTENED_RESULT_MESSAGE]: 'The total number of records is limited to 10\xa0000. To display more records, use the search/filter features.',
   [M.SHARE_THROUGH_EMAIL]: 'Communication à e-mail',
   [M.SHARE_THROUGH_FACEBOOK]: 'Communication à Facebook',
   [M.SHARE_THROUGH_TWITTER]: 'Communication à Twitter',

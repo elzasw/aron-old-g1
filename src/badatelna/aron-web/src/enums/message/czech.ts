@@ -95,6 +95,7 @@ export const CZECH = {
   [M.SEARCH_INSTITUTION]: 'Vyhledávání v archivech',
   [M.SEARCH_NO_FILTER]: 'Vyhledávání bez filtru',
   [M.SEARCH_CHANGE_TYPE]: 'Změnit typ vyhledávání',
+  [M.SEARCH_SHORTENED_RESULT_MESSAGE]: 'Celkový počet záznamů byl omezen na 10\xa0000. Pro zobrazení dalších záznamů použijte vyhledávaní/filtrování.',
   [M.SHARE_THROUGH_EMAIL]: 'Sdílet prostřednictvím e-mailu',
   [M.SHARE_THROUGH_FACEBOOK]: 'Sdílet na Facebook',
   [M.SHARE_THROUGH_TWITTER]: 'Sdílet na Twitter',

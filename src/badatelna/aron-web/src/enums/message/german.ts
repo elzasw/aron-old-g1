@@ -94,6 +94,7 @@ export const GERMAN = {
   [M.SEARCH_INSTITUTION]: 'Suche in Archiven',
   [M.SEARCH_NO_FILTER]: 'Ohne Filter suchen',
   [M.SEARCH_CHANGE_TYPE]: 'Change search type',
+  [M.SEARCH_SHORTENED_RESULT_MESSAGE]: 'The total number of records is limited to 10\xa0000. To display more records, use the search/filter features.',
   [M.SHARE_THROUGH_EMAIL]: 'Per E-mail teilen',
   [M.SHARE_THROUGH_FACEBOOK]: 'Auf Facebook teilen',
   [M.SHARE_THROUGH_TWITTER]: 'Auf Twitter teilen',

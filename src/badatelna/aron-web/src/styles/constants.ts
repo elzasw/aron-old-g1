@@ -9,6 +9,7 @@ export const colorBlueLight = '#70a0c9';
 export const colorBlueVeryLight = '#eef7ff';
 export const colorGrey = '#616161';
 export const colorGreyLight = '#dbdbdb';
+export const colorRed = '#d73f3b';
 
 export const colorText = colorGrey;
 

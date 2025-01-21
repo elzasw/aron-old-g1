@@ -3,12 +3,13 @@ import classNames from 'classnames';
 import Pagination from '@material-ui/lab/Pagination';
 import { FormattedMessage } from 'react-intl';
 import { get } from 'lodash';
+import { KeyboardArrowLeft, KeyboardArrowRight, WarningRounded } from "@material-ui/icons";
 
 import { useStyles } from './styles';
 import { useLayoutStyles } from '../../styles/layout';
-import { useSpacingStyles } from '../../styles';
+import { useSpacingStyles, colorRed, colorWhite } from '../../styles';
 import { ModulePath, pageSizeOptions, Message } from '../../enums';
-import { Select, Loading, useConfiguration } from '../../components';
+import { Select, Loading, useConfiguration, Button } from '../../components';
 import { useWindowSize, useApiListSimple } from '../../common-utils';
 import { useFilters } from './evidence-filters';
 import { ApuEntitySimplified } from '../../types';
@@ -20,7 +21,7 @@ function ItemsList() {
   const spacingClasses = useSpacingStyles();
 
   const { orderResultsByScore } = useConfiguration();
-  const sortBy = orderResultsByScore === true ?  [
+  const sortBy = orderResultsByScore === true ? [
     {
       field: 'name',
       type: 'SCORE',
@@ -28,14 +29,14 @@ function ItemsList() {
       sortMode: 'MIN',
     },
   ] :
-  [
-    {
-      field: 'name',
-      type: 'FIELD',
-      order: 'ASC',
-      sortMode: 'MIN',
-    },
-  ];
+    [
+      {
+        field: 'name',
+        type: 'FIELD',
+        order: 'ASC',
+        sortMode: 'MIN',
+      },
+    ];
 
   const {
     page,
@@ -66,6 +67,8 @@ function ItemsList() {
   const items: ApuEntitySimplified[] = result?.items || [];
   const count = get(result, 'count');
 
+  const maxPage = count ? Math.ceil(Math.min(count, 9999) / pageSize) : 0;
+
   return (
     <div className={classes.list}>
       {loading || items.length ? (
@@ -89,6 +92,23 @@ function ItemsList() {
                 {description && <p>{description}</p>}
               </Link>
             ))}
+            {page === maxPage && count && count > 9999 && <div
+              style={{
+                width: '100%',
+                padding: `0.8rem 1.25rem`,
+                backgroundColor: colorRed,
+                borderRadius: "4px",
+                color: colorWhite,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              className={classNames(
+                spacingClasses.marginBottomSmall,
+                classes.listItemTitleOnly
+              )}
+            >
+              <WarningRounded />&nbsp; <i><FormattedMessage id={Message.SEARCH_SHORTENED_RESULT_MESSAGE} /></i>
+            </div>}
             {items.length ? (
               <div
                 className={classNames(
@@ -97,16 +117,37 @@ function ItemsList() {
                   spacingClasses.paddingTopSmall
                 )}
               >
-                <Pagination
-                  count={
-                    count ? Math.ceil(Math.min(count, 9999) / pageSize) : 0
-                  }
-                  size={width > 600 ? 'medium' : 'small'}
-                  color="primary"
-                  page={page}
-                  onChange={(_, page) => updatePage(page)}
-                  className={spacingClasses.marginBottomSmall}
-                />
+                <div style={{ display: "flex" }}>
+                  <Button
+                    className={width > 600 ? classes.paginationButton : classes.paginationButton_small}
+                    label={<><KeyboardArrowLeft style={{ height: "0.8em" }} /><KeyboardArrowLeft style={{ marginLeft: "-17px", height: "0.8em" }} /></>}
+                    onClick={() => {
+                      const newPage = page - 10;
+                      updatePage(newPage >= 0 ? newPage : 0);
+                    }}
+                    disabled={page <= 1}
+                  />
+                  <Pagination
+                    count={
+                      count ? Math.ceil(Math.min(count, 9999) / pageSize) : 0
+                    }
+                    size={width > 600 ? 'medium' : 'small'}
+                    siblingCount={width < 600 ? 0 : 1}
+                    color="primary"
+                    page={page}
+                    onChange={(_, page) => updatePage(page)}
+                    className={spacingClasses.marginBottomSmall}
+                  />
+                  <Button
+                    className={width > 600 ? classes.paginationButton : classes.paginationButton_small}
+                    label={<><KeyboardArrowRight style={{ height: "0.8em" }} /><KeyboardArrowRight style={{ marginLeft: "-17px", height: "0.8em" }} /></>}
+                    onClick={() => {
+                      const newPage = page + 10;
+                      updatePage(newPage <= maxPage ? newPage : maxPage);
+                    }}
+                    disabled={page >= maxPage}
+                  />
+                </div>
                 <div
                   className={classNames(
                     classes.listPageNumber,
@@ -128,8 +169,8 @@ function ItemsList() {
                 </div>
               </div>
             ) : (
-              <></>
-            )}
+                <></>
+              )}
           </div>
         </>
       ) : infoEnabled ? (
@@ -137,8 +178,8 @@ function ItemsList() {
           <FormattedMessage id={Message.NO_ITEMS_FOUND} />
         </div>
       ) : (
-        <></>
-      )}
+            <></>
+          )}
     </div>
   );
 }
@@ -152,8 +193,8 @@ export function EvidenceList() {
       {initialized ? (
         <ItemsList />
       ) : (
-        <Loading {...{ loading: !initialized || loading }} />
-      )}
+          <Loading {...{ loading: !initialized || loading }} />
+        )}
     </div>
   );
 }
