@@ -43,7 +43,9 @@ export const useStyles = makeStyles((theme) => {
       width: '100%',
       opacity: 0,
       transition: 'opacity 300ms ease',
+      display: 'none',
       [md]: {
+        display: 'block',
         opacity: 1,
       },
     },
