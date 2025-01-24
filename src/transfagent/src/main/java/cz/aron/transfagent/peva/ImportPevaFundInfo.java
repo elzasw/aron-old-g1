@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -242,7 +243,17 @@ public class ImportPevaFundInfo {
 			if (department != null) {
 				var p2Department = codeListProvider.getCodeLists().getDepartment(department);
 				if (p2Department!=null) {
-					ApuSourceBuilder.addEnum(partFundInfo,"DEPARTMENT", p2Department.getNumber());
+					var text = p2Department.getNumber();
+					var mapping = fundProperties.getDepartmentsMapping();
+					if (mapping != null) {
+						for(var map : mapping) {
+							if (Objects.equals(map.getCode(), text)) {
+								text = map.getText();
+								break;
+							}
+						}
+					}
+					ApuSourceBuilder.addEnum(partFundInfo,"DEPARTMENT", text);
 				}
 			}
 		}

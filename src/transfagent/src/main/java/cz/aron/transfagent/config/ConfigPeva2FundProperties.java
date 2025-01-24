@@ -99,6 +99,8 @@ public class ConfigPeva2FundProperties {
     
     private boolean departments = false;
     
+    private List<ConfigPeva2FundDepartment> departmentsMapping;
+    
     private Set<String> nameSearchComponents = new HashSet<>();
 
 	public boolean isParseInternalChanges() {
@@ -368,6 +370,14 @@ public class ConfigPeva2FundProperties {
 
 	public void setDepartments(boolean departments) {
 		this.departments = departments;
+	}
+
+	public List<ConfigPeva2FundDepartment> getDepartmentsMapping() {
+		return departmentsMapping;
+	}
+
+	public void setDepartmentsMapping(List<ConfigPeva2FundDepartment> departmentsMapping) {
+		this.departmentsMapping = departmentsMapping;
 	}
 
 }
