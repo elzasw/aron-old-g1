@@ -18,6 +18,7 @@ import cz.aron.transfagent.domain.Institution;
 import cz.aron.transfagent.elza.ImportInstitution;
 import cz.aron.transfagent.repository.ArchivalEntityRepository;
 import cz.aron.transfagent.repository.DaoRepository;
+import cz.aron.transfagent.repository.FindingAidRepository;
 import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
 import cz.aron.transfagent.service.StorageService;
@@ -27,24 +28,28 @@ public class DatabaseDataProvider implements ContextDataProvider {
 
     private static Logger log = LoggerFactory.getLogger(DatabaseDataProvider.class);
 
-    final private InstitutionRepository institutionRepository;
+    private final InstitutionRepository institutionRepository;
 
-    final private ArchivalEntityRepository entityRepository;
+    private final ArchivalEntityRepository entityRepository;
 
-    final private FundRepository fundRepository;
+    private final FundRepository fundRepository;
+    
+    private final FindingAidRepository findingAidRepository;
 
-    final private DaoRepository daoRepository;
+    private final DaoRepository daoRepository;
 
-    final private StorageService storageService;
+    private final StorageService storageService;
 
     public DatabaseDataProvider(final InstitutionRepository institutionRepository,
             final ArchivalEntityRepository entityRepository,
             final FundRepository fundRepository,
+            final FindingAidRepository findingAidRepository,
             final DaoRepository daoRepository,
             final StorageService storageService) {
         this.institutionRepository = institutionRepository;
         this.entityRepository = entityRepository;
         this.fundRepository = fundRepository;
+        this.findingAidRepository = findingAidRepository;
         this.daoRepository = daoRepository;
         this.storageService= storageService;
     }
@@ -129,6 +134,11 @@ public class DatabaseDataProvider implements ContextDataProvider {
 	@Override
 	public List<ArchEntitySourceInfo> getArchEntityApuSources(List<UUID> uuids, String entityClass) {
 		return this.entityRepository.getArchEntityApuSources(uuids, entityClass);
+	}
+
+	@Override
+	public List<UUID> getValidFindingAids(UUID fundUuid) {
+		return this.findingAidRepository.findValidByFundUuid(fundUuid);
 	}
 
 }

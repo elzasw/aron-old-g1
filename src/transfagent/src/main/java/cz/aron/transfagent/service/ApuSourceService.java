@@ -84,7 +84,8 @@ public class ApuSourceService {
 		apuSource.setReimport(true);
 		return apuSourceRepository.save(apuSource);
 	}
-	
+
+	@Transactional
 	public void reimportAll(ReimportType reimportType) {		
 		SourceType sourceType = null;
 		switch(reimportType) {

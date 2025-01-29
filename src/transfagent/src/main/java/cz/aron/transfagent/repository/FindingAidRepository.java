@@ -1,9 +1,11 @@
 package cz.aron.transfagent.repository;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.FindingAid;
@@ -16,4 +18,8 @@ public interface FindingAidRepository extends JpaRepository<FindingAid, Integer>
     FindingAid findByApuSource(ApuSource apuSource);
 
 	FindingAid findByUuid(UUID uuid);
+	
+	@Query("SELECT fa.uuid FROM FindingAid fa INNER JOIN fa.funds f WHERE f.uuid = :fundUuid AND fa.apuSource.deleted = false")
+	List<UUID> findValidByFundUuid(UUID fundUuid);
+	
 }

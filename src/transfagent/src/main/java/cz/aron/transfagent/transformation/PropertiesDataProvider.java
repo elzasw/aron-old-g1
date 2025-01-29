@@ -68,4 +68,9 @@ public class PropertiesDataProvider implements ContextDataProvider {
 	public List<ArchEntitySourceInfo> getArchEntityApuSources(List<UUID> uuids, String entityClass) {
 		return Collections.emptyList();
 	}
+
+	@Override
+	public List<UUID> getValidFindingAids(UUID fundUuid) {
+		return Collections.emptyList();
+	}
 }

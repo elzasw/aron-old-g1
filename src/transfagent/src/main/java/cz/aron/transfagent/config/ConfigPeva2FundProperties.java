@@ -94,6 +94,8 @@ public class ConfigPeva2FundProperties {
     
     private boolean archdescFlag = false;
     
+    private boolean findingAidFlag = false;
+    
     // posle odkazy na puvodce z CAM
     private boolean camOriginators = false;
     
@@ -380,4 +382,12 @@ public class ConfigPeva2FundProperties {
 		this.departmentsMapping = departmentsMapping;
 	}
 
+	public boolean isFindingAidFlag() {
+		return findingAidFlag;
+	}
+
+	public void setFindingAidFlag(boolean findingAidFlag) {
+		this.findingAidFlag = findingAidFlag;
+	}
+	
 }

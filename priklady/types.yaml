@@ -615,6 +615,10 @@ itemTypes:
     name: Archivní popis
     type: ENUM
     indexed: true
+  - code: FINDINGAID_FLAG
+    name: Pomůcka
+    type: ENUM
+    indexed: true
   - code: INST_REF
     name: Instituce
     type: APU_REF

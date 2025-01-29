@@ -402,12 +402,30 @@ public class ImportPevaFundInfo {
 		var fillFindingAids = fundProperties.isFindingAids();
 		var findingAids = nadSheet.getFindingAids();
 		if (findingAids != null && findingAids.getFindingAid() != null) {
-			findingAids.getFindingAid().forEach(fa -> {
+			boolean faReferenced = false;
+			for(var faUuid : findingAids.getFindingAid()) {
 				if (fillFindingAids) {
-					apusBuilder.addApuRef(partFundInfo, "FINDINGAID_REF", UUID.fromString(fa));
+					apusBuilder.addApuRef(partFundInfo, "FINDINGAID_REF", UUID.fromString(faUuid));
+					faReferenced = true;
 				}
-				this.findingAids.add(fa);
-			});
+				this.findingAids.add(faUuid);
+			}
+			if (faReferenced && fundProperties.isFindingAidFlag()) {
+				var faUuids = dataProvider.getValidFindingAids(UUID.fromString(nadSheet.getId()));
+				boolean validFaReferenced = false;
+				for (var faUuidStr : findingAids.getFindingAid()) {
+					var faUuid = UUID.fromString(faUuidStr);
+					for (var validFaUuid : faUuids) {
+						if (faUuid.equals(validFaUuid)) {
+							validFaReferenced = true;
+							break;
+						}
+					}
+				}
+				if (validFaReferenced) {
+					ApuSourceBuilder.addEnum(partFundInfo, "FINDINGAID_FLAG", "Ano", false);
+				}
+			}
 		}
 	}
     

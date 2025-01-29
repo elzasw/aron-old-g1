@@ -22,5 +22,12 @@ public interface ContextDataProvider {
     UUID getDao(String daoHandle);
     
     List<ArchEntitySourceInfo> getArchEntityApuSources(List<UUID> uuids, String entityClass);
+    
+    /**
+     * Geu UUID of finding aids which exists and not in deleted state
+     * @param fundUuid
+     * @return
+     */
+    List<UUID> getValidFindingAids(UUID fundUuid);
 
 }

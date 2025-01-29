@@ -60,4 +60,9 @@ public class CachedDataProvider implements ContextDataProvider {
 		return provider.getArchEntityApuSources(uuids, entityClass);
 	}
 
+	@Override
+	public List<UUID> getValidFindingAids(UUID fundUuid) {
+		return provider.getValidFindingAids(fundUuid);
+	}
+
 }
