@@ -1,5 +1,6 @@
 package cz.aron.core.ws;
 
+import lombok.extern.slf4j.Slf4j;
 import cz.aron.apux._2020.UuidList;
 import cz.aron.core.model.ApuRepository;
 import cz.aron.core.model.ApuSourceStore;
@@ -17,6 +18,7 @@ import java.util.List;
  * @author Lukas Jane (inQool) 05.11.2020.
  */
 @Endpoint
+@Slf4j
 public class AronCoreEndpoint {
     private static final String NAMESPACE_URI = "http://www.aron.cz/management/v1";
 
@@ -32,6 +34,7 @@ public class AronCoreEndpoint {
             List<String> apusToDelete = apuStore.findIdsBySourceIdBottomUp(sourceId);
             apuRepository.delete(apusToDelete);
             apuSourceStore.delete(sourceId);
+            log.info("Delete apuSource {}, apus {}", sourceId, apusToDelete);
         }
     }
 }
