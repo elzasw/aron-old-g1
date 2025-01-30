@@ -35,6 +35,7 @@ var _configuration = {
   //   "ARCH_DESC_DAO_ONLY",
   //   "ARCH_DESC",
   //   "FUND",
+  //   "FUND_FA_ONLY",
   //   "FINDING_AID",
   //   "ENTITY",
   //   "ORIGINATOR",

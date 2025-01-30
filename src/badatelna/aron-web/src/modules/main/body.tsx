@@ -74,7 +74,9 @@ export const Body: React.FC = () => {
           placeholder = Message.SEARCH_FINDING_AID;
           break;
         case ModulePath.FUND:
-          placeholder = Message.SEARCH_FUND;
+          placeholder = current.filters
+          ? Message.SEARCH_FUND_FA_ONLY
+          : Message.SEARCH_FUND;
           break;
         case ModulePath.ORIGINATOR:
           placeholder = Message.SEARCH_ORIGINATOR;

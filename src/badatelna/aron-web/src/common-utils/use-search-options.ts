@@ -31,6 +31,16 @@ export function useSearchOptions() {
       path: ModulePath.FUND,
       name: formatMessage({id: Message.FUND}),
     },
+    FUND_FA_ONLY: {
+      path: ModulePath.FUND,
+      name: formatMessage({id: Message.FUND_FA_ONLY}),
+      filters: [
+        {
+          source: 'FINDINGAID~FLAG',
+          value: ['Ano'],
+        },
+      ],
+    },
     FINDING_AID: {
       path: ModulePath.FINDING_AID,
       name: formatMessage({id: Message.FINDING_AID}),

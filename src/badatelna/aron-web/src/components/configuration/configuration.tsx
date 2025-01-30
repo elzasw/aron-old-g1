@@ -82,6 +82,7 @@ const defaultConfiguration: ConfigurationType = {
         SearchOption.ARCH_DESC_DAO_ONLY,
         SearchOption.ARCH_DESC,
         SearchOption.FUND,
+        SearchOption.FUND_FA_ONLY,
         SearchOption.FINDING_AID,
         SearchOption.ENTITY,
     ],

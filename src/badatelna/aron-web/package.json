@@ -13,7 +13,8 @@
   "scripts": {
     "build": "webpack --config webpack.config.js --mode=production",
     "build-aron": "webpack --config webpack.config.js --mode=production --urlPrefix=aron",
-    "watch": "TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling webpack --config webpack.config.js --mode=development --watch"
+    "watch": "TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling webpack --config webpack.config.js --mode=development --watch",
+    "watch-aron": "TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling webpack --config webpack.config.js --mode=development --watch --urlPrefix=aron"
   },
   "installConfig": {
     "pnp": true
