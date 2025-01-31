@@ -440,6 +440,14 @@ public class ImportArchDesc implements EdxItemCovertContext {
 		}
 		
 		daoExist = daoExist || processExternalDaos(lvl);
+		if (!daoExist&&!configArchDesc.getDigitalFlagWhen().isEmpty()) {
+			for(DescriptionItem item: lvl.getDdOrDoOrDp()) {
+				if (configArchDesc.getDigitalFlagWhen().contains(item.getT())) {
+					daoExist = true;
+					break;
+				}	            
+	        }
+		}
         
         if(daoExist) {
             ApuSourceBuilder.addEnum(activePart, "DIGITAL", "Ano", false);

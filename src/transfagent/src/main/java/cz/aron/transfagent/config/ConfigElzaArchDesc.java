@@ -38,9 +38,12 @@ public class ConfigElzaArchDesc {
     // mapování přístupových bodů na hodnoty
     private List<ConfigElzaArchDescApMapping> apMappings;
     
-    private Set<ConfigElzaInheritedType> inherited = new HashSet<>();;
+    private Set<ConfigElzaInheritedType> inherited = new HashSet<>();
     
     private boolean inheritAttributes;
+    
+    // pokud existuje atribut nastavi priznak digital
+    private Set<String> digitalFlagWhen = new HashSet<>();
 
     public boolean isAddDateToName() {
         return addDateToName;
@@ -143,5 +146,17 @@ public class ConfigElzaArchDesc {
 			inherited.add(new ConfigElzaInheritedType(ElzaTypes.ZP2015_STORAGE_ID,null));
 		}
 	}
+
+	public Set<String> getDigitalFlagWhen() {
+		return digitalFlagWhen;
+	}
+
+	public void setDigitalFlagWhen(Set<String> digitalFlagWhen) {
+		this.digitalFlagWhen = digitalFlagWhen;
+	}
+
+	public void setInherited(Set<ConfigElzaInheritedType> inherited) {
+		this.inherited = inherited;
+	}	
 
 }
