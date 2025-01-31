@@ -17,6 +17,7 @@ public interface FindingAidRepository extends JpaRepository<FindingAid, Integer>
     @EntityGraph(attributePaths = { "apuSource" })
     FindingAid findByApuSource(ApuSource apuSource);
 
+    @EntityGraph(attributePaths = { "apuSource" })
 	FindingAid findByUuid(UUID uuid);
 	
 	@Query("SELECT fa.uuid FROM FindingAid fa INNER JOIN fa.funds f WHERE f.uuid = :fundUuid AND fa.apuSource.deleted = false")

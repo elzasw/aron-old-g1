@@ -65,4 +65,9 @@ public class CachedDataProvider implements ContextDataProvider {
 		return provider.getValidFindingAids(fundUuid);
 	}
 
+	@Override
+	public FindingAidInfo getFindingAidInfo(UUID uuid) {
+		return provider.getFindingAidInfo(uuid);
+	}
+
 }

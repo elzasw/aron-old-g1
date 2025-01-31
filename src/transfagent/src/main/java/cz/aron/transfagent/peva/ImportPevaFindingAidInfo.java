@@ -1,6 +1,7 @@
 package cz.aron.transfagent.peva;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,7 @@ import cz.aron.peva2.wsdl.UniversalTimeRange;
 import cz.aron.transfagent.config.ConfigPeva2FindingAidProperties;
 import cz.aron.transfagent.transformation.ContextDataProvider;
 import cz.aron.transfagent.transformation.CoreTypes;
+import cz.aron.transfagent.transformation.FindingAidInfo;
 import cz.aron.transfagent.transformation.InstitutionInfo;
 
 public class ImportPevaFindingAidInfo {
@@ -295,6 +297,16 @@ public class ImportPevaFindingAidInfo {
 	
 	public static class FindingAidRemoved extends RuntimeException {
 		
+	}
+ 
+	public static FindingAidInfo getFindingAidInfo(Path dataDirPath, cz.aron.transfagent.domain.FindingAid findingAid) throws IOException, JAXBException {
+		var fileXml = dataDirPath.resolve(findingAid.getApuSource().getDataDir()).resolve("pevafa-"+findingAid.getCode() + ".xml");
+		if (Files.exists(fileXml)) {
+			var gfar = Peva2XmlReader.unmarshalGetFindingAidResponse(fileXml);
+			var fa = gfar.getFindingAid();
+			return new FindingAidInfo(UUID.fromString(fa.getId()), fa.getName());
+		}
+		return null;
 	}
 	
 }

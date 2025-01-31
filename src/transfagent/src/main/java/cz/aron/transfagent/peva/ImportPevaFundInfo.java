@@ -403,27 +403,40 @@ public class ImportPevaFundInfo {
 		var findingAids = nadSheet.getFindingAids();
 		if (findingAids != null && findingAids.getFindingAid() != null) {
 			boolean faReferenced = false;
-			for(var faUuid : findingAids.getFindingAid()) {
+			for (var faUuid : findingAids.getFindingAid()) {
 				if (fillFindingAids) {
 					apusBuilder.addApuRef(partFundInfo, "FINDINGAID_REF", UUID.fromString(faUuid));
 					faReferenced = true;
 				}
 				this.findingAids.add(faUuid);
 			}
-			if (faReferenced && fundProperties.isFindingAidFlag()) {
-				var faUuids = dataProvider.getValidFindingAids(UUID.fromString(nadSheet.getId()));
-				boolean validFaReferenced = false;
-				for (var faUuidStr : findingAids.getFindingAid()) {
-					var faUuid = UUID.fromString(faUuidStr);
-					for (var validFaUuid : faUuids) {
-						if (faUuid.equals(validFaUuid)) {
-							validFaReferenced = true;
-							break;
+			if (faReferenced) {								
+				if (fundProperties.isFindingAidFlag()||fundProperties.isNameSearch("ap.name")) {
+					List<UUID> uuids = new ArrayList<>();
+					// get all valid referenced finding aid uuids
+					var faUuids = dataProvider.getValidFindingAids(UUID.fromString(nadSheet.getId()));					
+					for (var faUuidStr : findingAids.getFindingAid()) {
+						var faUuid = UUID.fromString(faUuidStr);
+						for (var validFaUuid : faUuids) {
+							if (faUuid.equals(validFaUuid)) {
+								uuids.add(faUuid);								
+							}
 						}
 					}
-				}
-				if (validFaReferenced) {
-					ApuSourceBuilder.addEnum(partFundInfo, "FINDINGAID_FLAG", "Ano", false);
+					
+					if (fundProperties.isFindingAidFlag()&&!uuids.isEmpty()) {
+						ApuSourceBuilder.addEnum(partFundInfo, "FINDINGAID_FLAG", "Ano", false);
+					}
+					
+					if (fundProperties.isNameSearch("ap.name")) {
+						for(var uuid:uuids) {
+							var faInfo = dataProvider.getFindingAidInfo(uuid);
+							if (faInfo != null) {
+								nameSearchComponent.add(faInfo.getName());
+							}	
+						}												
+					}					
+
 				}
 			}
 		}

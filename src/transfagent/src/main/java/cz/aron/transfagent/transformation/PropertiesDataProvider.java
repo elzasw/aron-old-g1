@@ -73,4 +73,9 @@ public class PropertiesDataProvider implements ContextDataProvider {
 	public List<UUID> getValidFindingAids(UUID fundUuid) {
 		return Collections.emptyList();
 	}
+
+	@Override
+	public FindingAidInfo getFindingAidInfo(UUID uuid) {
+		return null;
+	}
 }

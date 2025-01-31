@@ -24,10 +24,17 @@ public interface ContextDataProvider {
     List<ArchEntitySourceInfo> getArchEntityApuSources(List<UUID> uuids, String entityClass);
     
     /**
-     * Geu UUID of finding aids which exists and not in deleted state
+     * Get UUID of finding aids which exists and not in deleted state
      * @param fundUuid
      * @return
      */
     List<UUID> getValidFindingAids(UUID fundUuid);
 
+    /**
+     * Return basic information about finding aid
+     * @param uuid of finding aid
+     * @return FindingAidInfo
+     */
+    FindingAidInfo getFindingAidInfo(UUID uuid);
+    
 }

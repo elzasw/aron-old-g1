@@ -1,6 +1,7 @@
 package cz.aron.transfagent.transformation;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.Institution;
 import cz.aron.transfagent.elza.ImportInstitution;
+import cz.aron.transfagent.peva.ImportPevaFindingAidInfo;
+import cz.aron.transfagent.peva.Peva2XmlReader;
 import cz.aron.transfagent.repository.ArchivalEntityRepository;
 import cz.aron.transfagent.repository.DaoRepository;
 import cz.aron.transfagent.repository.FindingAidRepository;
@@ -139,6 +142,20 @@ public class DatabaseDataProvider implements ContextDataProvider {
 	@Override
 	public List<UUID> getValidFindingAids(UUID fundUuid) {
 		return this.findingAidRepository.findValidByFundUuid(fundUuid);
+	}
+
+	@Override
+	public FindingAidInfo getFindingAidInfo(UUID uuid) {
+		var fa = findingAidRepository.findByUuid(uuid);
+		if (fa!=null) {					
+			try {
+				return ImportPevaFindingAidInfo.getFindingAidInfo(storageService.getDataPath(), fa);
+			} catch (Exception e) {
+				log.error("Fail to get finding aid info for uuid={}", uuid, e);
+				throw new RuntimeException(e);
+			}							
+		}		
+		return null;
 	}
 
 }
