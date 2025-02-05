@@ -351,4 +351,17 @@ public class ArchivalEntityService {
         cq.where(p);
     }
 
+    
+	@Transactional
+	public void markEntityForDownloadAndReimport(UUID uuid) {
+		Optional<ArchivalEntity> ae = archivalEntityRepository.findByUuidWithApuSource(uuid);
+		if (ae.isPresent()) {
+			ArchivalEntity entity = ae.get();
+			entity.setDownload(true);
+			entity.getApuSource().setReimport(true);
+			archivalEntityRepository.save(entity);
+			log.info("Archival entity {} marked for download and reimport", uuid);
+		}
+	}
+    
 }

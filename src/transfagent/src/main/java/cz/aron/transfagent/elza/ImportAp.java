@@ -121,6 +121,12 @@ public class ImportAp implements EdxItemCovertContext {
             return importAp(expUuid);
         }
     }
+    
+    public ApuSourceBuilder importAp(ElzaXmlReader elzaXmlReader, UUID expUuid, final ContextDataProvider cdp) throws IOException, JAXBException {
+    	this.dataProvider = cdp;
+    	this.elzaXmlReader = elzaXmlReader;
+    	return importAp(expUuid);
+    }
 
     private ApuSourceBuilder importAp(final UUID expUuid) {
         AccessPoint ap;

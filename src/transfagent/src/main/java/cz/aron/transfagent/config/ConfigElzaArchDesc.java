@@ -44,6 +44,8 @@ public class ConfigElzaArchDesc {
     
     // pokud existuje atribut nastavi priznak digital
     private Set<String> digitalFlagWhen = new HashSet<>();
+    
+    private boolean refreshEntities;
 
     public boolean isAddDateToName() {
         return addDateToName;
@@ -157,6 +159,14 @@ public class ConfigElzaArchDesc {
 
 	public void setInherited(Set<ConfigElzaInheritedType> inherited) {
 		this.inherited = inherited;
+	}
+
+	public boolean isRefreshEntities() {
+		return refreshEntities;
+	}
+
+	public void setRefreshEntities(boolean refreshEntities) {
+		this.refreshEntities = refreshEntities;
 	}	
 
 }

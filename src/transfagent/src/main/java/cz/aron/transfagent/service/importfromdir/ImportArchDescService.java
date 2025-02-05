@@ -33,6 +33,7 @@ import cz.aron.transfagent.domain.Fund;
 import cz.aron.transfagent.domain.SourceType;
 import cz.aron.transfagent.elza.ApTypeService;
 import cz.aron.transfagent.elza.ImportArchDesc;
+import cz.aron.transfagent.elza.ImportArchDescRefreshEntitiesCommand;
 import cz.aron.transfagent.elza.dao.ArchDescLevelDaoImporter;
 import cz.aron.transfagent.peva.ArchiveFundId;
 import cz.aron.transfagent.repository.ApuSourceRepository;
@@ -99,6 +100,8 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
     private final ConfigElzaArchDesc configArchDesc;
     
     private final AttachmentService attachmentService;
+    
+    private final ImportArchDescRefreshEntitiesCommand refreshEntitiesCommand;
 
     final private String ARCHDESC_DIR = "archdesc";
 
@@ -115,7 +118,8 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
             @Nullable LevelEnrichmentService levelEnrichmentService,
             @Nullable ConfigElzaArchDesc configArchDesc,
             AttachmentService attachmentService,
-            List<ArchDescLevelDaoImporter> archDescLevelDaoImporters) {
+            List<ArchDescLevelDaoImporter> archDescLevelDaoImporters,
+            ImportArchDescRefreshEntitiesCommand refreshEntitiesCommand) {
         this.apTypeService = apTypeService;
         this.apuSourceService = apuSourceService;
         this.reimportService = reimportService;
@@ -141,6 +145,7 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
             this.configArchDesc = configArchDesc;
         }
         this.archDescLevelDaoImporters = archDescLevelDaoImporters;
+        this.refreshEntitiesCommand = refreshEntitiesCommand;
     }
 
     @PostConstruct
@@ -268,6 +273,10 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         daoImportService.updateDaos(archDesc.getApuSource(), getDaoSources(iad));
         var attachmentPaths = iad.getAttachments().stream().map(a -> a.getPath()).collect(Collectors.toList());
         attachmentService.updateAttachments(archDesc.getApuSource(), apusrcBuilder, attachmentPaths);
+
+        if (configArchDesc.isRefreshEntities()) {
+        	refreshEntitiesCommand.scheduleRefresh(archDesc.getId());	
+        }        
     }
 
     

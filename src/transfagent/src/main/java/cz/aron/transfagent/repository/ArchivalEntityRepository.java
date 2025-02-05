@@ -26,6 +26,9 @@ public interface ArchivalEntityRepository extends JpaRepository<ArchivalEntity, 
     
     Optional<ArchivalEntity> findByUuid(UUID uuid);
     
+    @Query("SELECT ae FROM ArchivalEntity ae JOIN FETCH ae.apuSource apuS WHERE ae.uuid = :uuid")
+    Optional<ArchivalEntity> findByUuidWithApuSource(@Param("uuid") UUID uuid);
+    
     Optional<ArchivalEntity> findByElzaId(Integer elzaId);
     
     List<IdProjection> findTop1000ByStatusOrderById(EntityStatus status);
@@ -106,5 +109,12 @@ public interface ArchivalEntityRepository extends JpaRepository<ArchivalEntity, 
     		+ "WHERE ae.uuid in (:uuids) AND ae.status in ('ACCESSIBLE', 'AVAILABLE') "
     		+ "GROUP BY ae.uuid, apuS.dataDir, apuS.uuid, ae.status, apuS.lastSent")
     List<ArchEntitySourceInfo> getArchEntityApuSourcesWithScheduled(@Param("uuids") List<UUID> uuids);
+    
+    @Query("SELECT ae "
+    		+ "FROM ArchivalEntity ae "
+    		+ "INNER JOIN EntitySource es ON es.archivalEntity = ae "
+    		+ "LEFT JOIN FETCH ae.apuSource apuS "
+    		+ "WHERE es.apuSource.id = :apuSourceId AND ae.status in ('ACCESSIBLE', 'AVAILABLE')")
+    List<ArchivalEntity> findRelatedToApuSourceId(@Param("apuSourceId") int apuSourceId);
     
 }
