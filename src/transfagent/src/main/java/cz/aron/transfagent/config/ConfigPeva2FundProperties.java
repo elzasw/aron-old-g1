@@ -101,6 +101,8 @@ public class ConfigPeva2FundProperties {
     
     private boolean departments = false;
     
+    private boolean permalink = false;
+    
     private List<ConfigPeva2FundDepartment> departmentsMapping;
     
     private Set<String> nameSearchComponents = new HashSet<>();
@@ -389,5 +391,13 @@ public class ConfigPeva2FundProperties {
 	public void setFindingAidFlag(boolean findingAidFlag) {
 		this.findingAidFlag = findingAidFlag;
 	}
-	
+
+	public boolean isPermalink() {
+		return permalink;
+	}
+
+	public void setPermalink(boolean permalink) {
+		this.permalink = permalink;
+	}
+
 }

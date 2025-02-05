@@ -98,6 +98,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
     private final DaoFileStore3Service daoFileStore3Service;
     
     private final ApTypeService apTypeService;
+    
+    private final PermalinkGenerator permalinkGenerator;
 
 	public ImportPevaFund(FundRepository fundRepository, InstitutionRepository institutionRepository,
 			DatabaseDataProvider databaseDataProvider, ConfigurationLoader configurationLoader, ConfigPeva2 configPeva2,
@@ -105,7 +107,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			Peva2CodeListDownloader codeListDownloader, Peva2CachedEntityDownloader entityDownloader,
 			ArchivalEntityService archivalEntityService, AttachmentService attachmentService,
 			ArchDescRepository archDescRepository, DaoImportService daoImportService,
-			@Nullable DaoFileStore3Service daoFileStore3Service,ApTypeService apTypeService) {
+			@Nullable DaoFileStore3Service daoFileStore3Service,ApTypeService apTypeService,
+			@Nullable PermalinkGenerator permalinkGenerator) {
 		super();
 		this.fundRepository = fundRepository;
 		this.institutionRepository = institutionRepository;
@@ -123,6 +126,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		this.daoImportService = daoImportService;
 		this.daoFileStore3Service = daoFileStore3Service;
 		this.apTypeService = apTypeService;
+		this.permalinkGenerator = permalinkGenerator;
 	}
     
 	@Override
@@ -224,7 +228,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
         }
         
         var daos = addDaos(apusrcBuilder, ifi.getInstitutionCode(), ifi.getNadNumber());
-
+        
+        
         try (var fos = Files.newOutputStream(dir.resolve(StorageService.APUSRC_XML))) {
             apusrcBuilder.build(fos, new ApuValidator(configurationLoader.getConfig()));
         } catch (IOException ioEx) {
@@ -332,6 +337,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			});
 
 			var daos = addDaos(apuSourceBuilder, ifi.getInstitutionCode(), ifi.getNadNumber());
+			addPermalink(apuSourceBuilder, ifi.getInstitutionCode(), ifi.getPrimarySheetNumber(), ifi.getSubSheetNumber());
 			
 			// compare original apusrc.xml and newly generated
 			var apuSrcXmlPath = apuPath.resolve(StorageService.APUSRC_XML);			
@@ -491,6 +497,15 @@ public class ImportPevaFund implements FundImporter, FundProvider {
             }
         }
         return Collections.emptyList();
+    }
+    
+    private void addPermalink(ApuSourceBuilder apuSourceBuilder, String archiveCode, String fundCode, Integer subFundCode) {    	
+    	if (permalinkGenerator!=null&&this.configPeva2.getFundProperties().isPermalink()) {
+			var permalink = permalinkGenerator.generateFundPermalink(archiveCode, fundCode, subFundCode);
+			if (permalink!=null) {
+				apuSourceBuilder.getMainApu().setPrmLnk(permalink);
+			}
+		}    	
     }
 
 	private UUID getArchDescUUID(Fund fund) {

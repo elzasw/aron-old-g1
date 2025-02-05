@@ -86,6 +86,10 @@ public class ImportPevaFundInfo {
     
     private UUID archDescRoot;
     
+    private String primarySheetNumber;
+    
+    private Integer subSheetNumber;
+    
     private final List<String> originators = new ArrayList<>();
     
     private final List<String> camOriginators = new ArrayList<>();
@@ -270,7 +274,9 @@ public class ImportPevaFundInfo {
 
 	private void processEvidenceNumber(NadPrimarySheet primarySheet, NadSubsheet subsheet, Part partFundInfo) {
 		if (StringUtils.isNotBlank(primarySheet.getEvidenceNumber())) {
+			primarySheetNumber = primarySheet.getEvidenceNumber();
 			if (subsheet != null && subsheet.getNumber() != null) {
+				subSheetNumber = subsheet.getNumber();
 				ApuSourceBuilder.addString(partFundInfo, "CISLO_NAD",
 						primarySheet.getEvidenceNumber() + "/" + subsheet.getNumber());
 				nadNumber = primarySheet.getEvidenceNumber() + "_" + subsheet.getNumber();
@@ -1133,5 +1139,15 @@ public class ImportPevaFundInfo {
 	public static class FundRemoved extends RuntimeException {
 		
 	}
+
+	public String getPrimarySheetNumber() {
+		return primarySheetNumber;
+	}
+
+	public Integer getSubSheetNumber() {
+		return subSheetNumber;
+	}
+	
+	
 	
 }

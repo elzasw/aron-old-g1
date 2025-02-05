@@ -25,15 +25,17 @@ import org.springframework.stereotype.Service;
 
 import cz.aron.transfagent.common.MonitoredFileResource;
 import cz.aron.transfagent.config.ConfigDaoFileStore5;
+import cz.aron.transfagent.config.ConfigDaoFileStore5Institution;
 import cz.aron.transfagent.domain.Dao;
 import cz.aron.transfagent.domain.DaoState;
+import cz.aron.transfagent.peva.PermalinkGenerator;
 import cz.aron.transfagent.service.DaoImportService.DaoImporter;
 import cz.aron.transfagent.service.importfromdir.TransformService;
 import cz.aron.transfagent.service.importfromdir.TransformService.TileThumbnailUrl;
 
 @ConditionalOnProperty(value = "filestore5.path")
 @Service
-public class DaoFileStore5Service implements DaoImporter, AttachmentSource {
+public class DaoFileStore5Service implements DaoImporter, AttachmentSource, PermalinkGenerator {
 
 	private static final Logger log = LoggerFactory.getLogger(DaoFileStore5Service.class);
 
@@ -382,6 +384,60 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource {
 			}
 		}
 
+	}
+
+	@Override
+	public String generateFundPermalink(String archiveCode, String fundCode, Integer subFundCode) {
+		ConfigDaoFileStore5Institution institution = null;
+		for (var inst : config.getInstitutions()) {
+			if (inst.getInstitutionCode().equals(archiveCode)) {
+				institution = inst;
+				break;
+			}
+		}
+		if (institution == null) {
+			return null;
+		}
+		var builder = new StringBuilder();
+		builder.append("/").append(institution.getShortcut()).append("/")
+				.append(fundCode);
+		if (subFundCode != null) {
+			builder.append("-");
+			builder.append(String.format("%03d", subFundCode));
+		}
+		return builder.toString();
+	}
+
+	@Override
+	public String generateApPermalink(String archiveCode, String findingAidCode, String findingAidPartNumber) {
+		ConfigDaoFileStore5Institution institution = null;
+		for (var inst : config.getInstitutions()) {
+			if (inst.getInstitutionCode().equals(archiveCode)) {
+				institution = inst;
+				break;
+			}
+		}
+		if (institution == null) {
+			return null;
+		}
+		var builder = new StringBuilder();
+		builder.append("/").append(institution.getShortcut()).append("/ap");
+		try {
+			var code = Integer.parseInt(findingAidCode);
+			builder.append(String.format("%04d", code));
+		} catch (NumberFormatException e) {
+			builder.append(findingAidCode);
+		}		
+		if (findingAidPartNumber != null) {
+			builder.append("-");
+			try {
+				var partNumber = Integer.parseInt(findingAidPartNumber);				
+				builder.append(String.format("%03d", partNumber));
+			} catch (NumberFormatException e) {
+				builder.append(findingAidPartNumber);
+			}
+		}
+		return builder.toString();
 	}
 
 }

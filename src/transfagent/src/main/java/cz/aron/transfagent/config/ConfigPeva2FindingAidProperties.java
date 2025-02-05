@@ -19,6 +19,8 @@ public class ConfigPeva2FindingAidProperties {
     
     // pokud nenajde fond, tak se ho pokusi importovat jako command
     private boolean importMissingFund;
+    
+    private boolean permalink;
 
 	public boolean isComposedFindingAidName() {
 		return composedFindingAidName;
@@ -66,6 +68,14 @@ public class ConfigPeva2FindingAidProperties {
 
 	public void setComposedShortFindingAidName(boolean composedShortFindingAidName) {
 		this.composedShortFindingAidName = composedShortFindingAidName;
+	}
+
+	public boolean isPermalink() {
+		return permalink;
+	}
+
+	public void setPermalink(boolean permalink) {
+		this.permalink = permalink;
 	}
 
 }
