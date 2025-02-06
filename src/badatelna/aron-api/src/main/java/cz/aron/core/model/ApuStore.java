@@ -126,4 +126,9 @@ public class ApuStore extends DomainStore<ApuEntity, ApuEntity, QApuEntity> {
 				.fetch();
 		return result;
 	}
+	
+    public String findIdByPermalink(String permalink) {
+        return query().select(metaModel.id).from(metaModel).where(metaModel.permalink.eq(permalink)).fetchOne();
+    }
+
 }

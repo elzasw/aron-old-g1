@@ -259,4 +259,11 @@
             <column name="selected" type="boolean"/>
         </addColumn>
     </changeSet>
+    <changeSet id="aron:11" author="zacek@lightcomp.cz">
+      <sql>
+        CREATE INDEX idx_apu_entity_permalink
+        ON apu_entity (permalink)
+        WHERE permalink IS NOT NULL;
+      </sql>
+    </changeSet>
 </databaseChangeLog>
