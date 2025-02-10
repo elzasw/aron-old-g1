@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class RedirectApi {
 	
 	@Inject private ApuStore apuStore;
+	@Inject private ApuAttachmentStore apuAttachmentStore;
 
 	@GetMapping("/redirect/**")
     public RedirectView redirect(HttpServletRequest request) {		
@@ -33,5 +34,22 @@ public class RedirectApi {
 
         return new RedirectView(redirectUrl);
     }
+	
+	@GetMapping("/attachment/**")
+	public RedirectView redirectAttachment(HttpServletRequest request) {
+		String wildcardPath = request.getRequestURI().replace("/api/aron/attachment/", "");
+		log.info("Get attachment {}", wildcardPath);
+		var ids = apuAttachmentStore.findFileIdsByName(wildcardPath);
+		if (ids.isEmpty()) {
+			log.warn("Attachment not found for permalink: {}", wildcardPath);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found");
+		} else if (ids.size() > 1) {
+			log.warn("Multiple attachment not found for permalink: {}", wildcardPath);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Multiple attachment not found");
+		}				
+		String redirectUrl = "/api/aron/file/" + ids.get(0);
+		log.info("Redirecting from /attachment/{} to {}", wildcardPath, redirectUrl);		
+		return new RedirectView(redirectUrl);		
+	}
 	
 }

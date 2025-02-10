@@ -266,4 +266,11 @@
         WHERE permalink IS NOT NULL;
       </sql>
     </changeSet>
+    <changeSet id="aron:12" author="zacek@lightcomp.cz">
+      <sql>
+        CREATE INDEX idx_apu_attachment_name
+        ON apu_attachment (name);
+      </sql>
+    </changeSet>
+
 </databaseChangeLog>
