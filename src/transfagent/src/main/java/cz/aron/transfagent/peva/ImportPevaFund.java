@@ -228,6 +228,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
         }
         
         var daos = addDaos(apusrcBuilder, ifi.getInstitutionCode(), ifi.getNadNumber());
+        addPermalink(apusrcBuilder, ifi.getInstitutionCode(), ifi.getPrimarySheetNumber(), ifi.getSubSheetNumber());
         
         
         try (var fos = Files.newOutputStream(dir.resolve(StorageService.APUSRC_XML))) {

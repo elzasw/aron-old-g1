@@ -90,13 +90,16 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 	
 	private final List<FindingAidDaoImporter> daoImporters;
 	
+	private final PermalinkGenerator permalinkGenerator;
+	
 	public ImportPevaFindingAid(StorageService storageService, FindingAidService findingAidService,
 			FindingAidRepository findingAidRepository, FundRepository fundRepository,
 			InstitutionRepository institutionRepository, DatabaseDataProvider databaseDataProvider,
 			ConfigurationLoader configurationLoader, TransactionTemplate transactionTemplate,
 			Peva2CodeListProvider codeListProvider, ConfigPeva2 configPeva2,DaoImportService daoImportService,
             @Nullable DaoFileStore3Service daoFileStore3Service,
-            List<FindingAidDaoImporter> daoImporters) {
+            List<FindingAidDaoImporter> daoImporters,
+            @Nullable PermalinkGenerator permalinkGenerator) {
 		this.storageService = storageService;
 		this.findingAidService = findingAidService;
 		this.findingAidRepository = findingAidRepository;
@@ -110,6 +113,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 		this.daoImportService = daoImportService;
 		this.daoFileStore3Service = daoFileStore3Service;
 		this.daoImporters = daoImporters;
+		this.permalinkGenerator = permalinkGenerator;
 	}
 
 	@Override
@@ -201,6 +205,8 @@ public class ImportPevaFindingAid implements FindingAidImporter {
         processFindingAidAuthors(builder, ifai.getAuthorUUIDs());
         List<Path> attachments = readAllAttachments(dir, builder);
         Collection<DaoSource> daos = addDaos(builder,ifai.getInstitutionCode(),ifai.getFindingAidCode(),ifai.getFindingAidPartNumber());
+        addPermalink(builder, ifai.getInstitutionCode(), ifai.getFindingAidCode(), ifai.getFindingAidPartNumber());
+        
         try (var fos = Files.newOutputStream(dir.resolve("apusrc.xml"))) {
             builder.setUuid(apusourceUuid);
             builder.build(fos, new ApuValidator(configurationLoader.getConfig()));
@@ -242,6 +248,16 @@ public class ImportPevaFindingAid implements FindingAidImporter {
     	return true;
 	}
 	
+	
+	private void addPermalink(ApuSourceBuilder apuSourceBuilder, String archiveCode, String findingAidCode,
+			String findingAidSubCode) {
+		if (permalinkGenerator != null && this.configPeva2.getFindingAidProperties().isPermalink()) {
+			var permalink = permalinkGenerator.generateApPermalink(archiveCode, findingAidCode, findingAidSubCode);
+			if (permalink != null) {
+				apuSourceBuilder.getMainApu().setPrmLnk(permalink);
+			}
+		}
+	}
 	
 	private List<Path> createRelativeAttachmentPaths(List<Path> attachments, Path dataDir) {
 		if (attachments != null) {
@@ -371,6 +387,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			List<Path> attachments = createRelativeAttachmentPaths(readAllAttachments(apuPath, builder),
 					relativeDataDir);
 			Collection<DaoSource> daos = addDaos(builder,ifai.getInstitutionCode(),ifai.getFindingAidCode(),ifai.getFindingAidPartNumber());
+			addPermalink(builder, ifai.getInstitutionCode(), ifai.getFindingAidCode(), ifai.getFindingAidPartNumber());
 
 			// compare original apusrc.xml and newly generated
 			var apuSrcXmlPath = apuPath.resolve(StorageService.APUSRC_XML);
