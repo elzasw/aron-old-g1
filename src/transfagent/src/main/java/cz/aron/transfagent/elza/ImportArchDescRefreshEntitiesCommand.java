@@ -3,6 +3,7 @@ package cz.aron.transfagent.elza;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -91,8 +92,20 @@ public class ImportArchDescRefreshEntitiesCommand implements CommandProcessor {
 			log.error("ArchDesc id {} not found", archdescId);
 			return;
 		}
-		var dataDir = storageService.getApuDataDir(archDesc.getApuSource().getDataDir());		
-		var inputFile = dataDir.resolve(dataDir.getFileName().toString() + ".xml");		
+		var dataDir = storageService.getApuDataDir(archDesc.getApuSource().getDataDir());
+		Path inputFile = null;
+		try (var stream = Files.list(dataDir)) {
+			var tmp =  stream.filter(f -> Files.isRegularFile(f) && f.getFileName().toString().startsWith("archdesc")
+					&& f.getFileName().toString().endsWith(".xml")).findFirst();
+			if (tmp.isEmpty()) {
+				log.warn("Directory not contain archdesc- file. Directory {}", dataDir);
+				return;
+			} else {
+				inputFile = tmp.get();
+			}
+		} catch (IOException ioEx) {
+			throw new UncheckedIOException(ioEx);
+		}				
 		ElzaXmlReader elzaXmlReader = null;
 		try (InputStream is = Files.newInputStream(inputFile)) {
 			elzaXmlReader = ElzaXmlReader.read(is);

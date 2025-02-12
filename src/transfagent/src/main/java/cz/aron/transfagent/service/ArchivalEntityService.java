@@ -360,7 +360,7 @@ public class ArchivalEntityService {
 			entity.setDownload(true);
 			entity.getApuSource().setReimport(true);
 			archivalEntityRepository.save(entity);
-			log.info("Archival entity {} marked for download and reimport", uuid);
+			log.info("Archival entity uuid={}, elza_id={}, class={} marked for download and reimport", uuid, entity.getElzaId(), entity.getEntityClass());
 		}
 	}
     
