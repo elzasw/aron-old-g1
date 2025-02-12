@@ -508,5 +508,10 @@
       referencedTableName="users"
       referencedColumnNames="username"/>
  </changeSet>
-
+ 
+ <changeSet author="karel.zacek@lightcomp.cz" id="10">
+     <createIndex indexName="idx_archival_entity_elza_id" tableName="archival_entity">
+      <column name="elza_id" />
+    </createIndex>
+ </changeSet>
 </databaseChangeLog>
