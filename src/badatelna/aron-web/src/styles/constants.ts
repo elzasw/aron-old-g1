@@ -10,6 +10,9 @@ export const colorBlueVeryLight = '#eef7ff';
 export const colorGrey = '#616161';
 export const colorGreyLight = '#dbdbdb';
 export const colorRed = '#d73f3b';
+export const colorYellowLight = 'hsl(47.7, 100%, 85.7%)';
+export const colorYellow = 'hsl(47.7, 70%, 60.7%)';
+export const colorYellowDark = 'hsl(47.7, 70%, 22.2%)';
 
 export const colorText = colorGrey;
 

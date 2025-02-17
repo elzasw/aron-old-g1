@@ -7,7 +7,7 @@ import { KeyboardArrowLeft, KeyboardArrowRight, WarningRounded } from "@material
 
 import { useStyles } from './styles';
 import { useLayoutStyles } from '../../styles/layout';
-import { useSpacingStyles, colorRed, colorWhite } from '../../styles';
+import { useSpacingStyles, colorYellow, colorYellowDark, colorYellowLight } from '../../styles';
 import { ModulePath, pageSizeOptions, Message } from '../../enums';
 import { Select, Loading, useConfiguration, Button } from '../../components';
 import { useWindowSize, useApiListSimple } from '../../common-utils';
@@ -96,9 +96,10 @@ function ItemsList() {
               style={{
                 width: '100%',
                 padding: `0.8rem 1.25rem`,
-                backgroundColor: colorRed,
+                backgroundColor: colorYellowLight,
                 borderRadius: "4px",
-                color: colorWhite,
+                color: colorYellowDark,
+                border: `1px solid ${colorYellow}`,
                 display: 'flex',
                 alignItems: 'center',
               }}
