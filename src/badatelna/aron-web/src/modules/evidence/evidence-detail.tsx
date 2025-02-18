@@ -277,6 +277,7 @@ export function EvidenceDetail({
                 ...apuPartType,
                 name: getLocalizedName(apuPartType.lang, apuPartType.name),
                 items: getApuPartItems(part),
+                value: part.value,
               };
             }
           )
@@ -511,6 +512,7 @@ export function EvidenceDetail({
                       {...{
                         key: `${id}-${partItem.name}-${index}`,
                         ...partItem,
+                        value: partItem.value,
                         index,
                         open,
                         apuId: item?.id,

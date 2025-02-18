@@ -159,6 +159,10 @@ export const useStyles = makeStyles((theme) => {
         marginTop: 0,
       },
     },
+    evidenceDetailSectionTitle: {
+      fontWeight: "bold",
+      fontSize: "1rem",
+    },
     evidenceDetailDescription: {
       fontWeight: 400,
       whiteSpace: 'pre-wrap',

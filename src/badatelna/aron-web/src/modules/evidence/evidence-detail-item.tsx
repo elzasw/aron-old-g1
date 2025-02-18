@@ -17,6 +17,7 @@ export function EvidenceDetailItem({
   items,
   open: outterOpen,
   index,
+  value,
 }: {
   apuId?: string;
   name: string;
@@ -24,6 +25,7 @@ export function EvidenceDetailItem({
   items: any[];
   open: boolean;
   index: number;
+  value?: string;
 }) {
   const configuration = useConfiguration();
   const classes = useStyles({alternativeItemLabel: configuration.alternativeItemLabel});
@@ -44,12 +46,12 @@ export function EvidenceDetailItem({
     }
   }, [viewType, outterOpen, previousOutterOpen]);
 
-  const labelClassName = classNames(
+  const labelClassName = value ? classNames(
     classes.evidenceDetailItemText,
     classes.evidenceDetailItemLabel,
     spacingClasses.marginRight,
     spacingClasses.paddingRight
-  );
+  ) : classes.evidenceDetailSectionTitle;
 
   const isGrouped = viewType === ApuPartViewType.GROUPED;
 
