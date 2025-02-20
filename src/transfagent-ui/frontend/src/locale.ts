@@ -9,6 +9,7 @@ export default {
         "navigation.entities" : "Entity",
         "navigation.archdescs" : "Archiválie",
         "navigation.institutions" : "Instituce",
+        "navigation.users" : "Uživatelé",
 
         "btn" : "Button",
         "filter" : "Filtrovat",
@@ -131,6 +132,15 @@ export default {
         "institutionColumn.code" : "Číslo archivu",
         "institutionColumn.apusourceId" : "Apusrc id",
         "institutionColumn.institutionId" : "Id",
+
+        "userColumn.actions" : " ",
+        "userColumn.username" : "Uživatelské jméno",
+        "userColumn.enabled" : "Aktivní",
+
+        "users.disable.confirm.title": "Deaktivace uživatele",
+        "users.disable.confirm.message": "Přejete si deaktivovat uživatele {id}?",
+        "users.enable.confirm.title": "Aktivace uživatele",
+        "users.enable.confirm.message": "Přejete si aktivovat uživatele {id}?",
 
         "reimport" : "Znovu odeslat",
         "reimport.success" : "Reimport úspěšně naplánován",

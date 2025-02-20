@@ -270,6 +270,59 @@ paths:
               schema:
                 $ref: '#/components/schemas/ArchDescResponse'
 
+  /users:
+    get:
+      tags:
+        - Transfagent                
+      operationId: getUsers
+      description: Return list of user
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: code of archdesc
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+    post:
+      tags:
+        - Transfagent                
+      operationId: createUser
+      description: Create new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '200':
+          description: User successfully created
+                
+  /users/enabled:
+    patch:
+      tags:
+        - Transfagent
+      operationId: changeEnabled
+      description: Mark dao for reimport in database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEnabled'
+      responses:
+        '200':
+          description: The request has succeeded.
+
 components:
   parameters:
     apuId:
@@ -625,7 +678,52 @@ components:
         - FUND
         - FINDINGAID
         - ARCH_ENTITY
-      description: Reimport all type   
+      description: Reimport all type
+    UserDef:
+      type: object
+      required:
+        - username
+        - enabled      
+      properties:
+        username:
+          type: string
+        enabled:
+          type: boolean
+    UsersResponse:
+      type: object
+      required:
+        - items
+        - totalCount
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserDef'
+        totalCount:
+          type: integer
+          format: int32
+      description: Returned list of users
+    UserCreate:
+      type: object
+      required:
+        - username
+        - hash      
+      properties:
+        username:
+          type: string
+        hash:
+          type: string
+    UserEnabled:
+      type: object
+      required:
+        - username
+        - enabled      
+      properties:
+        username:
+          type: string
+        enabled:
+          type: boolean
+
 servers:
   - url: https://localhost:3000/
     description: Devel server

@@ -7,7 +7,7 @@ import {
     Params,
 } from "react-router-dom";
 import RootLayout from "./RootLayout";
-import { DaosList, FundsList, SourcesList, EntityList, AidsList, ArchDescList } from "./components";
+import { DaosList, FundsList, SourcesList, EntityList, AidsList, ArchDescList, UsersList } from "./components";
 import { InstitutionsList } from "./components/IntitutionsList";
 
 //@ts-ignore
@@ -57,6 +57,15 @@ export const getInstitutionsPath = (filter?: string) => {
     return URL_INSTITUTIONS
 }
 
+export const URL_USERS = "/users";
+export const getUsersPath = (filter?: string) => {
+    if (filter != undefined) {
+        return `${URL_USERS}?filter=${filter}`;
+    }
+    return URL_USERS
+}
+
+
 const router = createBrowserRouter(
     createRoutesFromElements(
         <Route path="/" element={<RootLayout />}>
@@ -68,6 +77,7 @@ const router = createBrowserRouter(
             <Route path={`${URL_AIDS}`} element={<AidsList />} />
             <Route path={`${URL_ARCHDESCS}`} element={<ArchDescList />} />
             <Route path={`${URL_INSTITUTIONS}`} element={<InstitutionsList />} />
+            <Route path={`${URL_USERS}`} element={<UsersList />} />
         </Route>
     ),
     {

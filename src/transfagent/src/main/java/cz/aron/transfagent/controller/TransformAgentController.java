@@ -30,6 +30,9 @@ import cz.aron.api.rest.model.FindingAidsResponse;
 import cz.aron.api.rest.model.FundsResponse;
 import cz.aron.api.rest.model.InstitutionResponse;
 import cz.aron.api.rest.model.ReimportType;
+import cz.aron.api.rest.model.UserCreate;
+import cz.aron.api.rest.model.UserEnabled;
+import cz.aron.api.rest.model.UsersResponse;
 import cz.aron.transfagent.service.ApuSourceService;
 import cz.aron.transfagent.service.ArchDescService;
 import cz.aron.transfagent.service.ArchivalEntityService;
@@ -37,6 +40,7 @@ import cz.aron.transfagent.service.DaoImportService;
 import cz.aron.transfagent.service.FindingAidService;
 import cz.aron.transfagent.service.FundService;
 import cz.aron.transfagent.service.InstitutionsService;
+import cz.aron.transfagent.service.UserService;
 
 @CrossOrigin
 @RestController
@@ -60,13 +64,16 @@ public class TransformAgentController implements TransfagentApi {
     
     private final InstitutionsService institutionsService;
 
+    private final UserService userService;
+    
     public TransformAgentController(ApuSourceService apuSourceService, 
     							    DaoImportService daoImportService,
                                     FundService fundService,
                                     FindingAidService findingAidService, 
                                     ArchivalEntityService archivalEntityService,
                                     ArchDescService archDescService,
-                                    InstitutionsService institutionsService) {
+                                    InstitutionsService institutionsService,
+                                    UserService userService) {
         this.apuSourceService = apuSourceService;
         this.daoImportService = daoImportService;
         this.fundService = fundService;
@@ -74,6 +81,7 @@ public class TransformAgentController implements TransfagentApi {
         this.archivalEntityService = archivalEntityService;
         this.archDescService = archDescService;
         this.institutionsService = institutionsService;
+        this.userService = userService;
         log.info("UI controller started");
     }
 
@@ -183,5 +191,24 @@ public class TransformAgentController implements TransfagentApi {
 		return ResponseEntity.ok().build();
 	}
 
+	@Override
+	public ResponseEntity<UsersResponse> getUsers(@Valid String query, @Min(0) @Valid Integer page,
+			@Min(1) @Max(1000) @Valid Integer pageSize) {
+		return ResponseEntity.ok(userService.getUsers(query, page, pageSize));
+	}
+
+	@Override
+	public ResponseEntity<Void> createUser(@Valid UserCreate userCreate) {
+		userService.createUser(userCreate);
+		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	public ResponseEntity<Void> changeEnabled(@Valid UserEnabled userEnabled) {
+		userService.changeEnabled(userEnabled);
+		return ResponseEntity.ok().build();
+	}
+
+	
 	
 }
