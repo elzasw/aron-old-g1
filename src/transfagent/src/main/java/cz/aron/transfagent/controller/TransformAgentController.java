@@ -31,6 +31,7 @@ import cz.aron.api.rest.model.FundsResponse;
 import cz.aron.api.rest.model.InstitutionResponse;
 import cz.aron.api.rest.model.ReimportType;
 import cz.aron.api.rest.model.UserCreate;
+import cz.aron.api.rest.model.UserDelete;
 import cz.aron.api.rest.model.UserEnabled;
 import cz.aron.api.rest.model.UsersResponse;
 import cz.aron.transfagent.service.ApuSourceService;
@@ -206,6 +207,12 @@ public class TransformAgentController implements TransfagentApi {
 	@Override
 	public ResponseEntity<Void> changeEnabled(@Valid UserEnabled userEnabled) {
 		userService.changeEnabled(userEnabled);
+		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	public ResponseEntity<Void> deleteUser(@Valid UserDelete userDelete) {
+		userService.deleteUser(userDelete);
 		return ResponseEntity.ok().build();
 	}
 

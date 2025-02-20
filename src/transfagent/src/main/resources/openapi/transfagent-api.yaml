@@ -306,7 +306,21 @@ paths:
       responses:
         '200':
           description: User successfully created
-                
+    delete:
+      tags:
+        - Transfagent                
+      operationId: deleteUser
+      description: Delete user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDelete'
+      responses:
+        '200':
+          description: User successfully deleted
+
   /users/enabled:
     patch:
       tags:
@@ -712,6 +726,13 @@ components:
         username:
           type: string
         hash:
+          type: string
+    UserDelete:
+      type: object
+      required:
+        - username      
+      properties:
+        username:
           type: string
     UserEnabled:
       type: object

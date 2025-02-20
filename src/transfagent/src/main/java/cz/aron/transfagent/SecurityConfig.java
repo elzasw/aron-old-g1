@@ -2,6 +2,8 @@ package cz.aron.transfagent;
 
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +20,8 @@ import org.springframework.security.provisioning.UserDetailsManager;
 @EnableWebSecurity
 @ConditionalOnProperty(value="ui.enabled", havingValue = "true")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+	
+	private static Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {		
@@ -28,7 +32,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
          .and().httpBasic()
          .and().logout()
          // CSRF is enabled by default (will discuss later)
-         .and().csrf().disable();		
+         .and().csrf().disable();
+		 log.info("Security configured");
 	}
 		
 	@Bean
@@ -56,6 +61,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		}
 		return users;
 	}
-	
 
 }

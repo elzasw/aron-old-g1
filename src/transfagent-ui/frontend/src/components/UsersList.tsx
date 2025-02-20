@@ -20,8 +20,8 @@ import { Pagination } from "jareco/dist/pagination";
 import { Api, UserDef } from "../api";
 import { useEffect, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { FaFilter, FaCheck, FaPlusCircle, FaMinusCircle } from "react-icons/fa";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { FaFilter, FaCheck, FaPlusCircle, FaMinusCircle, FaPlus, FaTrashAlt } from "react-icons/fa";
 import styled from "styled-components";
 import { userColumnInfo, ColumnInfo } from "./columnMap";
 import { getUsersPath } from "../App";
@@ -129,7 +129,7 @@ export const UsersList = () => {
                     <Button
                         onClick={() => handleDisable(item)}
                         iconOnly={true}
-                        title={formatMessage({ id: "reimport" })}
+                        title={formatMessage({ id: "disable" })}
                     // disabled={item.reimport === true}
                     >
                         <FaMinusCircle />
@@ -140,12 +140,22 @@ export const UsersList = () => {
                     <Button
                         onClick={() => handleEnable(item)}
                         iconOnly={true}
-                        title={formatMessage({ id: "delete" })}
+                        title={formatMessage({ id: "enable" })}
                     >
                         <FaPlusCircle />
                     </Button>
                 </>
                 }
+                {
+                    <Button
+                        onClick={() => handleDelete(item)}
+                        iconOnly={true}
+                        title={formatMessage({ id: "delete" })}
+                >
+                    <FaTrashAlt />
+                </Button>
+                }
+
             </div>
         );
     };
@@ -187,6 +197,25 @@ export const UsersList = () => {
         });
     };
 
+    const handleDelete = (item: UserDef) => {
+        confirm(formatMessage({ id: "users.delete.confirm.title" }), formatMessage({ id: "users.delete.confirm.message" }, { id: item.username }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent
+                    .deleteUser({
+                        userDelete : {username: item.username,
+                        }
+                    })
+                    .then((result) => {
+                        requestData();
+                    })
+                    .catch((err) => {
+                        console.log("Došlo k chybě", err);
+                    });
+            }
+            
+        });
+    };
+
     const goToPage = (pageNumber: number) => setPage(pageNumber);
 
     const isFilterActive = () => filterFulltext !== "";
@@ -208,6 +237,35 @@ export const UsersList = () => {
         e: React.FormEvent<HTMLInputElement>
     ) => {
         setFilterFulltextInput(e.currentTarget.value);
+    };
+
+    const handleCreateUser = (e: React.FormEvent) => {
+
+        const username = e.currentTarget.elements.username.value;
+        const hash = e.currentTarget.elements.hash.value;
+
+        e.currentTarget.elements.username.value = '';
+        e.currentTarget.elements.hash.value = '';
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        confirm(formatMessage({ id: "users.create.confirm.title" }), formatMessage({ id: "users.create.confirm.message" }, { id: username }), (result) => {
+            if (result === ConfirmationDialogResult.OK) {
+                Api.transfagent
+                    .createUser({
+                        userCreate : {username: username,
+                        hash: hash,}
+                    })
+                    .then((result) => {
+                        requestData();
+                    })
+                    .catch((err) => {
+                        console.log("Došlo k chybě", err);
+                    });
+            }
+            
+        });
     };
 
     return (
@@ -259,6 +317,38 @@ export const UsersList = () => {
                                 <FormattedMessage id="filter.clear" />
                             </CancelButton>
                         )}
+                    </form>
+                </ActionsContainer>
+                <ActionsContainer>
+                    <form onSubmit={handleCreateUser}
+                    style={{
+                        display: "flex",
+                        margin: "0",
+                        padding: "0",
+                    }}>
+                    <StyledInput
+                            color="dark"                            
+                            placeholder={formatMessage({
+                                id: "createuser.username.placeholder",
+                            })}                            
+                            size={40}
+                            id="username"
+                        />
+                    <StyledInput
+                            color="dark"
+                            placeholder={formatMessage({
+                                id: "createuser.hash.placeholder",
+                            })}
+                            size={40}
+                            id="hash"
+                        />
+                        <Button
+                            type="submit"
+                            id="user.create"
+                            title={formatMessage({ id: "filter" })}
+                        >
+                            <FaPlus />
+                        </Button>
                     </form>
                 </ActionsContainer>
             </ActionBar>
