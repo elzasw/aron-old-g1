@@ -4,14 +4,15 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
@@ -37,27 +38,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 		
 	@Bean
-	UserDetailsManager users(DataSource dataSource) {
-		UserDetails user = User.builder()
-			.username("user")
-			.password("{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW")
-			.roles("USER")
-			.build();
-		UserDetails admin = User.builder()
-			.username("admin")
-			.password("{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW")
-			.roles("USER", "ADMIN")
-			.build();
+	UserDetailsManager users(DataSource dataSource, @Nullable @Value("${ui.adminPassword}") String adminPassword) {
 		JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);		
-		try {
-			users.loadUserByUsername("user");
-		} catch (UsernameNotFoundException e) {
-			users.createUser(user);			
-		}
-		try {		
-			users.loadUserByUsername("admin");
-		} catch  (UsernameNotFoundException e) {
-			users.createUser(admin);
+		if (adminPassword != null) {
+			try {		
+				users.loadUserByUsername("admin");
+			} catch  (UsernameNotFoundException e) {
+				var admin = User.builder()
+						.username("admin")
+						.password(adminPassword)
+						.roles("USER", "ADMIN")
+						.build();
+				users.createUser(admin);
+			}			
 		}
 		return users;
 	}
