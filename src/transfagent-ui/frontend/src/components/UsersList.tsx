@@ -17,7 +17,7 @@ import {
 import { confirm } from "jareco/dist/modal";
 import { ConfirmationDialogResult } from "jareco/dist/modal/ConfirmationDialog";
 import { Pagination } from "jareco/dist/pagination";
-import { Api, UserDef } from "../api";
+import { Api, UserDef, UserStatus } from "../api";
 import { useEffect, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -25,12 +25,18 @@ import { FaFilter, FaCheck, FaPlusCircle, FaMinusCircle, FaPlus, FaTrashAlt } fr
 import styled from "styled-components";
 import { userColumnInfo, ColumnInfo } from "./columnMap";
 import { getUsersPath } from "../App";
+import { useGeneralContext } from "../GeneralContext";
 
 const TableCell = styled.div`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 `;
+
+
+interface UserDefExt extends UserDef {
+    userId: number;
+};
 
 export const UsersList = () => {
 
@@ -44,8 +50,11 @@ export const UsersList = () => {
     //const [filterFulltext, setFilterFulltext] = useState("");
     const [filterFulltextInput, setFilterFulltextInput] = useState("");
     const [page, setPage] = useState(1);
-    const [items, setItems] = useState<UserDef[]>([]);
-    const [totalCount, setTotalCount] = useState<number>(0);    
+    const [items, setItems] = useState<UserDefExt[]>([]);
+    const [totalCount, setTotalCount] = useState<number>(0);
+    const [userStatus, setUserStatus] = useState<UserStatus>({username:"", admin: false});
+    const [createFormData, setCreateFormData] = useState({ username: "", hash: "" });
+
 
     const requestData = async () => {
         if (page >= 1) {
@@ -56,7 +65,7 @@ export const UsersList = () => {
                 })
                 .then((result) => {
                     if (result.items) {
-                        setItems(result.items);
+                        setItems(result.items.map((item,index) => ({...item, userId: index})));
                         setTotalCount(result.totalCount || 0);
                     }
                 })
@@ -66,6 +75,20 @@ export const UsersList = () => {
         }
     };
 
+    const requestStatus =async () => {
+        Api.transfagent.getUser()
+        .then((result=> {
+            setUserStatus(result);
+        }))
+        .catch((err)=>{
+            console.log("Došlo k chybě", err);
+        });
+    };
+
+    useEffect(() => {
+        requestStatus();
+    }, []);
+
     useEffect(() => {
         requestData();
     }, [page, filterFulltext]);
@@ -74,7 +97,7 @@ export const UsersList = () => {
         setFilterFulltextInput(filterFulltext || "");
     }, [filterFulltext])
 
-    const getChildId = (index: number) => /*items[index].fundId ||*/ 1;
+    const getChildId = (index: number) => items[index].userId || 1;
 
     const renderHeader = (props: RCGHeaderP) => {
         return (
@@ -101,7 +124,7 @@ export const UsersList = () => {
         );
     };
     
-    const getCellContent = (item: any, propCode: ColumnInfo<UserDef>["code"]) => {
+    const getCellContent = (item: any, propCode: ColumnInfo<UserDefExt>["code"]) => {
         if (propCode === "actions") {
             return renderActions(item);
         } else if (propCode === "enabled") {
@@ -110,7 +133,7 @@ export const UsersList = () => {
         return item[propCode];
     };
 
-    const renderEnabled = (item: UserDef) => {
+    const renderEnabled = (item: UserDefExt) => {
         const en = item.enabled;
         return (            
             <div style={{ display: "inline-flex" }}>
@@ -121,11 +144,11 @@ export const UsersList = () => {
         );
     }
 
-    const renderActions = (item: UserDef) => {
+    const renderActions = (item: UserDefExt) => {
         const en = item.enabled;
         return (
             <div style={{ display: "inline-flex" }}>
-                {en && <>
+                {en && userStatus.admin && <>
                     <Button
                         onClick={() => handleDisable(item)}
                         iconOnly={true}
@@ -136,7 +159,7 @@ export const UsersList = () => {
                     </Button>
                     </>
                 }
-                {!en && <>
+                {!en && userStatus.admin && <>
                     <Button
                         onClick={() => handleEnable(item)}
                         iconOnly={true}
@@ -146,7 +169,7 @@ export const UsersList = () => {
                     </Button>
                 </>
                 }
-                {
+                { userStatus.admin &&
                     <Button
                         onClick={() => handleDelete(item)}
                         iconOnly={true}
@@ -155,12 +178,11 @@ export const UsersList = () => {
                     <FaTrashAlt />
                 </Button>
                 }
-
             </div>
         );
     };
 
-    const handleDisable = (item: UserDef) => {
+    const handleDisable = (item: UserDefExt) => {
         confirm(formatMessage({ id: "users.disable.confirm.title" }), formatMessage({ id: "users.disable.confirm.message" }, { id: item.username }), (result) => {
             if (result === ConfirmationDialogResult.OK) {
                 Api.transfagent
@@ -178,7 +200,7 @@ export const UsersList = () => {
         });
     };
 
-    const handleEnable = (item: UserDef) => {
+    const handleEnable = (item: UserDefExt) => {
         confirm(formatMessage({ id: "users.enable.confirm.title" }), formatMessage({ id: "users.enable.confirm.message" }, { id: item.username }), (result) => {
             if (result === ConfirmationDialogResult.OK) {
                 Api.transfagent
@@ -197,7 +219,7 @@ export const UsersList = () => {
         });
     };
 
-    const handleDelete = (item: UserDef) => {
+    const handleDelete = (item: UserDefExt) => {
         confirm(formatMessage({ id: "users.delete.confirm.title" }), formatMessage({ id: "users.delete.confirm.message" }, { id: item.username }), (result) => {
             if (result === ConfirmationDialogResult.OK) {
                 Api.transfagent
@@ -239,13 +261,18 @@ export const UsersList = () => {
         setFilterFulltextInput(e.currentTarget.value);
     };
 
+    const handleCreateUserChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setCreateFormData({
+            ...createFormData,
+            [event.target.name]: event.target.value,
+          });
+    };
+
     const handleCreateUser = (e: React.FormEvent) => {
 
-        const username = e.currentTarget.elements.username.value;
-        const hash = e.currentTarget.elements.hash.value;
+        const {username, hash} = createFormData;
 
-        e.currentTarget.elements.username.value = '';
-        e.currentTarget.elements.hash.value = '';
+        setCreateFormData({username:"",hash:""});
 
         e.preventDefault();
         e.stopPropagation();
@@ -319,7 +346,7 @@ export const UsersList = () => {
                         )}
                     </form>
                 </ActionsContainer>
-                <ActionsContainer>
+                {userStatus.admin&&<ActionsContainer>
                     <form onSubmit={handleCreateUser}
                     style={{
                         display: "flex",
@@ -333,6 +360,7 @@ export const UsersList = () => {
                             })}                            
                             size={40}
                             id="username"
+                            onChange={handleCreateUserChange}
                         />
                     <StyledInput
                             color="dark"
@@ -341,6 +369,7 @@ export const UsersList = () => {
                             })}
                             size={40}
                             id="hash"
+                            onChange={handleCreateUserChange}
                         />
                         <Button
                             type="submit"
@@ -350,7 +379,7 @@ export const UsersList = () => {
                             <FaPlus />
                         </Button>
                     </form>
-                </ActionsContainer>
+                </ActionsContainer>}
             </ActionBar>
             <div id="list" style={{ height: "100%" }}>
                 <ResizableColumnsGrid
@@ -362,7 +391,7 @@ export const UsersList = () => {
                     getItemId={getChildId}
                     rowHeight={32}
                     noItemsText={formatMessage({ id: "noItems" })}
-                    getItemIndex={(itemId) => items.findIndex(({ fundId }) => fundId === itemId)}
+                    getItemIndex={(itemId) => items.findIndex(({ userId }) => userId === itemId)}
                 />
             </div>
         </ListContainer>

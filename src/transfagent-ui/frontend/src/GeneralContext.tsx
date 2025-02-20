@@ -1,5 +1,5 @@
 import { createContext, PropsWithChildren, useContext, useEffect, useState } from "react";
-import { Api, InstitutionDef } from "./api";
+import { Api, InstitutionDef, UserStatus  } from "./api";
 
 interface ItemStore<T> {
   items: T[];
@@ -10,6 +10,7 @@ interface ItemStore<T> {
 
 interface GeneralContextValue {
   institutions: ItemStore<InstitutionDef>;
+  userStatus: UserStatus;
 }
 
 const initialInstitutions: ItemStore<InstitutionDef> = {
@@ -19,14 +20,21 @@ const initialInstitutions: ItemStore<InstitutionDef> = {
   isFetched: false
 }
 
+const initialUserStatus : UserStatus = {
+    username: "unknown",
+    admin: false
+}
+
 const initialContextValue: GeneralContextValue = {
-  institutions: initialInstitutions
+  institutions: initialInstitutions,
+  userStatus: initialUserStatus
 }
 
 export const GeneralContext = createContext<GeneralContextValue>(initialContextValue);
 
 export function GeneralContextProvider({ children }: PropsWithChildren<{}>) {
   const [institutions, setInstitutions] = useState<ItemStore<InstitutionDef>>(initialInstitutions);
+  const [userStatus, setUserStatus] = useState<UserStatus>(initialUserStatus);
 
   useEffect(() => {
     (async () => {
@@ -36,11 +44,20 @@ export function GeneralContextProvider({ children }: PropsWithChildren<{}>) {
       items.forEach((institution) => {
         itemsMap[institution.institutionId] = institution;
       })
-      setInstitutions({ items, itemsMap, isFetching: false, isFetched: true });
+      setInstitutions({ items, itemsMap, isFetching: false, isFetched: true });      
     })()
 
   }, []);
-  return <GeneralContext.Provider value={{ institutions }}>
+
+  useEffect(() => {
+    (async () => {
+      setUserStatus(userStatus);
+      const newUserStatus = await Api.transfagent.getUser();
+      setUserStatus(newUserStatus);
+    })()
+  }, []);
+
+  return <GeneralContext.Provider value={{ institutions, userStatus }}>
     {children}
   </GeneralContext.Provider>;
 }

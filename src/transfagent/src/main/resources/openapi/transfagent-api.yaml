@@ -337,6 +337,20 @@ paths:
         '200':
           description: The request has succeeded.
 
+  /user:
+    get:
+      tags:
+        - Transfagent                
+      operationId: getUser
+      description: Return currentuser
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStatus'
+
 components:
   parameters:
     apuId:
@@ -743,6 +757,16 @@ components:
         username:
           type: string
         enabled:
+          type: boolean
+    UserStatus:
+      type: object
+      required:
+        - username
+        - admin      
+      properties:
+        username:
+          type: string
+        admin:
           type: boolean
 
 servers:
