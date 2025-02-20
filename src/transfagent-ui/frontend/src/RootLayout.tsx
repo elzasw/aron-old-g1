@@ -4,7 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { getAidsPath, getArchDescsPath, getDaosPath, getEntitiesPath, getFundsPath, getInstitutionsPath, getSourcesPath, getUsersPath } from "./App";
 import { GeneralContextProvider } from "./GeneralContext";
-import { LayoutWrapper, NavButton, Navigation, PageWrapper, Spacer } from "./styles";
+import { LayoutWrapper, LogoutButton, NavButton, Navigation, PageWrapper, Spacer } from "./styles";
 
 export default function RootLayout() {
     return (
@@ -64,7 +64,7 @@ function renderNavigation() {
         </NavButton>
     );
     navRight.push(
-        <a href="/logout"><FormattedMessage id="navigation.logout" /></a>
+        <LogoutButton href="/logout"><FormattedMessage id="navigation.logout" /></LogoutButton>
         /*
         <NavButton key="logout" to={"/logout"}>
             <FormattedMessage id="navigation.logout" />

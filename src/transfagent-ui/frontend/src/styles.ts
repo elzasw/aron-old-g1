@@ -48,3 +48,16 @@ export const Spacer = styled.div`
     flex: 1;
 `;
 
+export const LogoutButton = styled.a`
+  background-color: ${(props) => props.theme.colors.c5};
+    color: ${(props) => props.theme.colors.base};
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    padding: 0 10px;
+    flex-shrink: 0;
+    &.active {
+        background-color: ${(props) => props.theme.colors.accent};
+        color: ${(props) => props.theme.colors.accentInvert};
+    }
+`;
