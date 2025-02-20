@@ -43,3 +43,8 @@ export const TableCell = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
 `;
+
+export const Spacer = styled.div`
+    flex: 1;
+`;
+

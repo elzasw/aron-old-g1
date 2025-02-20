@@ -10,6 +10,7 @@ export default {
         "navigation.archdescs" : "Archiválie",
         "navigation.institutions" : "Instituce",
         "navigation.users" : "Uživatelé",
+        "navigation.logout" : "Odhlásit",
 
         "btn" : "Button",
         "filter" : "Filtrovat",

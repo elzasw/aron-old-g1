@@ -4,7 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { getAidsPath, getArchDescsPath, getDaosPath, getEntitiesPath, getFundsPath, getInstitutionsPath, getSourcesPath, getUsersPath } from "./App";
 import { GeneralContextProvider } from "./GeneralContext";
-import { LayoutWrapper, NavButton, Navigation, PageWrapper } from "./styles";
+import { LayoutWrapper, NavButton, Navigation, PageWrapper, Spacer } from "./styles";
 
 export default function RootLayout() {
     return (
@@ -22,6 +22,7 @@ export default function RootLayout() {
 
 function renderNavigation() {
     const navLeft: JSX.Element[] = [];
+    const navRight: JSX.Element[] = [];
     navLeft.push(
         <NavButton key="sources" to={getSourcesPath()}>
             <FormattedMessage id="navigation.sources" />
@@ -62,5 +63,13 @@ function renderNavigation() {
             <FormattedMessage id="navigation.users" />
         </NavButton>
     );
-    return <Navigation>{navLeft}</Navigation>;
+    navRight.push(
+        <a href="/logout"><FormattedMessage id="navigation.logout" /></a>
+        /*
+        <NavButton key="logout" to={"/logout"}>
+            <FormattedMessage id="navigation.logout" />
+        </NavButton>
+        */
+    );
+    return <Navigation>{navLeft}<Spacer/>{navRight}</Navigation>;
 }
