@@ -72,7 +72,7 @@ public class ArchDescService {
 		Predicate p = cb.conjunction();
 		try {
 			var tmpUUID = UUID.fromString(query);
-			p = cb.and(p, cb.equal(root.get("uuid"), tmpUUID));
+			p = cb.and(p, cb.equal(root.get(ArchDesc.JPA_ROOT_UUID), tmpUUID));
 			cq.where(p);
 			return;
 		} catch (IllegalArgumentException e) {
@@ -80,7 +80,7 @@ public class ArchDescService {
 		}
 		try {
 			var id = Integer.parseInt(query);
-			p = cb.and(p, cb.equal(root.get("id"), id));
+			p = cb.and(p, cb.equal(root.get(ArchDesc.JPA_ID), id));
 			cq.where(p);
 			return;
 		} catch (NumberFormatException nfEx) {
@@ -88,6 +88,5 @@ public class ArchDescService {
 		}		
     }
 
-	
 
 }

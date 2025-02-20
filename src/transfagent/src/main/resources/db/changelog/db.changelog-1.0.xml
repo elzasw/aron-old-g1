@@ -514,4 +514,14 @@
       <column name="elza_id" />
     </createIndex>
  </changeSet>
+
+ <changeSet author="karel.zacek@lightcomp.cz" id="11">
+    <addColumn tableName="arch_desc">
+      <column name="root_uuid" type="uuid" />
+    </addColumn>
+    <createIndex indexName="idx_arch_desc_root_uuid" tableName="arch_desc">
+      <column name="root_uuid" />
+    </createIndex>
+ </changeSet>
+
 </databaseChangeLog>

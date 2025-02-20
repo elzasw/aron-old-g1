@@ -362,10 +362,20 @@ public class DaoImportService implements ImportProcessor  {
         return new DaoDefVO(dao);
     }
 
+    @Transactional
     public int reimportDaos(Collection<String> uuids) {
         int ret = daoRepository.markForReimport(uuids);
         log.info("Daos uuids in {}, marked for reimport", uuids);
         return ret;
+    }
+
+    @Transactional
+    public void deleteDao(int daoId) {
+    	var dao = daoRepository.findById(daoId).orElseThrow(() -> {
+            log.error("Fail to reimport dao id={}, not exist", daoId);
+            return new EntityNotFoundException();
+        });
+    	dao.setState(DaoState.INACCESSIBLE);
     }
 
 }

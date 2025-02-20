@@ -150,6 +150,18 @@ paths:
             schema:
               type: string
               format: binary
+  /daos/{daoId}:
+    delete:
+      tags:
+        - Transfagent
+      operationId: deleteDao
+      description: Delete dao from database
+      parameters:
+        - $ref: '#/components/parameters/daoId'
+      responses:
+        '200':
+          description: The request has succeeded.
+
   /daos/{daoId}/reimport:
     patch:
       tags:

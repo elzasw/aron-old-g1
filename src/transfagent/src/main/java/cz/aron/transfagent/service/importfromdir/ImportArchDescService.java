@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -264,7 +265,7 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         if (archDesc == null) {
             archDesc = createArchDesc(fund, dataDir, dir, apusrcBuilder);
         } else {
-            updateArchDesc(archDesc, dataDir, dir);
+            updateArchDesc(archDesc, dataDir, dir, apusrcBuilder);
         }
 
         // Request entities and store refs
@@ -311,6 +312,10 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         archDesc.setApuSource(apuSource);
         archDesc.setFund(fund);
         archDesc.setUuid(archDescUuid);
+        var rootUuid = apusrcBuilder.getMainApu().getUuid();
+        if (rootUuid!=null) {
+        	archDesc.setRootUuid(UUID.fromString(apusrcBuilder.getMainApu().getUuid()));	
+        }        
         archDesc = archDescRepository.save(archDesc);
 
         var coreQueue = new CoreQueue();
@@ -322,21 +327,38 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         return archDesc;
     }
 
-    private void updateArchDesc(ArchDesc archDesc, Path dataDir, Path origDir) {
-    	
-        var oldDir = archDesc.getApuSource().getDataDir();
+	private void updateArchDesc(ArchDesc archDesc, Path dataDir, Path origDir, ApuSourceBuilder apusrcBuilder) {
 
-        var apuSource = archDesc.getApuSource();
-        apuSource.setDataDir(dataDir.toString());
-        apuSource.setOrigDir(origDir.getFileName().toString());
+		var oldDir = archDesc.getApuSource().getDataDir();
 
-        var coreQueue = new CoreQueue();
-        coreQueue.setApuSource(apuSource);
+		var apuSource = archDesc.getApuSource();
+		apuSource.setDataDir(dataDir.toString());
+		apuSource.setOrigDir(origDir.getFileName().toString());
 
-        apuSourceRepository.save(apuSource);
-        coreQueueRepository.save(coreQueue);
+		updateArchDescRootUuid(archDesc, apusrcBuilder);
 
-        log.info("ArchDesc updated uuid={}, original data dir {}", archDesc.getUuid(), oldDir);
+		var coreQueue = new CoreQueue();
+		coreQueue.setApuSource(apuSource);
+
+		apuSourceRepository.save(apuSource);
+		coreQueueRepository.save(coreQueue);
+
+		log.info("ArchDesc updated uuid={}, original data dir {}", archDesc.getUuid(), oldDir);
+	}    
+    
+    private void updateArchDescRootUuid(ArchDesc archDesc, ApuSourceBuilder apusrcBuilder) {
+    	UUID rootUuid = null;
+        var mainApu = apusrcBuilder.getMainApu();
+        if (mainApu!=null) {
+        	if (mainApu.getUuid()!=null) {
+        		rootUuid = UUID.fromString(mainApu.getUuid());
+        	}
+        }        
+        if (!Objects.equals(rootUuid, archDesc.getRootUuid())) {
+        	archDesc.setRootUuid(rootUuid);        
+            archDescRepository.save(archDesc);
+            log.info("ArchDescRoot updated id={}, rootUuid={}", archDesc.getId(), archDesc.getRootUuid());
+        }
     }
 
     @Override
@@ -364,6 +386,8 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         try {
             apuSourceBuilder = iad.importArchDesc(inputFile, new CachedDataProvider(databaseDataProvider));
             apuSourceBuilder.setUuid(apuSource.getUuid());
+            
+            updateArchDescRootUuid(archDesc, apuSourceBuilder);
             
             // compare original apusrc.xml and newly generated
             var apuSrcXmlPath = apuDir.resolve(StorageService.APUSRC_XML);

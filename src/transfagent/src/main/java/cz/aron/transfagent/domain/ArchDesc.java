@@ -16,9 +16,10 @@ import javax.persistence.Table;
 @Table(name = "arch_desc")
 public class ArchDesc {
 	
-	public static final String JPA_APUSOURCE = "apuSource";
-	
+	public static final String JPA_ID = "id";
+	public static final String JPA_APUSOURCE = "apuSource";	
 	public static final String JPA_FUND = "fund";
+	public static final String JPA_ROOT_UUID = "rootUuid";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +32,9 @@ public class ArchDesc {
 
     @Column(nullable = false)
     private UUID uuid;
+    
+    @Column(name = "root_uuid")
+    private UUID rootUuid;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fund_id", nullable = true)
@@ -62,6 +66,14 @@ public class ArchDesc {
 
 	public void setUuid(UUID uuid) {
 		this.uuid = uuid;
+	}
+
+	public UUID getRootUuid() {
+		return rootUuid;
+	}
+
+	public void setRootUuid(UUID rootUuid) {
+		this.rootUuid = rootUuid;
 	}
 
 	public Fund getFund() {

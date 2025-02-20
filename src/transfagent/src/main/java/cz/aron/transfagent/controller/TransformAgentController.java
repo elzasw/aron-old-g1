@@ -175,7 +175,13 @@ public class TransformAgentController implements TransfagentApi {
 			@Min(1) @Max(1000) @Valid Integer pageSize) {
 		// TODO Auto-generated method stub
 		return ResponseEntity.ok(institutionsService.getInstitutions(code, page, pageSize));
-	}	
+	}
+
+	@Override
+	public ResponseEntity<Void> deleteDao(Long daoId) {
+		daoImportService.deleteDao(daoId.intValue());
+		return ResponseEntity.ok().build();
+	}
 
 	
 }
