@@ -43,3 +43,7 @@ logging:
     name: C:\Pyta\ArchivOnline\transfagent.work\log\transfagent.log
   level:
     cz: DEBUG
+
+ui:
+  enabled: true
+  adminPassword: "{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW"
