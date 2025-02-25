@@ -10,7 +10,7 @@ import { ArrowUpward, ArrowDownward } from '@material-ui/icons';
 import { useStyles } from './styles';
 import { useIncrementalTree, TreeLevel, NodeDirection } from './useIncrementalTree';
 import { ApuEntity } from '../../types';
-import { useConfiguration } from '../configuration';
+import { TreeLabel } from './tree-label';
 
 export interface Props {
   apuId: string;
@@ -37,10 +37,10 @@ export function IncrementalTree({
   ...props
 }: Props) {
   const classes = useStyles();
-  const { treeHorizontalScroll } = useConfiguration();
-  const [treeItems, getRelatedNodes] = useIncrementalTree(apuId, initialItems?.map((item) => ({ ...item, parentId: item.parent?.id })));
+  const [treeItems, getRelatedNodes, isFirstLoad] = useIncrementalTree(apuId, initialItems?.map((item) => ({ ...item, parentId: item.parent?.id })));
+  const selectedItemId = props.selected && props.selected.length === 1 && props.selected[0].split("__").pop() || undefined;
 
-  function renderItemsFromFlat(items: TreeLevel[], parent?: TreeLevel, parentId?: string) {
+  function renderItemsFromFlat(items: TreeLevel[], _parent?: TreeLevel, parentId?: string) {
     return [...items].map((item, index, array) => {
       const childNodes: TreeLevel[] = [];
       for (let i = index + 1; array[i]?.depth > item.depth; i++) {
@@ -51,20 +51,9 @@ export function IncrementalTree({
         array.splice(index + 1, childNodes.length);
       }
 
-      const optionalStyle = !treeHorizontalScroll ? {
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        width: "calc( 100% + 20px )",
-      } : {};
-
       // const debugData = `${item.pos}/${parent?.childCnt} ${parent?.id.split("-")[0]}/${item.id.split("-")[0]} - `;
       const debugData = "";
-
-      const label = <div title={labelMapper(item)} style={{
-        whiteSpace: "nowrap",
-        paddingRight: "20px",
-        ...optionalStyle
-      }}>{debugData}{labelMapper(item)}</div>;
+      const isSelected = selectedItemId == item.id;
 
       const hasChildren = item.childCnt > 0;
 
@@ -85,7 +74,7 @@ export function IncrementalTree({
           key: nodeId,
           id: item.id,
           nodeId,
-          label,
+          label: <TreeLabel isSelected={isSelected} firstLoad={isFirstLoad} debugData={debugData} value={labelMapper(item)} />,
           icon: hasChildren ? undefined : (
             <RemoveIcon className={classes.endItem} />
           ),

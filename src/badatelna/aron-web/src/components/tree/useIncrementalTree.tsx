@@ -29,9 +29,10 @@ export interface BatchNodeResult {
 }
 
 
-export function useIncrementalTree(apuId: string, initialItems: TreeLevel[] = []): [TreeLevel[], (apuId: string, direction: NodeDirection) => Promise<void>, boolean] {
+export function useIncrementalTree(apuId: string, initialItems: TreeLevel[] = []): [TreeLevel[], (apuId: string, direction: NodeDirection) => Promise<void>, boolean, boolean] {
   const [isLoading, setIsLoading] = useState(false);
   const [treeLevels, setTreeLevels] = useState<TreeLevel[]>(initialItems);
+  const [isFirstLoad, setFirstLoad] = useState(false);
 
   const initialDataLoad = async () => {
     const promiseQueue: (() => Promise<BatchNodeResult>)[] = [];
@@ -103,6 +104,7 @@ export function useIncrementalTree(apuId: string, initialItems: TreeLevel[] = []
       newTreeLevels.splice(indexToPlace, 0, ...levels);
     })
     setTreeLevels(newTreeLevels);
+    setFirstLoad(true);
   }
 
   const getRelatedNodes = async (nodeId: string, direction: NodeDirection) => {
@@ -120,6 +122,7 @@ export function useIncrementalTree(apuId: string, initialItems: TreeLevel[] = []
     setIsLoading(true);
 
     const nodes = await fetchNodes(nodeId, direction);
+    setFirstLoad(false);
 
     if (direction === NodeDirection.UNDER) {
       const newTreeLevels = [...treeLevels];
@@ -157,5 +160,5 @@ export function useIncrementalTree(apuId: string, initialItems: TreeLevel[] = []
     initialDataLoad();
   }, [apuId])
 
-  return [treeLevels, getRelatedNodes, isLoading]
+  return [treeLevels, getRelatedNodes, isFirstLoad, isLoading]
 }
