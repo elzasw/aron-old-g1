@@ -272,5 +272,11 @@
         ON apu_attachment (name);
       </sql>
     </changeSet>
-
+    <changeSet id="aron:13" author="zacek@lightcomp.cz">
+      <sql>
+        CREATE INDEX idx_digital_object_file_permalink
+        ON digital_object_file (permalink)
+        WHERE permalink IS NOT NULL;
+      </sql>
+    </changeSet>
 </databaseChangeLog>

@@ -19,6 +19,7 @@ public class RedirectApi {
 	
 	@Inject private ApuStore apuStore;
 	@Inject private ApuAttachmentStore apuAttachmentStore;
+	@Inject private DigitalObjectFileStore digitalObjectFileStore;
 
 	@GetMapping("/redirect/**")
     public RedirectView redirect(HttpServletRequest request) {		
@@ -51,5 +52,20 @@ public class RedirectApi {
 		log.info("Redirecting from /attachment/{} to {}", wildcardPath, redirectUrl);		
 		return new RedirectView(redirectUrl);		
 	}
-	
+
+	@GetMapping("/redirectimage/**")
+    public RedirectView redirectImage(HttpServletRequest request) {		
+		String wildcardPath = request.getRequestURI().replace("/api/aron/redirectimage", "");
+	    log.info("Redirecting {}", wildcardPath);
+
+        var id = digitalObjectFileStore.findIdByPermalink(wildcardPath);
+        if (id == null) {
+            log.warn("Entity not found for permalink: {}", wildcardPath);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found");
+        }
+        String redirectUrl = "/apu/" + id.getApuId() + "/dao/" + id.getDaoId() + "/file/" + id.getFileId();
+        log.info("Redirecting from /redirectimage{} to {}", wildcardPath, redirectUrl);
+        return new RedirectView(redirectUrl);
+    }	
+
 }

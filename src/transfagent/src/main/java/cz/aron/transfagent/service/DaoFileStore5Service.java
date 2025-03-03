@@ -82,7 +82,7 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource, Perm
 		if (ifKey.getFindingAidPartNumber() != null) {
 			findingAidPartNumber = Integer.parseInt(ifKey.getFindingAidPartNumber());
 		}		
-		var permaLink = String.format("%s/ippimage/%s%04d%03d", config.getPermalinkUrl(), inst.getNid(), ifKey.getFindingAidCode(), findingAidPartNumber);		
+		var permaLink = String.format("/ippimage/%s%04d%03d", inst.getNid(), ifKey.getFindingAidCode(), findingAidPartNumber);		
 		List<ImageUrl> daoLinks = getLinks(handle.getIfKey());
 		if (daoLinks != null) {
 			var links = daoLinks.stream().map(imageUrl -> new TileThumbnailUrl(imageUrl.getUrl() + ".dzi",
