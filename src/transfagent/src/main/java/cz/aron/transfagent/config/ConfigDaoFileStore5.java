@@ -15,6 +15,8 @@ public class ConfigDaoFileStore5 {
     private List<ConfigDaoFileStore5Institution> institutions;
     
     private String imageServer;
+    
+    private String permalinkUrl;
 
     public Path getPath() {
         return path;
@@ -38,6 +40,41 @@ public class ConfigDaoFileStore5 {
 
 	public void setImageServer(String imageServer) {
 		this.imageServer = imageServer;
+	}
+
+	public String getPermalinkUrl() {
+		return permalinkUrl;
+	}
+
+	public void setPermalinkUrl(String permalinkUrl) {
+		this.permalinkUrl = permalinkUrl;
+	}
+
+	public ConfigDaoFileStore5Institution getInstitutionByCode(String code) {
+		for (var inst : institutions) {
+			if (inst.getInstitutionCode().equals(code)) {
+				return inst;
+			}
+		}
+		return null;
+	}
+	
+	public ConfigDaoFileStore5Institution getInstitutionByShortcut(String shortcut) {
+		for (var inst : institutions) {
+			if (inst.getShortcut().equals(shortcut)) {
+				return inst;
+			}
+		}
+		return null;
+	}
+	
+	public ConfigDaoFileStore5Institution getInstitutionByNid(String nid) {
+		for (var inst : institutions) {
+			if (inst.getNid().equals(nid)) {
+				return inst;
+			}
+		}
+		return null;
 	}
 
 }

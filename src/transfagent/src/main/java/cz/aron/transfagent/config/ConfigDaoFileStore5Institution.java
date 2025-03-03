@@ -5,6 +5,8 @@ public class ConfigDaoFileStore5Institution {
 	private String institutionCode;
 	
 	private String shortcut;
+	
+	private String nid;
 
 	public String getInstitutionCode() {
 		return institutionCode;
@@ -20,6 +22,14 @@ public class ConfigDaoFileStore5Institution {
 
 	public void setShortcut(String shortcut) {
 		this.shortcut = shortcut;
+	}
+
+	public String getNid() {
+		return nid;
+	}
+
+	public void setNid(String nid) {
+		this.nid = nid;
 	}
 	
 }

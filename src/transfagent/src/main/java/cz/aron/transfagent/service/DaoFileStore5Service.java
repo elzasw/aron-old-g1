@@ -75,10 +75,18 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource, Perm
 	@Override
 	public void importDaoFile(Dao dao, Path daoDir) {
 		FileStore5Handle handle = FileStore5Handle.fromHandle(dao.getHandle());
+		
+		var ifKey = handle.getIfKey();
+		var inst = config.getInstitutionByCode(ifKey.getInstitutionCode());
+		int findingAidPartNumber = 0;
+		if (ifKey.getFindingAidPartNumber() != null) {
+			findingAidPartNumber = Integer.parseInt(ifKey.getFindingAidPartNumber());
+		}		
+		var permaLink = String.format("%s/ippimage/%s%04d%03d", config.getPermalinkUrl(), inst.getNid(), ifKey.getFindingAidCode(), findingAidPartNumber);		
 		List<ImageUrl> daoLinks = getLinks(handle.getIfKey());
 		if (daoLinks != null) {
 			var links = daoLinks.stream().map(imageUrl -> new TileThumbnailUrl(imageUrl.getUrl() + ".dzi",
-					imageUrl.getUrl(), imageUrl.isSelected())).collect(Collectors.toList());
+					imageUrl.getUrl(), imageUrl.isSelected(), imageUrl.isSelected()?permaLink:null )).collect(Collectors.toList());
 			try {
 				transformService.transformHttpUrlsWithThumbnails(daoDir, links);
 				dao.setState(DaoState.READY);

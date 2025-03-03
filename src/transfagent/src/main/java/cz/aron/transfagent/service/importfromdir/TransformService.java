@@ -234,7 +234,7 @@ public class TransformService {
 
         var pos = 1;
         for (String url : urls) {
-            processHttp(url,filesDir, hiResView, pos, filesToTransformAsync, false);
+            processHttp(url,filesDir, hiResView, pos, filesToTransformAsync, false, null);
             pos++;
         }
 
@@ -256,11 +256,14 @@ public class TransformService {
     	private final String thumbnailUrl;
     	
     	private final boolean selected;
+    	
+    	private final String permaLink;
 
-		public TileThumbnailUrl(String tileUrl, String thumbnailUrl, boolean selected) {
+		public TileThumbnailUrl(String tileUrl, String thumbnailUrl, boolean selected, String permaLink) {
 			this.tileUrl = tileUrl;
 			this.thumbnailUrl = thumbnailUrl;
 			this.selected = selected;
+			this.permaLink = permaLink;
 		}
 
 		public String getTileUrl() {
@@ -274,6 +277,10 @@ public class TransformService {
 		public boolean isSelected() {
 			return selected;
 		}
+
+		public String getPermaLink() {
+			return permaLink;
+		}		
 
     }
     
@@ -297,9 +304,9 @@ public class TransformService {
 
          var pos = 1;
          for (var ttUrl : urls) {
-             processHttp(ttUrl.getTileUrl(),filesDir, hiResView, pos, filesToTransformAsync, ttUrl.isSelected());
+             processHttp(ttUrl.getTileUrl(),filesDir, hiResView, pos, filesToTransformAsync, ttUrl.isSelected(), ttUrl.getPermaLink());
              if (ttUrl.getThumbnailUrl()!=null) {
-            	 processHttp(ttUrl.getThumbnailUrl(),filesDir, thumbnailView, pos, filesToTransformAsync, false);
+            	 processHttp(ttUrl.getThumbnailUrl(),filesDir, thumbnailView, pos, filesToTransformAsync, false, null);
              }
              pos++;
          }
@@ -317,7 +324,7 @@ public class TransformService {
     
 
     private void processHttp(String url, Path filesDir, DaoBundle hiResView, int pos,
-                             Map<FileTransformKey, String> filesToTransformAsync, boolean selected) {
+                             Map<FileTransformKey, String> filesToTransformAsync, boolean selected, String permaLink) {
         if (url == null) {
             throw new IllegalStateException(
                     "Source dir cannot be empty whe sending reaferences to digital object file.");
@@ -336,6 +343,9 @@ public class TransformService {
         DaoBuilder.addPath(daoFile, url);
         if (selected) {
         	DaoBuilder.addSelectedFlag(daoFile);
+        }
+        if (permaLink!=null) {
+        	daoFile.setPrmLnk(permaLink);
         }
         hiResView.getFile().add(daoFile);
         if (existingUuid==null) {
