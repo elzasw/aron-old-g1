@@ -73,6 +73,11 @@ Identifikátor může být UUID verze 1 nebo verze 4.</xs:documentation>
 			</xs:element>
 			<xs:element name="attchs" type="s1:Attachment" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="daos" type="s1:Daos" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="indexed" type="xs:boolean" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Priznak jestil je APU indexovane, </xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 		<xs:attribute name="type" use="required" type="s1:ApuType"/>
 		<xs:attribute name="uuid" use="required" type="s1:Uuid"/>

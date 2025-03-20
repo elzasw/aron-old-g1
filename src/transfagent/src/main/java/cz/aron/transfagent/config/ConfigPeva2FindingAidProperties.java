@@ -21,6 +21,8 @@ public class ConfigPeva2FindingAidProperties {
     private boolean importMissingFund;
     
     private boolean permalink;
+    
+    private boolean indexing = true;
 
 	public boolean isComposedFindingAidName() {
 		return composedFindingAidName;
@@ -76,6 +78,14 @@ public class ConfigPeva2FindingAidProperties {
 
 	public void setPermalink(boolean permalink) {
 		this.permalink = permalink;
+	}
+
+	public boolean isIndexing() {
+		return indexing;
+	}
+
+	public void setIndexing(boolean indexing) {
+		this.indexing = indexing;
 	}
 
 }

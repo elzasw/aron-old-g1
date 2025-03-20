@@ -75,6 +75,9 @@ public class ImportPevaFindingAidInfo {
 		var fullFindingAidName = createFindingAidName(instInfo, findingAid);
 		
 		Apu apu = apusBuilder.createApu(fullFindingAidName, ApuType.FINDING_AID, UUID.fromString(findingAid.getId()));
+		if (!findingAidProperties.isIndexing()) {
+			apu.setIndexed(false);
+		}
 
 		var partTitle = ApuSourceBuilder.addPart(apu, CoreTypes.PT_TITLE);
 		partTitle.setValue(findingAidName);
