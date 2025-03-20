@@ -188,6 +188,7 @@ public class ApuProcessor {
         apuEntity.setChildCnt(levelState.childCnt);
         apuEntity.setPos(levelState.pos);
         apuEntity.setDepth(levelState.depth);
+        apuEntity.setIndexed(apu.isIndexed()==null||Boolean.TRUE.equals(apu.isIndexed())); // defaultni hodnota je true
         if (apu.getPrnt() != null) {
             ApuEntity parentApu = saveCache.get(apu.getPrnt());
             if (parentApu == null) {

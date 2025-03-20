@@ -279,4 +279,12 @@
         WHERE permalink IS NOT NULL;
       </sql>
     </changeSet>
+    <changeSet id="aron:14" author="zacek@lightcomp.cz">
+      <addColumn tableName="apu_entity">
+          <column name="indexed" type="boolean"/>
+      </addColumn>
+      <sql>
+        UPDATE apu_entity set indexed=true;
+      </sql>
+    </changeSet>
 </databaseChangeLog>

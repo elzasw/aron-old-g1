@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -271,8 +272,10 @@ public class DomainIndex<ROOT extends Projectable<ROOT>, PROJECTED extends Proje
      */
     public void index(@NotNull INDEXED obj) {
         IndexRequest request = createIndexRequest(obj);
-        execute(client -> client.index(request, RequestOptions.DEFAULT));
-        refresh();
+        if (request != null) {
+            execute(client -> client.index(request, RequestOptions.DEFAULT));
+            refresh();
+        }
     }
 
     /**
@@ -286,8 +289,10 @@ public class DomainIndex<ROOT extends Projectable<ROOT>, PROJECTED extends Proje
         }
 
         BulkRequest request = createBulkIndexRequest(objects);
-        execute(client -> client.bulk(request, RequestOptions.DEFAULT));
-        refresh();
+        if (request.numberOfActions() > 0) {
+                execute(client -> client.bulk(request, RequestOptions.DEFAULT));
+                refresh();
+        }
     }
 
     /**
@@ -407,6 +412,7 @@ public class DomainIndex<ROOT extends Projectable<ROOT>, PROJECTED extends Proje
         BulkRequest request = new BulkRequest();
         objects.stream()
                 .map(this::createIndexRequest)
+                .filter(Objects::nonNull)  // Remove null values
                 .forEach(request::add);
 
         return request;

@@ -85,9 +85,20 @@ public class IndexedApu extends DomainIndexedObject<ApuEntity, ApuEntity> {
     @Transient
     private Map<String, List<Object>> additionalDataToIndex = new HashMap<>();  //data are put here to be later inserted to dynamic ES fields
 
+    @Transient
+    private boolean excludeFromIndex = false;
+
+    public boolean isExcludeFromIndex() {
+        return excludeFromIndex;
+    }
+
     @Override
     public void toIndexedObject(ApuEntity obj) {
         super.toIndexedObject(obj);
+        if (!obj.isIndexed()) {
+            excludeFromIndex = true;
+            return;
+        }
         name = obj.getName();
         description = obj.getDescription();
         type = obj.getType().name();

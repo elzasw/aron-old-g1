@@ -38,6 +38,9 @@ public class ApuIndex extends DomainIndex<ApuEntity, ApuEntity, IndexedApu> impl
 
     @Override
     protected IndexRequest createIndexRequest(IndexedApu obj) {
+        if (obj.isExcludeFromIndex()) {
+            return null;
+        }
         Document document = converter.mapObject(obj);
         document.putAll(obj.getAdditionalDataToIndex());
         return new IndexRequest().

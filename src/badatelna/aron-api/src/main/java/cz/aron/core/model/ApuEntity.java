@@ -27,6 +27,7 @@ public class ApuEntity extends DomainObject<ApuEntity> {
     private int depth;
     private int pos;
     private int childCnt;
+    private boolean indexed;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @Fetch(FetchMode.SELECT)
