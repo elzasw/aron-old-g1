@@ -9,7 +9,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>transfagent</artifactId>
-	<version>0.0.38-SNAPSHOT</version>
+	<version>0.0.40</version>
 	<name>Transformation agent</name>
 	<description>Transformation agent for ArchivOnline</description>
 
@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-logging</artifactId>

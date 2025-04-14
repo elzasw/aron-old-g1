@@ -135,15 +135,15 @@ export const DaosList = () => {
     };
 
     const renderActions = (item: DaoDef) => {
-        const apuId = item.apusourceId;
+        const daoId = item.daoId;
         const isReady = item.state === DaoStateDef.Ready;
         const isInaccessible = item.state === DaoStateDef.Inaccessible;
 
         return (
             <div style={{ display: "inline-flex" }}>
-                {apuId && <>
+                {daoId && isReady && <>
                     <Button
-                        onClick={() => handleReImport(apuId, item)}
+                        onClick={() => handleReImport(daoId, item)}
                         iconOnly={true}
                         title={formatMessage({ id: "reimport" })}
                         disabled={isInaccessible}
@@ -151,7 +151,7 @@ export const DaosList = () => {
                         <FaFileImport />
                     </Button>
                     <Button
-                        onClick={() => handleDelete(apuId, item)}
+                        onClick={() => handleDelete(daoId, item)}
                         iconOnly={true}
                         title={formatMessage({ id: "delete" })}
                         disabled={!isReady}
@@ -164,11 +164,11 @@ export const DaosList = () => {
         );
     };
 
-    const handleReImport = (apuId: number, item: DaoDef) => {
-        confirm(formatMessage({ id: "aid.reimport.confirm.title" }), formatMessage({ id: "aid.reimport.confirm.message" }, { id: item.daoId }), (result) => {
+    const handleReImport = (daoId: number, item: DaoDef) => {
+        confirm(formatMessage({ id: "dao.reimport.confirm.title" }), formatMessage({ id: "dao.reimport.confirm.message" }, { id: item.daoId }), (result) => {
             if (result === ConfirmationDialogResult.OK) {
                 Api.transfagent
-                    .reimportApu({ apuId })
+                    .reimportDao({ daoId })
                     .then((res) => {
                         toast.success(formatMessage({ id: "reimport.success" }));
                         requestData();
@@ -181,10 +181,10 @@ export const DaosList = () => {
         });
     };
 
-    const handleDelete = (apuId: number, item: DaoDef) => {
-        confirm(formatMessage({ id: "aid.delete.confirm.title" }), formatMessage({ id: "aid.delete.confirm.message" }, { id: item.daoId }), (result) => {
+    const handleDelete = (daoId: number, item: DaoDef) => {
+        confirm(formatMessage({ id: "dao.delete.confirm.title" }), formatMessage({ id: "dao.delete.confirm.message" }, { id: item.daoId }), (result) => {
             if (result === ConfirmationDialogResult.OK) {
-                Api.transfagent.deleteApu({ apuId })
+                Api.transfagent.deleteDao({ daoId })
                     .then((res) => {
                         toast.success(formatMessage({ id: "delete.success" }));
                         requestData();

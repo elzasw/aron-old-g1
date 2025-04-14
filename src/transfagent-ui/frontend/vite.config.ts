@@ -25,6 +25,10 @@ export default ({ mode }) => {
           target: endpoint,
           changeOrigin: true,
         },
+        '/logout': {
+          target: endpoint,
+          changeOrigin: false,
+        },
       },
     },
   });
