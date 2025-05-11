@@ -49,6 +49,7 @@ import cz.aron.transfagent.service.StorageService;
 import cz.aron.transfagent.transformation.DSpaceConsts;
 import gov.nist.isg.archiver.DirectoryArchiver;
 import gov.nist.isg.archiver.FilesArchiver;
+import gov.nist.isg.archiver.ZipMemoryArchiver;
 import gov.nist.isg.pyramidio.BufferedImageReader;
 import gov.nist.isg.pyramidio.PartialImageReader;
 import gov.nist.isg.pyramidio.ScalablePyramidBuilder;
@@ -63,6 +64,9 @@ public class TransformService {
 
 	// konstanta zapisovana do databaze pro transormaci deep zoom
 	public static String TRANSFORM_DZI = "dzi";
+	
+	// konstanta zapisovana do databaze pro transormaci deep zoom v zip souboru
+	public static String TRANSFORM_DZI_ZIP = "dzizip";
 
 	// konstanta zapisovana do databaze pro transformaci vytvareni nahledu
 	public static String TRANSFORM_THUMBNAIL = "thumbnail";
@@ -89,6 +93,9 @@ public class TransformService {
 
 	@Value("${tile.async:false}")
 	private boolean tileAsync;
+	
+	@Value("${tile.urlPrefix:#{NULL}}")
+	private String tileUrlPrefix;
 
 	@Value("${thumbnail.folder:#{NULL}}")
 	private String thumbnailFolder;
@@ -696,6 +703,43 @@ public class TransformService {
 			}
 		}
 	}
+	
+	public void createDziZipOut(Path sourceImage, String id) {
+		log.debug("Creating zipped hiResView file {}", id);
+		Path path = getZippedTilePath(id);
+		try {
+			Files.createDirectories(path.getParent());
+		} catch (IOException e) {
+			log.error("Error creating dir prefix={} ", path, e);
+			throw new RuntimeException(e);
+		}
+
+		boolean deleteCreated = true;
+		try {
+			var spb = new ScalablePyramidBuilder(254, 1, "jpg", "dzi");
+			var archiver = new ZipMemoryArchiver(path);
+			var pir = new BufferedImageReader(sourceImage.toFile());
+			spb.buildPyramid(pir, "image", archiver, Runtime.getRuntime().availableProcessors());
+			deleteCreated = false;
+			log.info("Dzi created for id {}", id);
+		} catch (IOException e) {
+			log.error("Error in creating dzi {}", path, e);
+			throw new UntransformableEntityException(e);
+		} finally {
+			try {
+				if (deleteCreated) {
+					log.debug("Deleting file {}", path);
+					if (!FileSystemUtils.deleteRecursively(path)) {
+						log.warn("Fail to delete dzi directory", path);
+					}
+				}
+			} catch (IOException e) {
+				log.error("Error deleting unused file(s) ", e);
+				throw new RuntimeException(e);
+			}
+		}
+	}
+	
 
 	private Path getPath(String id, int hierarchicalLevel, String folder) {
 		String[] path = new String[hierarchicalLevel + 1];
@@ -709,6 +753,10 @@ public class TransformService {
 
 	public Path getTileDir(String id) {
 		return getPath(id, tileHierarchicalLevel, tileFolder);
+	}
+	
+	public Path getZippedTilePath(String id) {
+		return getPath(id + ".zip", tileHierarchicalLevel, tileFolder);
 	}
 
 	public Path getThumbnailPath(String uuid) {
