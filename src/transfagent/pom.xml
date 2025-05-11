@@ -470,7 +470,7 @@
 							<sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
 							<wsdlOptions>
 								<wsdlOption>
-									<wsdl>${basedir}/src/main/resources/wsdl/peva_v1.wsdl</wsdl>
+									<wsdl>${basedir}/src/main/resources/wsdl/peva_v2.wsdl</wsdl>
 									<wsdlLocation>classpath:/wsdl/peva-v1.wsdl</wsdlLocation>
 									<autoNameResolution>true</autoNameResolution>
 									<packagenames>
