@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,7 @@ public class ApuApi extends DomainApi<
 
     @Inject private ApuTreeViewStore apuTreeViewStore;
     @Inject private ApuEntityViewStore apuEntityViewStore;
+    @Inject private ApuEntityResultStore apuEntityResultStore;
     @Inject private ApuEntitySimpleStore apuEntitySimpleStore;    
     @Inject private ApuRepository apuRepository;
     @Inject private ApuStore apuStore;
@@ -128,6 +130,33 @@ public class ApuApi extends DomainApi<
         Result<String> idsResult = apuRepository.getIndex().listIdsByParams(params);
         List<ApuEntityView> items = apuEntityViewStore.listByIds(idsResult.getItems());
         return new Result<>(items, idsResult.getCount(), idsResult.getSearchAfter(), idsResult.getAggregations());
+    }
+
+    @PostMapping("/listresults")
+    public Result<cz.aron.core.model.Result> listResult(@Valid @RequestBody(required = false) Params params) {
+        
+        params = coalesce(params, Params::new);
+        
+        Result<String> idsResult = apuRepository.getIndex().listIdsByParams(params);
+        List<cz.aron.core.model.Result> items = apuEntityResultStore.listByIds(idsResult.getItems()).stream().map(r->{
+		if (r.getResult()!=null) {
+			try {
+				return objectMapper.readValue(r.getResult(),cz.aron.core.model.Result.class);
+			} catch (Exception e) {
+				return createEmptyResult();
+			}
+		} else {
+			return createEmptyResult();
+		}
+	}).collect(Collectors.toList());
+        return new Result<>(items, idsResult.getCount(), idsResult.getSearchAfter(), idsResult.getAggregations());
+    }
+
+    public static cz.aron.core.model.Result createEmptyResult() {
+        var res = new cz.aron.core.model.Result();
+        res.setId("0");
+        res.setT("UNKNOWN");
+        return res;
     }
     
     @PostMapping("/listsimple")

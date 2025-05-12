@@ -287,4 +287,10 @@
         UPDATE apu_entity set indexed=true;
       </sql>
     </changeSet>
+    <changeSet id="aron:15" author="zacek@lightcomp.cz">
+      <addColumn tableName="apu_entity">
+          <column name="result" type="nclob"/>
+      </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

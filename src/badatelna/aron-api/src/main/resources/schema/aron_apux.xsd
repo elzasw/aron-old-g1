@@ -42,7 +42,7 @@
 		<xs:annotation>
 			<xs:documentation>Jednoznačný identifikátor typu UUID.
 
-				Identifikátor může být UUID verze 1 nebo verze 4.</xs:documentation>
+Identifikátor může být UUID verze 1 nebo verze 4.</xs:documentation>
 		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[14][0-9a-fA-F]{3}-[8-9a-bA-B][0-9a-fA-F]{3}-[0-9a-fA-F]{12}"/>
@@ -62,6 +62,11 @@
 			<xs:element name="desc" type="s1:LongString" minOccurs="0" maxOccurs="1">
 				<xs:annotation>
 					<xs:documentation>Volitelný popis APU, zobrazí se ve výsledcích vyhledávání nebo v tooltipu.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="result" type="s1:LongString" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Strukturovany vysledek vyhledavani APU.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="prmLnk" type="s1:LongString" minOccurs="0" maxOccurs="1"/>
@@ -184,10 +189,10 @@
 		<xs:attribute name="f" use="required" type="xs:string">
 			<xs:annotation>
 				<xs:documentation>from / od
-					Uvádí se hodnota dle ISO-8601 avšak pouze ve formátu [-]YYYY-MM-DDThh:mm:ss.
-					Hodnota je bez milisekund a časového pásma.
+Uvádí se hodnota dle ISO-8601 avšak pouze ve formátu [-]YYYY-MM-DDThh:mm:ss.
+Hodnota je bez milisekund a časového pásma. 
 
-					Rok má vždy minimálně 4 pozice. Je možné uvádět i roky před 1583.</xs:documentation>
+Rok má vždy minimálně 4 pozice. Je možné uvádět i roky před 1583.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="fe" use="optional" type="xs:boolean">
@@ -199,25 +204,25 @@
 			<xs:annotation>
 				<xs:documentation>Formát uložené datace.
 
-					Možnosti hodnot formátu:
-					- století: C
-					- rok: Y
-					- rok/měsíc: YM
-					- datum (rok/měsíc/den): D
-					- datum a čas: DT
+Možnosti hodnot formátu:
+	- století: C
+	- rok: Y
+	- rok/měsíc: YM
+	- datum (rok/měsíc/den): D
+	- datum a čas: DT
 
-					Formát může být zadán:
-					- jako jedna hodnota (např. Y)
-					- jako interval (např. Y-Y)</xs:documentation>
+Formát může být zadán:
+	- jako jedna hodnota (např. Y)
+	- jako interval (např. Y-Y)</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="to" use="required" type="xs:string">
 			<xs:annotation>
 				<xs:documentation>to / do
-					Uvádí se hodnota dle ISO-8601 avšak pouze ve formátu [-]YYYY-MM-DDThh:mm:ss.
-					Hodnota je bez milisekund a časového pásma.
+Uvádí se hodnota dle ISO-8601 avšak pouze ve formátu [-]YYYY-MM-DDThh:mm:ss.
+Hodnota je bez milisekund a časového pásma. 
 
-					Rok má vždy minimálně 4 pozice. Je možné uvádět i roky před 1583.</xs:documentation>
+Rok má vždy minimálně 4 pozice. Je možné uvádět i roky před 1583.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="toe" use="optional" type="xs:boolean">

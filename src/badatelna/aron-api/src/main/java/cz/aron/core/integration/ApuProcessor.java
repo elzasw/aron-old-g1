@@ -183,6 +183,7 @@ public class ApuProcessor {
         apuEntity.setName(apu.getName());
         apuEntity.setOrder(++apuOrderCounter);
         apuEntity.setDescription(apu.getDesc());
+        apuEntity.setResult(apu.getResult());
         apuEntity.setPermalink(apu.getPrmLnk());
         apuEntity.setType(ApuType.valueOf(apu.getType().name().toUpperCase())); //fixme names don't match
         apuEntity.setChildCnt(levelState.childCnt);

@@ -21,6 +21,7 @@ import java.util.List;
 public class ApuEntity extends DomainObject<ApuEntity> {
     private String name;
     private String description;
+    private String result;
     private String permalink;
     private int order;
     private boolean published;
