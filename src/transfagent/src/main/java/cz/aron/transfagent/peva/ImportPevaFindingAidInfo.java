@@ -23,6 +23,7 @@ import cz.aron.apux._2020.Part;
 import cz.aron.peva2.wsdl.FindingAid;
 import cz.aron.peva2.wsdl.UniversalTimeRange;
 import cz.aron.transfagent.config.ConfigPeva2FindingAidProperties;
+import cz.aron.transfagent.peva.findingaid.Peva2FindingAidResultBuilder;
 import cz.aron.transfagent.transformation.ContextDataProvider;
 import cz.aron.transfagent.transformation.CoreTypes;
 import cz.aron.transfagent.transformation.FindingAidInfo;
@@ -52,9 +53,13 @@ public class ImportPevaFindingAidInfo {
 	
 	private UUID findingAidUUID;
 	
-	public ImportPevaFindingAidInfo(Peva2CodeLists codeLists, ConfigPeva2FindingAidProperties findingAidProperties) {
+	private Peva2FindingAidResultBuilder resultBuilder;
+	
+	public ImportPevaFindingAidInfo(Peva2CodeLists codeLists, ConfigPeva2FindingAidProperties findingAidProperties,
+			Peva2FindingAidResultBuilder resultBuilder) {
 		this.codeLists = codeLists;
 		this.findingAidProperties = findingAidProperties;
+		this.resultBuilder = resultBuilder;
 	}
 
 	public ApuSourceBuilder importFindingAidInfo(final Path inputFile, final ContextDataProvider cdp)
@@ -153,6 +158,9 @@ public class ImportPevaFindingAidInfo {
 			processRefs(partRef, fundUUIDs, instInfo.getUuid());
 		} else {
 			processRefs(partInfo, fundUUIDs, instInfo.getUuid());
+		}
+		if (resultBuilder!=null) {
+			apusBuilder.getMainApu().setResult(resultBuilder.buildResult(findingAid, instInfo));
 		}
 	}
 	

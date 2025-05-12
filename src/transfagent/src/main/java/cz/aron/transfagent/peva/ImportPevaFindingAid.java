@@ -38,18 +38,19 @@ import cz.aron.transfagent.domain.FindingAid;
 import cz.aron.transfagent.domain.Fund;
 import cz.aron.transfagent.peva.ImportPevaFindingAidInfo.PevaFundNotExist;
 import cz.aron.transfagent.peva.dao.FindingAidDaoImporter;
+import cz.aron.transfagent.peva.findingaid.Peva2FindingAidResultBuilder;
 import cz.aron.transfagent.repository.FindingAidRepository;
 import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
 import cz.aron.transfagent.service.DaoFileStore3Service;
 import cz.aron.transfagent.service.DaoImportService;
+import cz.aron.transfagent.service.DaoImportService.DaoSource;
+import cz.aron.transfagent.service.DaoImportService.DaoSourceRef;
 import cz.aron.transfagent.service.FindingAidService;
 import cz.aron.transfagent.service.ImportProtocol;
 import cz.aron.transfagent.service.StorageService;
-import cz.aron.transfagent.service.DaoImportService.DaoSource;
-import cz.aron.transfagent.service.DaoImportService.DaoSourceRef;
-import cz.aron.transfagent.service.importfromdir.ReimportProcessor;
 import cz.aron.transfagent.service.importfromdir.ImportFindingAidService.FindingAidImporter;
+import cz.aron.transfagent.service.importfromdir.ReimportProcessor;
 import cz.aron.transfagent.service.importfromdir.ReimportProcessor.Result;
 import cz.aron.transfagent.transformation.CoreTypes;
 import cz.aron.transfagent.transformation.DatabaseDataProvider;
@@ -92,6 +93,8 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 	
 	private final PermalinkGenerator permalinkGenerator;
 	
+	private final Peva2FindingAidResultBuilder resultBuilder;
+	
 	public ImportPevaFindingAid(StorageService storageService, FindingAidService findingAidService,
 			FindingAidRepository findingAidRepository, FundRepository fundRepository,
 			InstitutionRepository institutionRepository, DatabaseDataProvider databaseDataProvider,
@@ -99,7 +102,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			Peva2CodeListProvider codeListProvider, ConfigPeva2 configPeva2,DaoImportService daoImportService,
             @Nullable DaoFileStore3Service daoFileStore3Service,
             List<FindingAidDaoImporter> daoImporters,
-            @Nullable PermalinkGenerator permalinkGenerator) {
+            @Nullable PermalinkGenerator permalinkGenerator, @Nullable Peva2FindingAidResultBuilder resultBuilder) {
 		this.storageService = storageService;
 		this.findingAidService = findingAidService;
 		this.findingAidRepository = findingAidRepository;
@@ -114,6 +117,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 		this.daoFileStore3Service = daoFileStore3Service;
 		this.daoImporters = daoImporters;
 		this.permalinkGenerator = permalinkGenerator;
+		this.resultBuilder = resultBuilder;
 	}
 
 	@Override
@@ -158,7 +162,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 		var protocol = new ImportProtocol(dir);
         protocol.add("Zahájení importu");
 		
-        var ifai = new ImportPevaFindingAidInfo(codeListProvider.getCodeLists(), configPeva2.getFindingAidProperties());
+        var ifai = new ImportPevaFindingAidInfo(codeListProvider.getCodeLists(), configPeva2.getFindingAidProperties(), resultBuilder);
         ApuSourceBuilder builder;
         try {
             builder = ifai.importFindingAidInfo(findingAidXml, databaseDataProvider);
@@ -380,7 +384,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 		ApuSourceBuilder builder;
 		try {
 			var ifai = new ImportPevaFindingAidInfo(codeListProvider.getCodeLists(),
-					configPeva2.getFindingAidProperties());
+					configPeva2.getFindingAidProperties(), resultBuilder);
 			builder = ifai.importFindingAidInfo(apuPath.resolve(fileName), databaseDataProvider);
 			processFindingAidCopies(builder, findingAid.getUuid());
 			processFindingAidAuthors(builder, ifai.getAuthorUUIDs());

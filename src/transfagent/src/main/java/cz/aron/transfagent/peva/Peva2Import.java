@@ -70,10 +70,8 @@ public class Peva2Import implements  SmartLifecycle {
 		downloaders.add(applicationContext.getBean(Peva2ImportFindingAids.class));
 		createInstitutionDownloaders(Peva2ImportFindingAids.class);
 		
-		/*
 		downloaders.add(applicationContext.getBean(Peva2ImportFundIds.class));
 		createInstitutionDownloaders(Peva2ImportFundIds.class);
-		*/
 				
 		for (Peva2Downloader downloader : downloaders) {
 			log.info("Downloader {}, status={}", downloader.getName(), downloader.isActive());

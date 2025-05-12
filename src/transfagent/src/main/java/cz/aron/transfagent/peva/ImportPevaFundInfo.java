@@ -51,6 +51,7 @@ import cz.aron.transfagent.config.ConfigPeva2FundProperties;
 import cz.aron.transfagent.domain.EntityStatus;
 import cz.aron.transfagent.elza.ApTypeService;
 import cz.aron.transfagent.peva.codelist.Peva2ThematicEvidenceGroup;
+import cz.aron.transfagent.peva.fund.Peva2FundResultBuilder;
 import cz.aron.transfagent.peva.jsoncomponent.Column;
 import cz.aron.transfagent.peva.jsoncomponent.JSONComponent;
 import cz.aron.transfagent.peva.jsoncomponent.Table;
@@ -99,10 +100,12 @@ public class ImportPevaFundInfo {
     private final List<String> geos = new ArrayList<>();
     
     private final StringJoiner nameSearchComponent = new StringJoiner(" ");
+    
+    private final Peva2FundResultBuilder resultBuilder;
             
     public static void main(String[] args) {
         Path inputFile = Path.of(args[0]);
-        ImportPevaFundInfo ifi = new ImportPevaFundInfo(new ConfigPeva2FundProperties(),null, null);
+        ImportPevaFundInfo ifi = new ImportPevaFundInfo(new ConfigPeva2FundProperties(),null, null, null);
         try {
             ApuSourceBuilder apusrcBuilder = ifi.importFundInfo(inputFile, args[1]);
             Path ouputPath = Paths.get(args[2]);
@@ -115,15 +118,17 @@ public class ImportPevaFundInfo {
         }
     }
     
-    public ImportPevaFundInfo(ConfigPeva2FundProperties fundProperties, ApTypeService apTypeService, StorageService storageService) {
-    	if (fundProperties!=null) {
-    		this.fundProperties = fundProperties;
-    	} else {
-    		this.fundProperties = new ConfigPeva2FundProperties();
-    	}
-    	this.apTypeService = apTypeService;
-    	this.storageService = storageService;
-    }
+	public ImportPevaFundInfo(ConfigPeva2FundProperties fundProperties, ApTypeService apTypeService,
+			StorageService storageService, Peva2FundResultBuilder resultBuilder) {
+		if (fundProperties != null) {
+			this.fundProperties = fundProperties;
+		} else {
+			this.fundProperties = new ConfigPeva2FundProperties();
+		}
+		this.apTypeService = apTypeService;
+		this.storageService = storageService;
+		this.resultBuilder = resultBuilder;
+	}
 
     public ApuSourceBuilder importFundInfo(Path inputFile, String propFile) throws IOException, JAXBException {
         Validate.isTrue(propFile!=null&&propFile.length()>0);
@@ -178,6 +183,7 @@ public class ImportPevaFundInfo {
 		processEvidenceNumber(primarySheet, subsheet, partFundInfo);
 		processNadHeaderCommon(nadHeader, partFundInfo);
 		processNadSheetSubNadSheetCommon(subsheet, partFundInfo);
+		generateResult(subsheet, instInfo);
 		
 		if (nameSearchComponent.length()>0) {
 			ApuSourceBuilder.addString(partFundInfo, CoreTypes.INT_NAME_INDEX, nameSearchComponent.toString()).setVisible(false);;			
@@ -198,6 +204,7 @@ public class ImportPevaFundInfo {
 		processEvidenceNumber(primarySheet, null, partFundInfo);
 		processNadHeaderCommon(nadHeader, partFundInfo);
 		processNadSheetSubNadSheetCommon(primarySheet, partFundInfo);
+		generateResult(primarySheet, instInfo);
 		
 		if (nameSearchComponent.length()>0) {
 			ApuSourceBuilder.addString(partFundInfo, CoreTypes.INT_NAME_INDEX, nameSearchComponent.toString()).setVisible(false);			
@@ -314,7 +321,7 @@ public class ImportPevaFundInfo {
     }
     
 	private void processNadSheetSubNadSheetCommon(NadSheet nadSheet, Part partFundInfo) {
-		generateDescription(nadSheet, partFundInfo);
+		generateDescription(nadSheet, partFundInfo);		
 		processAdditionalInfo(nadSheet, partFundInfo);
 		processFindingAids(nadSheet, partFundInfo);
 		processOriginators(nadSheet, partFundInfo);
@@ -357,6 +364,11 @@ public class ImportPevaFundInfo {
 		}
 	}
 	
+	private void generateResult(NadSheet nadSheet, InstitutionInfo institutionInfo) {		
+		if (resultBuilder!=null) {
+			apusBuilder.getMainApu().setResult(resultBuilder.buildResult(nadSheet, institutionInfo));
+		}		
+	}	
 	
 	private String removePrefixCaseInsensitive(String text, String prefix) {
 		var textLowerCase = text.toLowerCase();

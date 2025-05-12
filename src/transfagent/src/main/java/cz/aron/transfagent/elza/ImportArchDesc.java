@@ -64,6 +64,7 @@ import cz.aron.transfagent.service.LevelEnrichmentService;
 import cz.aron.transfagent.transformation.ArchEntityInfo;
 import cz.aron.transfagent.transformation.ContextDataProvider;
 import cz.aron.transfagent.transformation.CoreTypes;
+import cz.aron.transfagent.transformation.InstitutionInfo;
 import cz.aron.transfagent.transformation.PropertiesDataProvider;
 import cz.tacr.elza.schema.v2.DescriptionItem;
 import cz.tacr.elza.schema.v2.DescriptionItemInteger;
@@ -104,6 +105,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
 
 	private Part activePart;
 
+	private InstitutionInfo institutionInfo;
+	
 	private String institutionCode;
 
 	private String institutionName;
@@ -172,17 +175,20 @@ public class ImportArchDesc implements EdxItemCovertContext {
     private final List<ArchDescAttachment> attachments = new ArrayList<>();
     
     private final TypesConfiguration typesConfig;
+    
+    private final ImportArchDescResultBuilder resultBuilder;
 
     public ImportArchDesc(ApTypeService apTypeService, DaoFileStoreService daoFileStoreService,
                           LevelEnrichmentService levelEnrichmentService,
                           ConfigElzaArchDesc configArchDesc, List<ArchDescLevelDaoImporter> levelDaoImporters,
-                          TypesConfiguration typesConfig) {
+                          TypesConfiguration typesConfig, ImportArchDescResultBuilder resultBuilder) {
         this.apTypeService = apTypeService;
         this.daoFileStoreService = daoFileStoreService;
         this.levelEnrichmentService = levelEnrichmentService;
         this.configArchDesc = configArchDesc;
         this.levelDaoImporters = levelDaoImporters;
         this.typesConfig = typesConfig;
+        this.resultBuilder = resultBuilder;
     }
 
     public Set<UUID> getApRefs() {
@@ -207,7 +213,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
 
 	public static void main(String[] args) {
 		Path inputFile = Path.of(args[0]);
-		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, null, new ConfigElzaArchDesc(), Collections.emptyList(),null);
+		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, null, new ConfigElzaArchDesc(),
+				Collections.emptyList(), null, null);
 		try {
 			ApuSourceBuilder apusrcBuilder = iad.importArchDesc(inputFile, args[1]);
 			Path outputPath = Path.of(args[2]);
@@ -257,7 +264,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
         // read fund info
         FundInfo fi = sect.getFi();
         institutionCode = fi.getIc();
-        var institutionInfo = dataProvider.getInstitutionApu(institutionCode);
+        institutionInfo = dataProvider.getInstitutionApu(institutionCode);
         instApuUuid = institutionInfo.getUuid();
         institutionName = institutionInfo.getName();
         institutionShortName = institutionInfo.getShortName();
@@ -404,6 +411,9 @@ public class ImportArchDesc implements EdxItemCovertContext {
         apu.setName(name);
         String desc = getDesc(lvl, parentContext, duplicities.get(lvl.getPid()));        
         apu.setDesc(desc);
+        if (resultBuilder!=null) {
+        	resultBuilder.buildResult(institutionInfo, sect, lvl, parentContext);
+        }
 
         activateArchDescPart(apu);                
 
@@ -1032,7 +1042,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
     			
     }
     
-    private class LevelContext implements EdxItemCovertContext {
+    public class LevelContext implements EdxItemCovertContext {
 
         private final Level level;
         private final Apu apu;

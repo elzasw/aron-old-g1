@@ -41,6 +41,7 @@ import cz.aron.transfagent.elza.ImportArchDesc;
 import cz.aron.transfagent.peva.ImportPevaFundInfo.FundIgnored;
 import cz.aron.transfagent.peva.ImportPevaFundInfo.FundProvider;
 import cz.aron.transfagent.peva.ImportPevaFundInfo.FundRemoved;
+import cz.aron.transfagent.peva.fund.Peva2FundResultBuilder;
 import cz.aron.transfagent.repository.ArchDescRepository;
 import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
@@ -100,6 +101,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
     private final ApTypeService apTypeService;
     
     private final PermalinkGenerator permalinkGenerator;
+    
+    private final Peva2FundResultBuilder resultBuilder;
 
 	public ImportPevaFund(FundRepository fundRepository, InstitutionRepository institutionRepository,
 			DatabaseDataProvider databaseDataProvider, ConfigurationLoader configurationLoader, ConfigPeva2 configPeva2,
@@ -108,7 +111,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			ArchivalEntityService archivalEntityService, AttachmentService attachmentService,
 			ArchDescRepository archDescRepository, DaoImportService daoImportService,
 			@Nullable DaoFileStore3Service daoFileStore3Service,ApTypeService apTypeService,
-			@Nullable PermalinkGenerator permalinkGenerator) {
+			@Nullable PermalinkGenerator permalinkGenerator, @Nullable Peva2FundResultBuilder resultBuilder) {
 		super();
 		this.fundRepository = fundRepository;
 		this.institutionRepository = institutionRepository;
@@ -127,6 +130,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		this.daoFileStore3Service = daoFileStore3Service;
 		this.apTypeService = apTypeService;
 		this.permalinkGenerator = permalinkGenerator;
+		this.resultBuilder = resultBuilder;
 	}
     
 	@Override
@@ -180,7 +184,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
         
         var archDescRoot = getArchDescUUID(fund);
 
-        var ifi = new ImportPevaFundInfo(configPeva2.getFundProperties(), apTypeService, storageService);
+        var ifi = new ImportPevaFundInfo(configPeva2.getFundProperties(), apTypeService, storageService, resultBuilder);
         ApuSourceBuilder apusrcBuilder;
  
 		try {
@@ -322,7 +326,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		
 		var fileName = PREFIX + fund.getCode() + ".xml";		
 		ApuSourceBuilder apuSourceBuilder;
-		var ifi = new ImportPevaFundInfo(configPeva2.getFundProperties(), apTypeService, storageService);
+		var ifi = new ImportPevaFundInfo(configPeva2.getFundProperties(), apTypeService, storageService, resultBuilder);
 		try {
 			apuSourceBuilder = ifi.importFundInfo(apuPath.resolve(fileName), fund.getUuid(), databaseDataProvider, this,
 					codeListProvider, entityDownloader, getArchDescUUID(fund));

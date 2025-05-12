@@ -64,6 +64,11 @@ Identifikátor může být UUID verze 1 nebo verze 4.</xs:documentation>
 					<xs:documentation>Volitelný popis APU, zobrazí se ve výsledcích vyhledávání nebo v tooltipu.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element name="result" type="s1:LongString" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Strukturovany vysledek vyhledavani APU.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 			<xs:element name="prmLnk" type="s1:LongString" minOccurs="0" maxOccurs="1"/>
 			<xs:element name="prts" type="s1:Parts" minOccurs="0" maxOccurs="1"/>
 			<xs:element name="prnt" type="s1:Uuid" minOccurs="0" maxOccurs="1">
