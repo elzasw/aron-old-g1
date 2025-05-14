@@ -1,4 +1,5 @@
-export const API_URL = `${process.env.URL_PREFIX || ''}/api/aron`;
+export const BASE_URL = `${process.env.URL_PREFIX || ''}`;
+export const API_URL = `${BASE_URL}/api/aron`;
 
 export enum ApiUrl {
   APU = '/apu',

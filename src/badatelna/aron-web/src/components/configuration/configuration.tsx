@@ -46,6 +46,7 @@ export interface ConfigurationType {
     orderResultsByScore?: boolean;
     showIncrementalTree?: boolean;
     otherSources?: OtherSource[];
+    useStructuredResults?: boolean;
 }
 
 
@@ -106,6 +107,7 @@ const defaultConfiguration: ConfigurationType = {
     // helpUrl: 'https://www.google.cz',
     orderResultsByScore: true,
     otherSources: undefined,
+    useStructuredResults: false,
 }
 
 const ConfigurationContext = createContext<ConfigurationType>(defaultConfiguration)

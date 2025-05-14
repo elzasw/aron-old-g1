@@ -4,13 +4,14 @@ import { get } from 'lodash';
 
 import { useFetch, ApiFilterOperation } from '@eas/common-web';
 
-import { API_URL, ApiUrl } from '../enums';
+import { API_URL, ApiUrl, BASE_URL } from '../enums';
 import { downloadFileFromUrl } from './file';
 import { Filter, ApuEntity, AggregationItems, ApuEntitySimplified } from '../types';
 
 type Options = any;
 
 export const createUrl = (url: string) => `${API_URL}${url}`;
+export const createBaseUrl = (url: string) => `${BASE_URL}${url}`;
 
 function useApi<T>(url: string, options: Options = {}) {
   return useFetch<T>(createUrl(url), {
@@ -21,6 +22,21 @@ function useApi<T>(url: string, options: Options = {}) {
         }
       : {}),
   });
+}
+
+function useBaseApi<T>(url: string, options: Options = {}) {
+  return useFetch<T>(createBaseUrl(url), {
+    ...options,
+    ...(options.json
+      ? {
+          body: JSON.stringify(options.json),
+        }
+      : {}),
+  });
+}
+
+export function useBaseGet<T>(url: string, options: Options = {}) {
+  return useBaseApi<T>(url, options);
 }
 
 export function useGet<T>(url: string, options: Options = {}) {
@@ -57,6 +73,28 @@ export interface ApiListSimplifiedResponse {
   aggregations: AggregationItems;
   count: number;
   items: ApuEntitySimplified[];
+  searchAfter: unknown | null;
+}
+
+export interface EvidenceResultItemLineValue {
+  v: string;
+  id?: string;
+}
+
+export interface EvidenceResultItemLine {
+  t: string;
+  v: EvidenceResultItemLineValue[];
+}
+
+export interface EvidenceResultItem {
+  id: string;
+  t: string;
+  l: EvidenceResultItemLine[][];
+}
+
+export interface ApiListResultsResponse {
+  count: number;
+  items: EvidenceResultItem[];
   searchAfter: unknown | null;
 }
 
@@ -141,6 +179,26 @@ export function useApiList({
     size 
   };
   return usePost<ApiListResponse>(`${ApiUrl.APU}/list?listType=${(source)?.toUpperCase()}`, { json });
+}
+
+export function useApiListResultsSimple({
+  filters = [], 
+  sort = [], 
+  offset, 
+  size = -1, 
+  aggregations = [],
+  flipDirection = false,
+  source,
+}: ApiListProps) {
+  const json = { 
+    aggregations, 
+    filters: transformFilters(filters), 
+    sort, 
+    offset, 
+    flipDirection, 
+    size,
+  };
+  return usePost<ApiListResultsResponse>(`${ApiUrl.APU}/listresults?listType=${(source)?.toUpperCase()}`, { json });
 }
 
 export function useApiListSimple({

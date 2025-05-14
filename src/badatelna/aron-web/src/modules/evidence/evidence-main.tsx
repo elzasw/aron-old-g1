@@ -1,11 +1,12 @@
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import { Module } from '../../components';
+import { Module, useConfiguration } from '../../components';
 import { Message, ModulePath } from '../../enums';
 import { useStyles } from './styles';
 import { MainProps } from './types';
 import { FiltersProvider } from './evidence-filters';
+import { EvidenceResults } from './evidence-results';
 import { EvidenceList } from './evidence-list';
 import { EvidenceSidebar } from './evidence-sidebar';
 
@@ -16,6 +17,7 @@ export function EvidenceMain({
   apuPartItemTypes,
 }: MainProps) {
   const classes = useStyles();
+  const { useStructuredResults } = useConfiguration();
 
   let textId: Message | null = null;
 
@@ -41,18 +43,18 @@ export function EvidenceMain({
         items: [{ label }],
         ...(textId
           ? {
-              toolbar: (
-                <div className={classes.evidenceTextInfo}>
-                  <FormattedMessage id={textId} />
-                </div>
-              ),
-            }
+            toolbar: (
+              <div className={classes.evidenceTextInfo}>
+                <FormattedMessage id={textId} />
+              </div>
+            ),
+          }
           : {}),
       }}
     >
       <FiltersProvider {...{ path, facets, apuPartItemTypes }}>
         <EvidenceSidebar {...{ apuPartItemTypes, facets, path }} />
-        <EvidenceList />
+        {useStructuredResults ? <EvidenceResults /> : <EvidenceList />}
       </FiltersProvider>
     </Module>
   );
