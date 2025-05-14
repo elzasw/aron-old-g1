@@ -106,7 +106,7 @@ function ItemsList() {
 
   const maxPage = count ? Math.ceil(Math.min(count, 9999) / pageSize) : 0;
 
-  const renderItem = ({ t, l, id }: EvidenceResultItem) => {
+  const renderItem = ({ tn, l, id }: EvidenceResultItem) => {
     return (
       <Link
         key={id}
@@ -116,45 +116,65 @@ function ItemsList() {
           spacingClasses.marginBottomSmall
           // !description && classes.listItemTitleOnly
         )}
+        style={{ display: 'flex' }}
       >
-        {l.map((lineItems) => {
-          return (
-            <div>
-              {lineItems.map(({ t, v }) => {
-                const typeProperties = listConfig?.itemProperties.find(
-                  ({ type }) => type === t
-                );
+        <div style={{ flexGrow: 1 }}>
+          {l.length === 0 && 'Empty'}
+          {l.map((lineItems) => {
+            return (
+              <div>
+                {lineItems.map(({ t, v }) => {
+                  const typeProperties = listConfig?.itemProperties.find(
+                    ({ type }) => type === t
+                  );
 
-                const style: React.CSSProperties = {};
-                const linkStyle: React.CSSProperties = {};
+                  const style: React.CSSProperties = {};
+                  const linkStyle: React.CSSProperties = {};
 
-                if (typeProperties) {
-                  style.fontSize = `${1 + (typeProperties.size - 1) * 0.1}em`;
-                  style.color = typeProperties.color;
-                  style.fontWeight = typeProperties.bold ? 'bold' : 'normal';
-                  linkStyle.color = 'currentColor';
-                }
-                console.log('#er', t, v, l, items);
-                const _element =
-                  typeProperties?.class === 'header' ? 'h4' : 'span';
-                return (
-                  <_element style={style}>
-                    {typeProperties?.prefix}
-                    {v?.map(({ v, id }) =>
-                      id ? (
-                        <Link style={linkStyle} to={`${ModulePath.APU}/${id}`}>
-                          {v}
-                        </Link>
-                      ) : (
-                        <span>{v}</span>
-                      )
-                    )}
-                  </_element>
-                );
-              })}
-            </div>
-          );
-        })}
+                  if (typeProperties) {
+                    style.fontSize = `${1 + (typeProperties.size - 1) * 0.1}em`;
+                    style.color = typeProperties.color;
+                    style.fontWeight = typeProperties.bold ? 'bold' : 'normal';
+                    linkStyle.color = 'currentColor';
+                  }
+                  console.log('#er', t, v, l, items);
+                  const _element =
+                    typeProperties?.class === 'header' ? 'h4' : 'span';
+                  return (
+                    <_element style={style}>
+                      {typeProperties?.prefix}
+                      {v?.map(({ v, id }) =>
+                        id ? (
+                          <Link
+                            style={linkStyle}
+                            to={`${ModulePath.APU}/${id}`}
+                          >
+                            {v}
+                          </Link>
+                        ) : (
+                          <span>{v}</span>
+                        )
+                      )}
+                    </_element>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+        {tn && (
+          <div>
+            <img
+              src={tn}
+              style={{
+                height: '100%',
+                maxHeight: '80px',
+                flexGrow: 0,
+                borderRadius: '8px',
+              }}
+            />
+          </div>
+        )}
       </Link>
     );
   };

@@ -90,6 +90,7 @@ export interface EvidenceResultItem {
   id: string;
   t: string;
   l: EvidenceResultItemLine[][];
+  tn?: string;
 }
 
 export interface ApiListResultsResponse {
