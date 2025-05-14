@@ -17,7 +17,7 @@ import {
   colorYellowDark,
   colorYellowLight,
 } from '../../styles';
-import { ModulePath, pageSizeOptions, Message } from '../../enums';
+import { ModulePath, pageSizeOptions, Message, BASE_URL } from '../../enums';
 import { Select, Loading, useConfiguration, Button } from '../../components';
 import {
   useWindowSize,
@@ -49,6 +49,7 @@ interface ListConfig {
   typeIcon: boolean;
   itemProperties: ListConfigItemProperties[];
   typeIcons: ListConfigTypeIcon[];
+  typeIconSize: number;
 }
 
 function ItemsList() {
@@ -106,7 +107,8 @@ function ItemsList() {
 
   const maxPage = count ? Math.ceil(Math.min(count, 9999) / pageSize) : 0;
 
-  const renderItem = ({ tn, l, id }: EvidenceResultItem) => {
+  const renderItem = ({ tn, l, id, t }: EvidenceResultItem) => {
+    const typeIcon = listConfig?.typeIcons.find(({ type }) => type === t);
     return (
       <Link
         key={id}
@@ -118,8 +120,15 @@ function ItemsList() {
         )}
         style={{ display: 'flex' }}
       >
+        {typeIcon && (
+          <div style={{ flexGrow: 0, flexShrink: 0, marginRight: '6px' }}>
+            <img
+              src={`${BASE_URL}/app/${typeIcon.icon}`}
+              style={{ width: `${listConfig?.typeIconSize}px` }}
+            />
+          </div>
+        )}
         <div style={{ flexGrow: 1 }}>
-          {l.length === 0 && 'Empty'}
           {l.map((lineItems) => {
             return (
               <div>
@@ -128,7 +137,10 @@ function ItemsList() {
                     ({ type }) => type === t
                   );
 
-                  const style: React.CSSProperties = {};
+                  const style: React.CSSProperties = {
+                    display: 'flex',
+                    alignItems: 'center',
+                  };
                   const linkStyle: React.CSSProperties = {};
 
                   if (typeProperties) {
@@ -142,6 +154,12 @@ function ItemsList() {
                     typeProperties?.class === 'header' ? 'h4' : 'span';
                   return (
                     <_element style={style}>
+                      {typeProperties?.icon && (
+                        <img
+                          style={{ height: '1.4em' }}
+                          src={`${BASE_URL}/app/${typeProperties?.icon}`}
+                        />
+                      )}
                       {typeProperties?.prefix}
                       {v?.map(({ v, id }) =>
                         id ? (
