@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 
 import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.apux._2020.Apu;
@@ -181,7 +182,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
     public ImportArchDesc(ApTypeService apTypeService, DaoFileStoreService daoFileStoreService,
                           LevelEnrichmentService levelEnrichmentService,
                           ConfigElzaArchDesc configArchDesc, List<ArchDescLevelDaoImporter> levelDaoImporters,
-                          TypesConfiguration typesConfig, ImportArchDescResultBuilder resultBuilder) {
+                          TypesConfiguration typesConfig, @Nullable ImportArchDescResultBuilder resultBuilder) {
         this.apTypeService = apTypeService;
         this.daoFileStoreService = daoFileStoreService;
         this.levelEnrichmentService = levelEnrichmentService;
@@ -412,7 +413,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
         String desc = getDesc(lvl, parentContext, duplicities.get(lvl.getPid()));        
         apu.setDesc(desc);
         if (resultBuilder!=null) {
-        	resultBuilder.buildResult(institutionInfo, sect, lvl, parentContext);
+        	apu.setResult(resultBuilder.buildResult(institutionInfo, sect, lvl, levelContext, fundApuUuid));
         }
 
         activateArchDescPart(apu);                
