@@ -88,9 +88,8 @@ function ItemsList() {
     source: 'evidence-list',
   });
 
-  const [listConfig, loadingListConfig] =
+  const [listConfig /* , loadingListConfig */] =
     useBaseGet<ListConfig>('/app/config.json');
-  console.log('#lc', listConfig, loadingListConfig);
 
   const [infoEnabled, setInfoEnabled] = useState(false);
 
@@ -131,8 +130,8 @@ function ItemsList() {
         <div style={{ flexGrow: 1 }}>
           {l.map((lineItems) => {
             return (
-              <div>
-                {lineItems.map(({ t, v }) => {
+              <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                {lineItems.map(({ t, v }, index) => {
                   const typeProperties = listConfig?.itemProperties.find(
                     ({ type }) => type === t
                   );
@@ -147,16 +146,17 @@ function ItemsList() {
                     style.fontSize = `${1 + (typeProperties.size - 1) * 0.1}em`;
                     style.color = typeProperties.color;
                     style.fontWeight = typeProperties.bold ? 'bold' : 'normal';
-                    linkStyle.color = 'currentColor';
                   }
-                  console.log('#er', t, v, l, items);
+
+                  linkStyle.color = 'currentColor';
+
                   const _element =
                     typeProperties?.class === 'header' ? 'h4' : 'span';
                   return (
                     <_element style={style}>
                       {typeProperties?.icon && (
                         <img
-                          style={{ height: '1.4em' }}
+                          style={{ height: '1.4em', marginRight: '4px' }}
                           src={`${BASE_URL}/app/${typeProperties?.icon}`}
                         />
                       )}
@@ -170,8 +170,11 @@ function ItemsList() {
                             {v}
                           </Link>
                         ) : (
-                          <span>{v}</span>
-                        )
+                            <span>{v}</span>
+                          )
+                      )}
+                      {index < lineItems.length - 1 && (
+                        <span style={{ margin: '0 5px' }}>|</span>
                       )}
                     </_element>
                   );
@@ -317,8 +320,8 @@ function ItemsList() {
                 </div>
               </div>
             ) : (
-              <></>
-            )}
+                <></>
+              )}
           </div>
         </>
       ) : infoEnabled ? (
@@ -326,8 +329,8 @@ function ItemsList() {
           <FormattedMessage id={Message.NO_ITEMS_FOUND} />
         </div>
       ) : (
-        <></>
-      )}
+            <></>
+          )}
     </div>
   );
 }
@@ -341,8 +344,8 @@ export function EvidenceResults() {
       {initialized ? (
         <ItemsList />
       ) : (
-        <Loading {...{ loading: !initialized || loading }} />
-      )}
+          <Loading {...{ loading: !initialized || loading }} />
+        )}
     </div>
   );
 }
