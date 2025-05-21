@@ -38,6 +38,8 @@ public abstract class Peva2Downloader {
 	private final boolean active;
 	
 	protected boolean storeState = true;
+	
+	private boolean store2 = true;
 
 	public Peva2Downloader(String agendaName, PEvA2Connection peva2, PropertyRepository propertyRepository, ConfigPeva2 config,
 			TransactionTemplate tt, StorageService storageService, boolean active) {
@@ -83,26 +85,43 @@ public abstract class Peva2Downloader {
 			ic.addProcessed();
 		}
 
-		if (storeState) {
-			tt.execute(t -> {
-				var sa = propertyRepository.findByName(searchAfterPropertyName);
-				if (sa != null) {
-					sa.setValue("");
-					propertyRepository.save(sa);
-				}
-				var ua = propertyRepository.findByName(updateAfterPropertyName);
-				if (ua == null) {
-					ua = new Property();
-					ua.setName(updateAfterPropertyName);
-				}
-				// posunu zpet o offset, do PEvA neprenesu zonu a databaze ji asi interne
-				// pouziva
-				var offsetSeconds = ZonedDateTime.now().getOffset().getTotalSeconds();
-				var newRun = nowTime.minusSeconds(offsetSeconds);
-				ua.setValue(newRun.toString());
-				propertyRepository.save(ua);
-				return null;
-			});
+		if (storeState) {			
+			// clear update after
+			// store search after			
+			if (store2) {
+				tt.execute(t -> {
+					// preserve searchafter
+					// clear update after
+					var ua = propertyRepository.findByName(updateAfterPropertyName);
+					if (ua != null) {						
+						ua.setName("");
+						propertyRepository.save(ua);
+					}					
+					return null;
+				});							
+			} else {				
+				// clear search after
+				// store update after
+				tt.execute(t -> {
+					var sa = propertyRepository.findByName(searchAfterPropertyName);
+					if (sa != null) {
+						sa.setValue("");
+						propertyRepository.save(sa);
+					}
+					var ua = propertyRepository.findByName(updateAfterPropertyName);
+					if (ua == null) {
+						ua = new Property();
+						ua.setName(updateAfterPropertyName);
+					}
+					// posunu zpet o offset, do PEvA neprenesu zonu a databaze ji asi interne
+					// pouziva
+					var offsetSeconds = ZonedDateTime.now().getOffset().getTotalSeconds();
+					var newRun = nowTime.minusSeconds(offsetSeconds);
+					ua.setValue(newRun.toString());
+					propertyRepository.save(ua);
+					return null;
+				});			
+			}
 		}
 
 	}

@@ -47,9 +47,11 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 
 		generateName(result, levelContext, sect);
 		generateDate(result, levelContext);
+		generateUnitContent(result, levelContext);
 		generateSignature(result, levelContext);
+		generateNumber(result, levelContext);
 		generateInstitutionAndFund(result, instInfo, sect, fundApuUuid, levelContext);
-
+		generateParent(result, levelContext, sect);
 		try {
 			return objectMapper.writeValueAsString(result);
 		} catch (JsonProcessingException e) {
@@ -104,9 +106,15 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 	public String getDate(LevelContext levelContext) {
 		if (levelContext == null) {
 			return null;
-		}
+		}		
 		for (DescriptionItem item : levelContext.getLevel().getDdOrDoOrDp()) {
-			if (item.getT().equals("ZP2015_DATE")) {
+			if (item.getT().equals("ZP2015_UNIT_DATE_TEXT")) {
+				DescriptionItemString dateText = (DescriptionItemString) item;
+				return dateText.getV();
+			}
+		}				
+		for (DescriptionItem item : levelContext.getLevel().getDdOrDoOrDp()) {
+			if (item.getT().equals(ElzaTypes.ZP2015_UNIT_DATE)) {
 				DescriptionItemUnitDate unitDate = (DescriptionItemUnitDate) item;
 				return UnitDateConvertor.convertToString(unitDate);
 			}
@@ -114,7 +122,82 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		return getDate(levelContext.getParentContext());
 	}
 	
+	public void generateUnitContent(Result result, LevelContext levelContext) {
+		var unitContent = getUnitContent(levelContext);
+		if (unitContent!=null) {
+			var rowItem = new ResultRowItem();
+			rowItem.setT("CONTENT");
+			var itemValue = new ResultRowItemValue();
+			itemValue.setV(StringUtils.abbreviate(unitContent, 500));
+			rowItem.addVItem(itemValue);
+			result.addLItem(Arrays.asList(rowItem));
+		}
+	}
+	
+	public String getUnitContent(LevelContext levelContext) {
+		if (levelContext == null) {
+			return null;
+		}		
+		for (DescriptionItem item : levelContext.getLevel().getDdOrDoOrDp()) {
+			if (item.getT().equals("ZP2015_UNIT_CONTENT")) {
+				DescriptionItemString dateText = (DescriptionItemString) item;
+				return dateText.getV();
+			}
+		}
+		return null;
+	}
+	
 	public void generateSignature(Result result, LevelContext levelContext) {
+		
+		String spisZnak = null;
+		String signatura = null;
+		String puvodniSignatura = null;
+		
+		for(DescriptionItem item : levelContext.getLevel().getDdOrDoOrDp()) {
+			if (item.getT().equals(ElzaTypes.ZP2015_OTHER_ID)) {
+				switch (item.getS()) {
+				case "ZP2015_OTHERID_OLDSIG2":
+					spisZnak = ((DescriptionItemString)item).getV();
+					break;
+				case "ZP2015_OTHERID_SIG":
+					signatura = ((DescriptionItemString)item).getV();
+					break;
+				case "ZP2015_OTHERID_SIG_ORIG":
+					puvodniSignatura = ((DescriptionItemString)item).getV();
+					break;
+				default:
+					// ignore
+				}				
+			}
+		}
+		
+		boolean somethingAdded = false;
+        var rowItem = new ResultRowItem();
+        rowItem.setT("SIGNATURE");
+        if (StringUtils.isNotBlank(spisZnak)) {
+			var itemValue = new ResultRowItemValue();
+			itemValue.setV(spisZnak);
+			rowItem.addVItem(itemValue);
+			somethingAdded = true;
+		}
+        if (StringUtils.isNotBlank(signatura)) {
+			var itemValue = new ResultRowItemValue();
+			itemValue.setV(signatura);
+			rowItem.addVItem(itemValue);
+			somethingAdded = true;
+		}
+        if (StringUtils.isNotBlank(puvodniSignatura)) {
+			var itemValue = new ResultRowItemValue();
+			itemValue.setV(puvodniSignatura);
+			rowItem.addVItem(itemValue);
+			somethingAdded = true;
+		}		
+        if (somethingAdded) {
+			result.addLItem(Arrays.asList(rowItem));
+		}
+	}
+	
+	public void generateNumber(Result result, LevelContext levelContext) {
 		String refOzn = null;
         String invCislo = null;
         String poradoveCislo = null;
@@ -191,23 +274,29 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		itemValue.setV(sect.getFi().getN());
 		itemValue.id(fundApuUuid.toString());
 		fundItem.addVItem(itemValue);
-		List<ResultRowItem> items;
+		result.addLItem(Arrays.asList(instItem, fundItem));
+	}
+	
+	public void generateParent(Result result, LevelContext levelContext, Section sect) {
 		var parentTitle = getTitle(levelContext.getParentContext());
-		if (parentTitle == null&&levelContext.getParentContext()!=null&&levelContext.getParentContext().getParentContext()==null) {
+		if (parentTitle == null && levelContext.getParentContext() != null
+				&& levelContext.getParentContext().getParentContext() == null) {
 			parentTitle = sect.getFi().getN();
-		}				
+		}
 		if (parentTitle != null) {
 			var contextItem = new ResultRowItem();
 			contextItem.setT("CTX");
-			itemValue = new ResultRowItemValue();
+			var itemValue = new ResultRowItemValue();
 			itemValue.setV(parentTitle);
 			itemValue.id(levelContext.getParentContext().getLevel().getUuid().toString());
 			contextItem.addVItem(itemValue);
-			items = Arrays.asList(instItem, contextItem, fundItem);
-		} else {
-			items = Arrays.asList(instItem, fundItem);
+			result.addLItem(Arrays.asList(contextItem));
 		}
-		result.addLItem(items);
 	}
 
+	
+	public void generateGeoEntities(Result result, LevelContext levelContext) {
+		
+	}
+	
 }

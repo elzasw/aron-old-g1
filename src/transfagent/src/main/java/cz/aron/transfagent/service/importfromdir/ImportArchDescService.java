@@ -124,7 +124,7 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
             AttachmentService attachmentService,
             List<ArchDescLevelDaoImporter> archDescLevelDaoImporters,
             ImportArchDescRefreshEntitiesCommand refreshEntitiesCommand,
-			ImportArchDescResultBuilder resultBuilder) {
+			@Nullable ImportArchDescResultBuilder resultBuilder) {
         this.apTypeService = apTypeService;
         this.apuSourceService = apuSourceService;
         this.reimportService = reimportService;
