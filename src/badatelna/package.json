@@ -31,5 +31,6 @@
     "stopAll": "docker-compose down",
     "stop": "docker-compose down aron-web",
     "stopAllAndClear": "docker-compose down -v"
-  }
+  },
+  "packageManager": "yarn@4.9.1"
 }
