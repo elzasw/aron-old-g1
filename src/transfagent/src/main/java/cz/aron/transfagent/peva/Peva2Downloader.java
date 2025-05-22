@@ -39,7 +39,7 @@ public abstract class Peva2Downloader {
 	
 	protected boolean storeState = true;
 	
-	private boolean store2 = true;
+	private boolean store2 = false;
 
 	public Peva2Downloader(String agendaName, PEvA2Connection peva2, PropertyRepository propertyRepository, ConfigPeva2 config,
 			TransactionTemplate tt, StorageService storageService, boolean active) {

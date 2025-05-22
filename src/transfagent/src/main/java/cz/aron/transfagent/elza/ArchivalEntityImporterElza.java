@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -84,13 +85,15 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
 	private final ApTypeService apTypeService;
 	
 	private final ConfigElza configElza;
+	
+	private final ImportApResultBuilder resultBuilder;
 
 	public ArchivalEntityImporterElza(ApuSourceService apuSourceService, StorageService storageService,
 			ElzaExportService elzaExportService, ArchivalEntityRepository archivalEntityRepository,
 			EntitySourceRepository entitySourceRepository, CoreQueueRepository coreQueueRepository,
 			TransactionTemplate transactionTemplate, ConfigurationLoader configurationLoader,
 			DatabaseDataProvider databaseDataProvider, ApTypeService apTypeService,
-			ConfigElza configElza) {
+			ConfigElza configElza, @Nullable ImportApResultBuilder resultBuilder) {
 		this.apuSourceService = apuSourceService;
 		this.storageService = storageService;
 		this.elzaExportService = elzaExportService;
@@ -102,6 +105,7 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
 		this.databaseDataProvider = databaseDataProvider;
 		this.apTypeService = apTypeService;
 		this.configElza = configElza;
+		this.resultBuilder = resultBuilder;
 	}
 
 	@Override
@@ -162,7 +166,7 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
 	
 	private void importEntityTrans(TransactionStatus t, final Path tmpDir, final ArchivalEntity ae) {
 		ApuSourceBuilder apuSourceBuilder;
-		final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService));
+		final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService), resultBuilder);
 		Path dataDir;
 
 		boolean deleteTmpDirectory = true;
@@ -646,7 +650,7 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
         }
 
 		ApuSourceBuilder apuSourceBuilder;
-		final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService));
+		final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService), resultBuilder);
 		try {
 			apuSourceBuilder = importAp.importAp(apuDir.resolve("ap.xml"), archEntity.getUuid(), databaseDataProvider);
 			apuSourceBuilder.setUuid(apuSource.getUuid());

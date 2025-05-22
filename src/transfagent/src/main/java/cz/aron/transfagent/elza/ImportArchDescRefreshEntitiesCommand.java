@@ -11,6 +11,7 @@ import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import cz.aron.apux.ApuSourceBuilder;
@@ -45,11 +46,13 @@ public class ImportArchDescRefreshEntitiesCommand implements CommandProcessor {
 	private final ApTypeService apTypeService;
 	
 	private final ConfigurationLoader configurationLoader;
+	
+	private final ImportApResultBuilder resultBuilder;
 
 	public ImportArchDescRefreshEntitiesCommand(ArchDescRepository archDescRepository,
 			ArchivalEntityRepository archivalEntityRepository, ArchivalEntityService archivalEntityService,
 			StorageService storageService, DatabaseDataProvider databaseDataProvider, ApTypeService apTypeService,
-			ConfigurationLoader configurationLoader) {
+			ConfigurationLoader configurationLoader, @Nullable ImportApResultBuilder resultBuilder) {
 		this.archDescRepository = archDescRepository;
 		this.archivalEntityRepository = archivalEntityRepository;
 		this.archivalEntityService = archivalEntityService;
@@ -57,6 +60,7 @@ public class ImportArchDescRefreshEntitiesCommand implements CommandProcessor {
 		this.databaseDataProvider = databaseDataProvider;
 		this.apTypeService = apTypeService;
 		this.configurationLoader = configurationLoader;
+		this.resultBuilder = resultBuilder;
 	}
 	
 	@Override
@@ -121,7 +125,7 @@ public class ImportArchDescRefreshEntitiesCommand implements CommandProcessor {
 				var accessPoint = elzaXmlReader.findAccessPointByUUID(uuid);
 				if (accessPoint!=null) {
 					ApuSourceBuilder apuSourceBuilder;
-					final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService));
+					final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService), resultBuilder);
 					try {
 						apuSourceBuilder = importAp.importAp(elzaXmlReader, relatedEntity.getUuid(), databaseDataProvider);
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();

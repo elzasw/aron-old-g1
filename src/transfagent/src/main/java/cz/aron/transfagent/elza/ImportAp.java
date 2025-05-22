@@ -50,6 +50,8 @@ public class ImportAp implements EdxItemCovertContext {
     private final ApTypeService apTypeService;
     
     private final ElzaNameBuilder nameBuilder;
+    
+	private final ImportApResultBuilder resultBuilder;
 
     private ContextDataProvider dataProvider;
 
@@ -70,9 +72,10 @@ public class ImportAp implements EdxItemCovertContext {
 
     private Apu apu;
 
-    public ImportAp(ApTypeService apTypeService, ElzaNameBuilder nameBuilder) {
+    public ImportAp(ApTypeService apTypeService, ElzaNameBuilder nameBuilder, ImportApResultBuilder resultBuilder) {
         this.apTypeService = apTypeService;
         this.nameBuilder = nameBuilder;
+		this.resultBuilder = resultBuilder;
     }
 
     public UUID getApUuid() {
@@ -91,7 +94,7 @@ public class ImportAp implements EdxItemCovertContext {
         Path inputFile = Path.of(args[0]);        
         ApTypeService apTypeService = new ApTypeService();
         ElzaNameBuilder nameBuilder = new ElzaNameBuilder(apTypeService);        
-        ImportAp iap = new ImportAp(apTypeService, nameBuilder);
+        ImportAp iap = new ImportAp(apTypeService, nameBuilder, null);
         try {
             ApuSourceBuilder apusrcBuilder = iap.importAp(inputFile, args[1]);
             Path ouputPath = Paths.get(args[2]);
@@ -197,7 +200,15 @@ public class ImportAp implements EdxItemCovertContext {
         }
         if(apu.getName()==null) {
             throw new IllegalStateException("AP without name: "+apUuid);
-        }
+        }        
+        
+        if (resultBuilder != null) {
+			var result = resultBuilder.buildResult(ap, nameBuilder);
+			if (result!=null) {
+				apu.setResult(result);
+			}
+		}
+        
         apu = null;
 
         return apusBuilder;
