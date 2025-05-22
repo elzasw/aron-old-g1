@@ -9,6 +9,6 @@ import cz.tacr.elza.schema.v2.Section;
 
 public interface ImportArchDescResultBuilder {
 
-	String buildResult(InstitutionInfo instInfo,Section sect, Level lvl, LevelContext levelContextContext, UUID fundApuUuid);
+	String buildResult(InstitutionInfo instInfo,Section sect, Level lvl, LevelContext levelContextContext, UUID fundApuUuid, ElzaXmlReader elzaXmlReader);
 
 }

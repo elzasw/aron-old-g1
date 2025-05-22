@@ -1,9 +1,6 @@
 package cz.aron.customizations.soaplzen;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -15,7 +12,6 @@ import cz.aron.core.api.rest.model.Result;
 import cz.aron.core.api.rest.model.ResultRowItem;
 import cz.aron.core.api.rest.model.ResultRowItemValue;
 import cz.aron.peva2.wsdl.NadSheet;
-import cz.aron.transfagent.domain.ArchivalEntity;
 import cz.aron.transfagent.peva.Peva2Utils;
 import cz.aron.transfagent.peva.fund.Peva2FundResultBuilder;
 import cz.aron.transfagent.repository.ArchivalEntityRepository;
@@ -57,7 +53,7 @@ public class PevaFundResultBuilderImpl implements Peva2FundResultBuilder {
 
 	public void generateFundName(NadSheet nadSheet, Result result) {
 		var rowItem = new ResultRowItem();
-		rowItem.setT("name");
+		rowItem.setT("N");
 		result.addLItem(Arrays.asList(rowItem));
 		
 		var fundName = nadSheet.getHeader().getName();
@@ -72,7 +68,7 @@ public class PevaFundResultBuilderImpl implements Peva2FundResultBuilder {
 			var itemValue = new ResultRowItemValue();
 			itemValue.setV(Peva2Utils.getAsString(timeRange));			
 			var rowItem = new ResultRowItem();
-			rowItem.setT("DATE");
+			rowItem.setT("D");
 			rowItem.addVItem(itemValue);
 			result.addLItem(Arrays.asList(rowItem));			
 		}
@@ -81,7 +77,7 @@ public class PevaFundResultBuilderImpl implements Peva2FundResultBuilder {
 	public void generateInstitution(NadSheet nadSheet, Result result, InstitutionInfo institutionInfo) {
 		var instName = institutionInfo.getShortName();
 		var rowItem = new ResultRowItem();
-		rowItem.setT("INST_REF");
+		rowItem.setT("IR");
 		result.addLItem(Arrays.asList(rowItem));
 		var itemValue = new ResultRowItemValue();
 		itemValue.setV(instName);

@@ -413,7 +413,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
         String desc = getDesc(lvl, parentContext, duplicities.get(lvl.getPid()));        
         apu.setDesc(desc);
         if (resultBuilder!=null) {
-        	apu.setResult(resultBuilder.buildResult(institutionInfo, sect, lvl, levelContext, fundApuUuid));
+        	apu.setResult(resultBuilder.buildResult(institutionInfo, sect, lvl, levelContext, fundApuUuid, elzaXmlReader));
         }
 
         activateArchDescPart(apu);                

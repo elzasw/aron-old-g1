@@ -12,6 +12,7 @@ import cz.aron.core.api.rest.model.Result;
 import cz.aron.core.api.rest.model.ResultRowItem;
 import cz.aron.core.api.rest.model.ResultRowItemValue;
 import cz.aron.peva2.wsdl.FindingAid;
+import cz.aron.transfagent.config.ConfigPeva2;
 import cz.aron.transfagent.peva.findingaid.Peva2FindingAidResultBuilder;
 import cz.aron.transfagent.transformation.InstitutionInfo;
 
@@ -21,12 +22,18 @@ public class PevaFindingAidResultBuilderImpl implements Peva2FindingAidResultBui
 
 	private final ObjectMapper objectMapper;
 
-	public PevaFindingAidResultBuilderImpl(ObjectMapper objectMapper) {
+	private final boolean generateResult;
+
+	public PevaFindingAidResultBuilderImpl(ObjectMapper objectMapper, ConfigPeva2 configPeva2) {
 		this.objectMapper = objectMapper;
+		this.generateResult = configPeva2.getFindingAidProperties().isIndexing();
 	}
 
 	@Override
 	public String buildResult(FindingAid findingAid, InstitutionInfo instInfo) {
+		if (!generateResult) {
+			return null;
+		}
 		var result = new Result();
 		result.setId(findingAid.getId());
 		result.setT("FA");
@@ -47,8 +54,8 @@ public class PevaFindingAidResultBuilderImpl implements Peva2FindingAidResultBui
 		itemValue = new ResultRowItemValue();
 		itemValue.setV(instName);
 		itemValue.id(instInfo.getUuid().toString());
-		rowItem.addVItem(itemValue);				
-		
+		rowItem.addVItem(itemValue);
+
 		try {
 			return objectMapper.writeValueAsString(result);
 		} catch (JsonProcessingException e) {
@@ -56,5 +63,5 @@ public class PevaFindingAidResultBuilderImpl implements Peva2FindingAidResultBui
 		}
 
 	}
-	
+
 }
