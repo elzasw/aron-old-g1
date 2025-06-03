@@ -128,6 +128,16 @@ public abstract class ElzaTypes {
     public static final String ZP2015_SIZE_MAP_WIDTH = "ZP2015_SIZE_MAP_WIDTH";
 	public static final String ZP2015_SIZE_MAP_HEIGHT = "ZP2015_SIZE_MAP_HEIGHT";
 	public static final String ZP2015_SIZE_METRAGE = "ZP2015_SIZE_METRAGE";
+	
+	
+	public static final String ZP2015_LEVEL_TYPE = "ZP2015_LEVEL_TYPE";
+	public static final String ZP2015_LEVEL_SERIES = "ZP2015_LEVEL_SERIES";
+	public static final String ZP2015_LEVEL_FOLDER = "ZP2015_LEVEL_FOLDER";
+	public static final String ZP2015_LEVEL_ROOT = "ZP2015_LEVEL_ROOT";
+	public static final String ZP2015_LEVEL_ITEM = "ZP2015_LEVEL_ITEM";
+	public static final String ZP2015_LEVEL_PART = "ZP2015_LEVEL_PART";
+	
+	public static final String ZP2015_UNIT_TYPE = "ZP2015_UNIT_TYPE"; 
 
     public static final Map<String, String> unitTypeMap = new HashMap<>();
     static {

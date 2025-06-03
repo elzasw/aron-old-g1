@@ -9,7 +9,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>transfagent</artifactId>
-	<version>0.0.40</version>
+	<version>0.0.41</version>
 	<name>Transformation agent</name>
 	<description>Transformation agent for ArchivOnline</description>
 
@@ -552,6 +552,29 @@
 								<sourceFolder>/</sourceFolder>
 								<apiPackage>cz.aron.api.rest</apiPackage>
 								<modelPackage>cz.aron.api.rest.model</modelPackage>
+								<interfaceOnly>true</interfaceOnly>
+								<skipDefaultInterface>true</skipDefaultInterface>
+								<openApiNullable>false</openApiNullable>
+								<useTags>true</useTags>
+							</configOptions>
+						</configuration>
+					</execution>
+					<execution>
+						<id>result-api</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<generatorName>spring</generatorName>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/result-api.yaml</inputSpec>
+							<output>${project.build.directory}/generated-sources/api/rest</output>
+							<generateSupportingFiles>false</generateSupportingFiles>
+							<skipValidateSpec>true</skipValidateSpec>
+							<configOptions>
+								<sourceFolder>/</sourceFolder>
+								<apiPackage>cz.aron.core.api.rest</apiPackage>
+								<modelPackage>cz.aron.core.api.rest.model</modelPackage>
 								<interfaceOnly>true</interfaceOnly>
 								<skipDefaultInterface>true</skipDefaultInterface>
 								<openApiNullable>false</openApiNullable>

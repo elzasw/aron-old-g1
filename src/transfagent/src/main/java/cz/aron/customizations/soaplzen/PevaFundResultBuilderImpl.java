@@ -2,6 +2,7 @@ package cz.aron.customizations.soaplzen;
 
 import java.util.Arrays;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
@@ -58,7 +59,7 @@ public class PevaFundResultBuilderImpl implements Peva2FundResultBuilder {
 		
 		var fundName = nadSheet.getHeader().getName();
 		var itemValue = new ResultRowItemValue();
-		itemValue.setV(fundName);
+		itemValue.setV(StringUtils.abbreviate(fundName, 200));
 		rowItem.addVItem(itemValue);
 	}
 	
