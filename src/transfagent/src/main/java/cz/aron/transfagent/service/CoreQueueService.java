@@ -4,6 +4,9 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -20,12 +23,21 @@ import com.lightcomp.ft.core.send.items.ListReader;
 import com.lightcomp.ft.core.send.items.SimpleFile;
 import com.lightcomp.ft.core.send.items.SourceItem;
 
+import cz.aron.apux.ApuSourceBuilder;
+import cz.aron.apux._2020.ApuType;
 import cz.aron.apux._2020.UuidList;
 import cz.aron.management.v1.ApuManagementPort;
 import cz.aron.transfagent.config.ConfigAronCore;
+import cz.aron.transfagent.domain.ApuSource;
+import cz.aron.transfagent.domain.ArchDesc;
 import cz.aron.transfagent.domain.Attachment;
 import cz.aron.transfagent.domain.CoreQueue;
+import cz.aron.transfagent.domain.Fund;
+import cz.aron.transfagent.domain.SourceType;
+import cz.aron.transfagent.peva.ImportPevaGeo;
+import cz.aron.transfagent.peva.ImportPevaOriginator;
 import cz.aron.transfagent.repository.ApuSourceRepository;
+import cz.aron.transfagent.repository.ArchivalEntityRepository;
 import cz.aron.transfagent.repository.AttachmentRepository;
 import cz.aron.transfagent.repository.CoreQueueRepository;
 import cz.aron.transfagent.service.client.CoreAronClient;
@@ -48,6 +60,8 @@ public class CoreQueueService implements SmartLifecycle {
     private final StorageService storageService;
     
     private final TransactionTemplate tt;
+    
+    private final ArchivalEntityRepository archivalEntityRepository;
 
     private ThreadStatus status;
     
@@ -55,7 +69,7 @@ public class CoreQueueService implements SmartLifecycle {
 
 	public CoreQueueService(CoreQueueRepository coreQueueRepository, AttachmentRepository attachmentRepository,
 			ApuSourceRepository apuSourceRepository, ConfigAronCore configAronCore, CoreAronClient coreAronClient,
-			StorageService storageService, TransactionTemplate tt) {
+			StorageService storageService, TransactionTemplate tt, ArchivalEntityRepository archivalEntityRepository) {
 		this.coreQueueRepository = coreQueueRepository;
 		this.attachmentRepository = attachmentRepository;
 		this.apuSourceRepository = apuSourceRepository;
@@ -63,6 +77,7 @@ public class CoreQueueService implements SmartLifecycle {
 		this.coreAronClient = coreAronClient;
 		this.storageService = storageService;
 		this.tt = tt;
+		this.archivalEntityRepository = archivalEntityRepository;
     }
 
     /**
@@ -131,8 +146,7 @@ public class CoreQueueService implements SmartLifecycle {
      * @param item
      */
     private void deleteItemData(CoreQueue item) {
-        UuidList uuidList = new UuidList();
-        uuidList.getUuid().add(item.getApuSource().getUuid().toString());
+        UuidList uuidList = createUuidList(item);        
         ApuManagementPort apuManagementPort = coreAronClient.get();
         try {
             apuManagementPort.deleteApuSources(uuidList);
@@ -144,6 +158,37 @@ public class CoreQueueService implements SmartLifecycle {
         }
         log.info("Deleted apusrc={}, type={}", item.getApuSource().getUuid(), item.getApuSource().getSourceType());
     }
+    
+    
+	private UuidList createUuidList(CoreQueue item) {
+		var apuSource = item.getApuSource();
+		if (apuSource.getSourceType().equals(SourceType.ARCH_ENTITY)) {
+			var archivalEntity = archivalEntityRepository.findByApuSource(apuSource);
+			if (ImportPevaGeo.ENTITY_CLASS.equals(archivalEntity.getEntityClass())) {
+				return getApuourceUUID(apuSource);
+			} else if (ImportPevaOriginator.ENTITY_CLASS.equals(archivalEntity.getEntityClass())) {
+				return getApuourceUUID(apuSource);
+			}
+		}
+		var uuidList = new UuidList();
+		uuidList.getUuid().add(apuSource.getUuid().toString());
+		return uuidList;
+	}
+		
+	private UuidList getApuourceUUID(ApuSource apuSource) {
+		var uuidList = new UuidList();
+		var apuSrcPath = storageService.getApuDataDir(apuSource.getDataDir())
+				.resolve(StorageService.APUSRC_XML);
+		try {
+			var aSrc = ApuSourceBuilder.read(apuSrcPath);
+			uuidList.getUuid().add(aSrc.getUuid());
+			return uuidList;						
+		} catch (JAXBException e) {
+			log.error("Fail to read apusource {}", apuSrcPath, e);
+			return uuidList;
+		}
+	}
+
 
     /**
      * Přenos dat přes FileTransfer
