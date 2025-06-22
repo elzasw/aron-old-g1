@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.aron.core.api.rest.model.Result;
 import cz.aron.core.api.rest.model.ResultRowItem;
 import cz.aron.core.api.rest.model.ResultRowItemValue;
+import cz.aron.transfagent.elza.ApTypeService;
 import cz.aron.transfagent.elza.ElzaNameBuilder;
 import cz.aron.transfagent.elza.ElzaTypes;
 import cz.aron.transfagent.elza.ElzaXmlReader;
@@ -24,9 +25,12 @@ import cz.tacr.elza.schema.v2.Fragment;
 public class ImportApResultBuilderImp implements ImportApResultBuilder {
 
 	private final ObjectMapper objectMapper;
+	
+	private final ApTypeService apTypeService;
 
-	public ImportApResultBuilderImp(ObjectMapper objectMapper) {
+	public ImportApResultBuilderImp(ObjectMapper objectMapper, ApTypeService apTypeService) {
 		this.objectMapper = objectMapper;
+		this.apTypeService = apTypeService;
 	}
 
 	@Override
@@ -35,7 +39,7 @@ public class ImportApResultBuilderImp implements ImportApResultBuilder {
 		var entityClass = ap.getApe().getT();
 		var result = new Result();
 		result.setId(ap.getApe().getUuid());
-		result.setT(entityClass);
+		result.setT(getType(ap));
 
 		boolean nameFilled = false;
 		boolean descriptionFilled = false;
@@ -81,4 +85,34 @@ public class ImportApResultBuilderImp implements ImportApResultBuilder {
 		}
 	}
 
+	
+	private String getType(AccessPoint ap) {		
+		var type = ap.getApe().getT();
+		if (type==null) {
+			return "AP";
+		}		
+		var parentCode = apTypeService.getParentCode(type);
+		if (parentCode==null) {
+			return "AP";
+		}
+		switch(parentCode) {
+		case "PARTY_GROUP":
+			return "AP_C";
+		case "PERSON":
+			return "AP_P";
+		case "DYNASTY":
+			return "AP_F";
+		case "GEO":
+			return "AP_G";
+		case "EVENT":
+			return "AP_E";
+		case "ARTWORK":
+			return "AP_W";
+		case "TERM":
+			return "AP_T";
+		default:
+			return "AP";
+		}
+	}
+	
 }

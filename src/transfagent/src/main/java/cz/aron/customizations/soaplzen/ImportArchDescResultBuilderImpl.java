@@ -148,7 +148,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 
 		boolean somethingAdded = false;
 		var rowItem = new ResultRowItem();
-		rowItem.setT("SIGN");
+		rowItem.setT("J_S");
 		if (StringUtils.isNotBlank(spisZnak)) {
 			var itemValue = new ResultRowItemValue();
 			itemValue.setV(spisZnak);
@@ -186,19 +186,19 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			var itemValue = new ResultRowItemValue();
 			itemValue.setV(refOzn);
 			rowItem.addVItem(itemValue);
-			rowItem.setT("RO");
+			rowItem.setT("J_IC");
 			somethingAdded = true;
 		} else if (StringUtils.isNotBlank(invCislo)) {
 			var itemValue = new ResultRowItemValue();
 			itemValue.setV(invCislo);
 			rowItem.addVItem(itemValue);
-			rowItem.setT("IC");
+			rowItem.setT("J_IC");
 			somethingAdded = true;
 		} else if (StringUtils.isNotBlank(poradoveCislo)) {
 			var itemValue = new ResultRowItemValue();
 			itemValue.setV(poradoveCislo);
 			rowItem.addVItem(itemValue);
-			rowItem.setT("PC");
+			rowItem.setT("J_IC");
 			somethingAdded = true;
 		}
 		if (somethingAdded) {
@@ -207,7 +207,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 
 		if (ukladaciCislo != null) {
 			var ucRowItem = new ResultRowItem();
-			ucRowItem.setT("UC");
+			ucRowItem.setT("J_UC");
 			var ucRowItemValue = new ResultRowItemValue();
 			ucRowItem.addVItem(ucRowItemValue);
 			ucRowItemValue.setV(ukladaciCislo);
@@ -223,13 +223,13 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			UUID fundApuUuid) {
 		var instName = institutionInfo.getShortName();
 		var instItem = new ResultRowItem();
-		instItem.setT("IR");
+		instItem.setT("J_I");
 		var itemValue = new ResultRowItemValue();
 		itemValue.setV(instName);
 		itemValue.id(institutionInfo.getUuid().toString());
 		instItem.addVItem(itemValue);
 		var fundItem = new ResultRowItem();
-		fundItem.setT("FR");
+		fundItem.setT("J_F");
 		itemValue = new ResultRowItemValue();
 		itemValue.setV(sect.getFi().getN());
 		itemValue.id(fundApuUuid.toString());
@@ -245,7 +245,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 		if (parentTitle != null) {
 			var contextItem = new ResultRowItem();
-			contextItem.setT("CTX");
+			contextItem.setT("J_C");
 			var itemValue = new ResultRowItemValue();
 			itemValue.setV(parentTitle);
 			itemValue.id(levelContext.getParentContext().getLevel().getUuid().toString());
@@ -302,7 +302,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			}
 
 			if (!geoItems.getV().isEmpty()) {
-				geoItems.setT("A_G");
+				geoItems.setT("J_G");
 				result.addLItem(Arrays.asList(geoItems));
 			}
 		}
