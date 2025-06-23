@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,9 +33,11 @@ import cz.tacr.elza.schema.v2.DescriptionItemAPRef;
 import cz.tacr.elza.schema.v2.DescriptionItemEnum;
 import cz.tacr.elza.schema.v2.DescriptionItemInteger;
 import cz.tacr.elza.schema.v2.DescriptionItemString;
+import cz.tacr.elza.schema.v2.DescriptionItemStructObjectRef;
 import cz.tacr.elza.schema.v2.DescriptionItemUnitDate;
 import cz.tacr.elza.schema.v2.Level;
 import cz.tacr.elza.schema.v2.Section;
+import cz.tacr.elza.schema.v2.StructuredObject;
 
 @Service
 @ConditionalOnProperty(value = "filestore5.path")
@@ -75,22 +78,36 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		result.setT(getType(valueCollector));
 		result.setTn(
 				"https://www.inventare.cz/fcgi-bin/iipsrv.fcgi?DeepZoom=archival-aid/soap-pn/soap-pn_ap0002_10005_ku-plzen2/soap-pn_ap0002_10005_ku-plzen2_0030.jp2");
-
-		generateName(result, levelContext, sect, valueCollector);
-		generateDate(result, valueCollector);
-		generateUnitContent(result, valueCollector);
-		generateGeoEntities(result, levelContext, elzaXmlReader, valueCollector);
-		generateSignature(result, valueCollector);
-		generateNumber(result, valueCollector);
-		generateInstitutionAndFund(result, instInfo, sect, fundApuUuid);
-		generateParent(result, levelContext, sect, valueCollector);
+		
+		if (valueCollector.isMatrika()) {
+			generateMatrika(result, valueCollector, levelContext, elzaXmlReader, instInfo, sect, fundApuUuid);
+		} else {
+			generateName(result, levelContext, sect, valueCollector);
+			generateDate(result, valueCollector);
+			generateUnitContent(result, valueCollector);
+			generateGeoEntities(result, levelContext, elzaXmlReader, valueCollector);
+			generateSignature(result, valueCollector);
+			generateNumber(result, valueCollector);
+			generateInstitutionAndFund(result, instInfo, sect, fundApuUuid);
+			generateParent(result, levelContext, sect, valueCollector);		
+		}
 		try {
 			return objectMapper.writeValueAsString(result);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
 	}
-
+	
+	private void generateMatrika(Result result, ValueCollector valueCollector, LevelContext levelContext, ElzaXmlReader elzaXmlReader,
+			InstitutionInfo instInfo, Section sect, UUID fundApuUuid) {
+		generateNameMatrika(result, levelContext, sect, valueCollector);
+		generateDateMatrika(result, valueCollector);
+		generateUnitContent(result, valueCollector);
+		generateGeoEntities(result, levelContext, elzaXmlReader, valueCollector);
+		generateSignature(result, valueCollector);
+		generateInstitutionAndFund(result, instInfo, sect, fundApuUuid);
+	}
+	
 	public void generateName(Result result, LevelContext levelContext, Section sect, ValueCollector valueCollector) {
 		var rowItem = new ResultRowItem();
 		rowItem.setT("N");
@@ -104,6 +121,20 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 				itemValue.setV("");
 			}
 		} else {
+			itemValue.setV(StringUtils.abbreviate(title, MAX_NAME_LENGTH));
+		}
+		rowItem.addVItem(itemValue);
+		result.addLItem(Arrays.asList(rowItem));
+	}
+	
+	public void generateNameMatrika(Result result, LevelContext levelContext, Section sect,
+			ValueCollector valueCollector) {
+		var rowItem = new ResultRowItem();
+		rowItem.setT("N");
+		var itemValue = new ResultRowItemValue();
+
+		var title = valueCollector.getUkladaciJednotka();
+		if (title != null) {
 			itemValue.setV(StringUtils.abbreviate(title, MAX_NAME_LENGTH));
 		}
 		rowItem.addVItem(itemValue);
@@ -129,6 +160,27 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 	}
 
+	public void generateDateMatrika(Result result, ValueCollector valueCollector) {
+		String date = null;
+		if (valueCollector.getUnitDateText() != null) {
+			date = valueCollector.getUnitDateText();			
+		} else if (valueCollector.getUnitDate() != null) {
+			date = valueCollector.getUnitDate();
+		}				
+		if (date !=null && valueCollector.getTypZaznamu() != null) {
+			date = date + " " + valueCollector.getTypZaznamu();
+		}				
+
+		if (date != null) {
+			var rowItem = new ResultRowItem();
+			rowItem.setT("D");
+			var itemValue = new ResultRowItemValue();
+			itemValue.setV(date);
+			rowItem.addVItem(itemValue);
+			result.addLItem(Arrays.asList(rowItem));
+		}
+	}
+	
 	public void generateUnitContent(Result result, ValueCollector valueCollector) {
 		var unitContent = valueCollector.getUnitContent();
 		if (unitContent != null) {
@@ -311,7 +363,9 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 
 	private String getType(ValueCollector valueCollector) {
 		var levelType = valueCollector.getLevelType();
-		if (ElzaTypes.ZP2015_LEVEL_PART.equals(levelType.getS())) {
+		if (valueCollector.isMatrika()) {
+			return ARCHIVALIE_LEVEL_JEDNOTLIVOST_MATRIKA;
+		} else if (ElzaTypes.ZP2015_LEVEL_PART.equals(levelType.getS())) {
 			return ARCHIVALIE_LEVEL_JEDNOTLIVOST_CAST;
 		} else if (ElzaTypes.ZP2015_LEVEL_ITEM.equals(levelType.getS())) {
 			var unitType = valueCollector.getUnitType();
@@ -361,6 +415,19 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 
 		String title = null;
 		String parentTitle = null;
+		
+		boolean matrika = false;
+		
+		String ukladaciJednotka = null;
+		
+		String typZaznamu = null;
+		
+		boolean oddani = false;
+		boolean oddaniIndex = false;
+		boolean narozeni = false;
+		boolean narozeniIndex = false;
+		boolean zemreli = false;
+		boolean zemreliIndex = false;
 
 		public ValueCollector(ElzaXmlReader elzaXmlReader) {
 			this.elzaXmlReader = elzaXmlReader;
@@ -411,6 +478,35 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					} else if ("ZP2015_PACKET_NUMBER".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
 						DescriptionItemString uklC = (DescriptionItemString) pp;
 						ukladaciCislo = uklC.getV();
+					} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT()) && "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())  ) {
+						matrika = true;
+					} else if (ElzaTypes.ZP2015_STORAGE_ID.equals(pp.getT()) && (pp instanceof DescriptionItemStructObjectRef)) {
+						DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;						
+						StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
+						ukladaciJednotka = so.getV();
+					} else if (ElzaTypes.ZP2015_RECORD_TYPE.equals(pp.getT()) && (pp instanceof DescriptionItemEnum)) {
+						DescriptionItemEnum rt = (DescriptionItemEnum) pp;
+						switch (rt.getS()) {
+						case "ZP2015_RECORD_TYPE_BORN":
+							narozeni = true;
+							break;
+						case "ZP2015_RECORD_TYPE_MARRIED":
+							oddani = true;
+							break;
+						case "ZP2015_RECORD_TYPE_DIED":
+							zemreli = true;
+							break;
+						case "ZP2015_RECORD_TYPE_INDEX_BORN":
+							narozeniIndex = true;
+							break;
+						case "ZP2015_RECORD_TYPE_INDEX_MARRIED":
+							oddaniIndex = true;
+							break;
+						case "ZP2015_RECORD_TYPE_INDEX_DIED":
+							zemreliIndex = true;
+							break;
+						}
+					
 					}
 				} else {
 					if ("ZP2015_INV_CISLO".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
@@ -435,12 +531,39 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					title = ((DescriptionItemString) pp).getV();
 				}
 
-			}
-
+			}			
+			
+			createTypZaznamu();
+			
 			if (levelContext.getParentContext() != null) {
 				collect(levelContext.getParentContext(), false);
 			}
-
+		}
+		
+		private void createTypZaznamu() {
+			StringJoiner sj = new StringJoiner(", ");
+			if (narozeni) {
+				sj.add("*");
+			}
+			if (narozeniIndex) {
+				sj.add("*i");
+			}
+			if (oddani) {
+				sj.add("oo");
+			}
+			if (oddaniIndex) {
+				sj.add("ooi");
+			}
+			if (zemreli) {
+				sj.add("+");
+			}
+			if (zemreliIndex) {
+				sj.add("+i");
+			}
+			String tmpTypZaznamu = sj.toString();
+			if (StringUtils.isNotBlank(tmpTypZaznamu)) {
+				typZaznamu = tmpTypZaznamu;
+			}
 		}
 
 		public DescriptionItemEnum getLevelType() {
@@ -503,6 +626,17 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			return parentTitle;
 		}
 
+		public boolean isMatrika() {
+			return matrika;
+		}
+		
+		public String getUkladaciJednotka() {
+			return ukladaciJednotka;
+		}
+		
+		public String getTypZaznamu() {
+			return typZaznamu;
+		}
 	}
 
 }
