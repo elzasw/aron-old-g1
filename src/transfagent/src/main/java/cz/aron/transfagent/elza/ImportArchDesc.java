@@ -1053,6 +1053,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
         private final LevelContext parentContext;
         
         private Map<ConfigElzaInheritedType,List<InheritedConvertor>> inheritedConvertors = null;
+        
+        private Map<String, String> geoEntities	= null;
 
         public LevelContext(Level level, Apu apu, LevelContext parentContext) {
             this.level = level;
@@ -1088,6 +1090,24 @@ public class ImportArchDesc implements EdxItemCovertContext {
 			}
 		}
 
+		public void inheritGeoEntity(Map<String, String> ge) {
+			if (geoEntities != null) {
+				geoEntities.forEach((name,uuid)->{
+					ge.putIfAbsent(name, uuid);
+				});
+			}
+			if (parentContext!=null) {
+				parentContext.inheritGeoEntity(ge);
+			}
+		}
+
+		public void addGeoEntity(String name, String uuid) {
+			if (geoEntities == null) {
+				geoEntities = new HashMap<>();
+			}
+			geoEntities.put(name, uuid);
+		}		
+		
         public Level getLevel() {
             return level;
         }
@@ -1135,6 +1155,9 @@ public class ImportArchDesc implements EdxItemCovertContext {
 			return ImportArchDesc.this.isArchEntityReferenced(uuid);
 		}		
 
+		public Map<String,String> getGeoEntities() {
+			return geoEntities;
+		}
     }
 
     

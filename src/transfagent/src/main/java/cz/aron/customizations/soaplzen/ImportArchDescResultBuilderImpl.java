@@ -1,12 +1,16 @@
 package cz.aron.customizations.soaplzen;
 
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +60,8 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 	private static final String ARCHIVALIE_LEVEL_JEDNOTLIVOST_KNIHA = "A_IB";
 	private static final String ARCHIVALIE_LEVEL_JEDNOTLIVOST_VYKRES = "A_D";
 	private static final String ARCHIVALIE_LEVEL_JEDNOTLIVOST_CAST = "A_IP";
+	
+	private static Collator CZ_COLLATOR = Collator.getInstance(Locale.forLanguageTag("cs-CZ"));
 
 	private final ObjectMapper objectMapper;
 
@@ -317,7 +323,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		// get uuids of geo entities
 		var uuids = valueCollector.getUuids();
 
-		var geoItems = new ResultRowItem();
+		// fill geo entities to LevelContext
 		if (!uuids.isEmpty()) {
 			// check entities are used
 			var entities = aeRepository.getArchEntityApuSourcesWithScheduled(uuids);
@@ -336,11 +342,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 											for (var itm : fragment.getDdOrDoOrDp()) {
 												if (ElzaTypes.NM_MAIN.equals(itm.getT())) {
 													var str = (DescriptionItemString) itm;
-													str.getV();
-													var value = new ResultRowItemValue();
-													value.setId(accessPoint.getApe().getUuid());
-													value.setV(str.getV());
-													geoItems.addVItem(value);
+													levelContext.addGeoEntity(str.getV(), accessPoint.getApe().getUuid());
 													break label;
 												}
 											}
@@ -352,7 +354,19 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					}
 				}
 			}
-
+		}		
+		
+		Map<String,String> geo = new TreeMap<>(CZ_COLLATOR);
+		levelContext.inheritGeoEntity(geo);
+		if (!geo.isEmpty()) {
+			var geoItems = new ResultRowItem();
+			geo.forEach((name,uuid)->{
+				var value = new ResultRowItemValue();
+				value.setId(uuid);
+				value.setV(name);
+				geoItems.addVItem(value);
+			});			
+			
 			if (!geoItems.getV().isEmpty()) {
 				geoItems.setT("J_G");
 				result.addLItem(Arrays.asList(geoItems));
@@ -363,16 +377,22 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 
 	private String getType(ValueCollector valueCollector) {
 		var levelType = valueCollector.getLevelType();
+		if (levelType == null) {
+			return ARCHIVALIE_LEVEL_GENERIC;
+		}
+		
 		if (valueCollector.isMatrika()) {
 			return ARCHIVALIE_LEVEL_JEDNOTLIVOST_MATRIKA;
 		} else if (ElzaTypes.ZP2015_LEVEL_PART.equals(levelType.getS())) {
 			return ARCHIVALIE_LEVEL_JEDNOTLIVOST_CAST;
 		} else if (ElzaTypes.ZP2015_LEVEL_ITEM.equals(levelType.getS())) {
 			var unitType = valueCollector.getUnitType();
-			if ("ZP2015_UNIT_TYPE_TVY".equals(unitType.getS())) {
-				return ARCHIVALIE_LEVEL_JEDNOTLIVOST_VYKRES;
-			} else if ("ZP2015_UNIT_TYPE_TVY".equals(unitType.getS())) {
-				return ARCHIVALIE_LEVEL_JEDNOTLIVOST_KNIHA;
+			if (unitType != null) {
+				if ("ZP2015_UNIT_TYPE_TVY".equals(unitType.getS())) {
+					return ARCHIVALIE_LEVEL_JEDNOTLIVOST_VYKRES;
+				} else if ("ZP2015_UNIT_TYPE_UKN".equals(unitType.getS())) {
+					return ARCHIVALIE_LEVEL_JEDNOTLIVOST_KNIHA;
+				}
 			}
 			return ARCHIVALIE_LEVEL_JEDNOTLIVOST;
 		} else if (ElzaTypes.ZP2015_LEVEL_SERIES.equals(levelType.getS())) {
@@ -382,7 +402,6 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		} else if (ElzaTypes.ZP2015_LEVEL_ROOT.equals(levelType.getS())) {
 			return ARCHIVALIE_LEVEL_ROOT;
 		}
-
 		return ARCHIVALIE_LEVEL_GENERIC;
 	}
 
@@ -445,6 +464,14 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 						unitType = (DescriptionItemEnum) pp;
 					} else if ("ZP2015_UNIT_CONTENT".equals(pp.getT())) {
 						unitContent = ((DescriptionItemString) pp).getV();
+					} else if ("ZP2015_TITLE".equals(pp.getT())) {
+						title = ((DescriptionItemString) pp).getV();
+					} else if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
+						unitDateText = ((DescriptionItemString) pp).getV();
+					} else if (ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT())) {
+						if (pp instanceof DescriptionItemUnitDate) {
+							unitDate = UnitDateConvertor.convertToString((DescriptionItemUnitDate) pp);
+						}
 					} else if (ElzaTypes.ZP2015_OTHER_ID.equals(pp.getT())) {
 						switch (pp.getS()) {
 						case "ZP2015_OTHERID_OLDSIG2":
@@ -467,11 +494,11 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 							uuids.add(UUID.fromString(accessPoint.getApe().getUuid()));
 						}
 					} else if ("ZP2015_UNIT_ID".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
-						DescriptionItemString title = (DescriptionItemString) pp;
-						refOzn = title.getV();
+						DescriptionItemString refOznStr = (DescriptionItemString) pp;
+						refOzn = refOznStr.getV();
 					} else if ("ZP2015_INV_CISLO".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
-						DescriptionItemString title = (DescriptionItemString) pp;
-						invCislo = title.getV();
+						DescriptionItemString invCisloStr = (DescriptionItemString) pp;
+						invCislo = invCisloStr.getV();
 					} else if ("ZP2015_SERIAL_NUMBER".equals(pp.getT()) && (pp instanceof DescriptionItemInteger)) {
 						DescriptionItemInteger serNum = (DescriptionItemInteger) pp;
 						poradoveCislo = serNum.getV().toString();
@@ -505,10 +532,10 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 						case "ZP2015_RECORD_TYPE_INDEX_DIED":
 							zemreliIndex = true;
 							break;
-						}
-					
+						}					
 					}
 				} else {
+					// inherited attributes					
 					if ("ZP2015_INV_CISLO".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
 						// try to find invCislo on parent level
 						if (refOzn == null && invCislo == null) {
@@ -516,22 +543,21 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 						}
 					} else if (parentTitle == null && "ZP2015_TITLE".equals(pp.getT())) {
 						parentTitle = ((DescriptionItemString) pp).getV();
+					} else if (unitDateText == null && unitDate == null) {
+						if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
+							unitDateText = ((DescriptionItemString) pp).getV();
+						} else if (ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT())) {
+							unitDate = UnitDateConvertor.convertToString((DescriptionItemUnitDate) pp);
+						}
+					} else if (title == null && "ZP2015_TITLE".equals(pp.getT())) {
+						title = ((DescriptionItemString) pp).getV();
+					} else if (ukladaciCislo == null && "ZP2015_PACKET_NUMBER".equals(pp.getT())
+							&& (pp instanceof DescriptionItemString)) {
+						DescriptionItemString uklC = (DescriptionItemString) pp;
+						ukladaciCislo = uklC.getV();
 					}
-				}
-
-				// inherited attributes
-				if (unitDateText == null && unitDate == null) {
-					if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
-						unitDateText = ((DescriptionItemString) pp).getV();
-					} else if (ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT())) {
-						unitDate = UnitDateConvertor.convertToString((DescriptionItemUnitDate) pp);
-					}
-				}
-				if (title == null && "ZP2015_TITLE".equals(pp.getT())) {
-					title = ((DescriptionItemString) pp).getV();
-				}
-
-			}			
+				}								
+			}
 			
 			createTypZaznamu();
 			
