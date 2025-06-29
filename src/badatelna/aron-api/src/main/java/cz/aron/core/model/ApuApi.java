@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
@@ -143,19 +144,25 @@ public class ApuApi extends DomainApi<
 			try {
 				return objectMapper.readValue(r.getResult(),cz.aron.core.model.Result.class);
 			} catch (Exception e) {
-				return createEmptyResult();
+				return createEmptyResult(r.getId());
 			}
 		} else {
-			return createEmptyResult();
+			return createEmptyResult(r.getId());
 		}
 	}).collect(Collectors.toList());
         return new Result<>(items, idsResult.getCount(), idsResult.getSearchAfter(), idsResult.getAggregations());
     }
 
-    public static cz.aron.core.model.Result createEmptyResult() {
+    public static cz.aron.core.model.Result createEmptyResult(String id) {
+        var resRowItemValue = new cz.aron.core.model.ResultRowItemValue();
+	resRowItemValue.setV("Prazdny vysledek");
+	var resRowItem = new cz.aron.core.model.ResultRowItem();
+	resRowItem.setT("UNKNOWN");
+	resRowItem.addVItem(resRowItemValue);
         var res = new cz.aron.core.model.Result();
-        res.setId("0");
+        res.setId(id);
         res.setT("UNKNOWN");
+	res.addLItem(Arrays.asList(resRowItem));
         return res;
     }
     
