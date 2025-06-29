@@ -69,6 +69,7 @@ public class ReimportService implements ImportProcessor {
 						boolean send = result == Result.REIMPORTED; 
 						transactionTemplate.executeWithoutResult(t->{
 							apuSource.setReimport(false);
+							apuSource.setForce(false);
 							apuSource.setDateImported(ZonedDateTime.now());
 							apuSourceRepository.save(apuSource);
 							if (send) {
@@ -84,6 +85,22 @@ public class ReimportService implements ImportProcessor {
 						break;
 					} else if (result==Result.UNSUPPORTED) {
 					    // ignore
+					} else if (result==Result.DELETED) {
+						transactionTemplate.executeWithoutResult(t->{							
+							// pokud neni oznaceno deleted, poslu do aroncore
+							boolean send = !apuSource.isDeleted();							
+							apuSource.setReimport(false);
+							apuSource.setForce(false);
+							apuSource.setDeleted(true);
+							apuSource.setDateImported(ZonedDateTime.now());
+							apuSourceRepository.save(apuSource);							
+							// send to Core
+							if (send) {
+								CoreQueue cq = new CoreQueue();
+								cq.setApuSource(apuSource);
+								coreQueueRepository.save(cq);
+							}
+						});							
 					}
 				}
 

@@ -42,6 +42,9 @@ public class ApuSource {
     
     @Column(nullable = false)
     private boolean reimport;
+    
+    @Column(nullable=false)
+    private boolean force;
 
     @JoinColumn(name = "date_imported", nullable = true)
     private ZonedDateTime dateImported;
@@ -103,6 +106,14 @@ public class ApuSource {
 
 	public void setReimport(boolean reimport) {
 		this.reimport = reimport;
+	}
+
+	public boolean isForce() {
+		return force;
+	}
+
+	public void setForce(boolean force) {
+		this.force = force;
 	}
 
 	public ZonedDateTime getDateImported() {

@@ -8,7 +8,8 @@ public interface ReimportProcessor {
         REIMPORTED,
         NOCHANGES,
         UNSUPPORTED,
-        FAILED
+        FAILED,
+        DELETED
     };
 
 	/**

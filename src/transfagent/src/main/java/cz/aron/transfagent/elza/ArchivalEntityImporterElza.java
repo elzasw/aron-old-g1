@@ -627,7 +627,7 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
 		if (archEntity.getEntityClass()!=null&&apTypeService.getTypeName(archEntity.getEntityClass())==null) {
 			return Result.UNSUPPORTED;
 		}
-		if(archEntity.getStatus()!=EntityStatus.AVAILABLE) {
+		if(archEntity.getStatus()!=EntityStatus.AVAILABLE&&!apuSource.isForce()) {
 			log.warn("Archival entity {} cannot be reimported, status: {}", apuSource.getId(), archEntity.getStatus());
 			return Result.NOCHANGES;
 		}
@@ -655,7 +655,7 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
 			apuSourceBuilder = importAp.importAp(apuDir.resolve("ap.xml"), archEntity.getUuid(), databaseDataProvider);
 			apuSourceBuilder.setUuid(apuSource.getUuid());
 				
-			var apuSrcChanged = false;
+			var apuSrcChanged = apuSource.isForce();
 			var apuSrcXmlPath = apuDir.resolve(StorageService.APUSRC_XML);
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
             apuSourceBuilder.build(baos, new ApuValidator(configurationLoader.getConfig()));

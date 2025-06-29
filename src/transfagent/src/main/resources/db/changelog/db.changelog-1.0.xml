@@ -524,4 +524,15 @@
     </createIndex>
  </changeSet>
 
+ <changeSet author="karel.zacek@lightcomp.cz" id="12">
+    <addColumn tableName="apu_source">
+      <column name="force" type="boolean" />
+    </addColumn>
+    <sql>
+      update apu_source set force=false;
+    </sql>
+    <addNotNullConstraint tableName="apu_source"
+      columnDataType="boolean" columnName="force" />
+ </changeSet>
+
 </databaseChangeLog>
