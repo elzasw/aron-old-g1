@@ -109,7 +109,7 @@ const defaultConfiguration: ConfigurationType = {
     orderResultsByScore: true,
     otherSources: undefined,
     useStructuredResults: false,
-    alternativeFavouritesStyle: true,
+    alternativeFavouritesStyle: false,
 }
 
 const ConfigurationContext = createContext<ConfigurationType>(defaultConfiguration)
