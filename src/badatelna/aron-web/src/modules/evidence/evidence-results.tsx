@@ -140,6 +140,7 @@ function ItemsList() {
                     display: 'flex',
                     alignItems: 'center',
                     flexWrap: 'wrap',
+                    margin: '0',
                   };
                   const valueStyle: React.CSSProperties = {
                     whiteSpace: 'nowrap',
