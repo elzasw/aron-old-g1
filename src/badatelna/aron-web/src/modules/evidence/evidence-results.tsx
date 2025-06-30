@@ -139,6 +139,10 @@ function ItemsList() {
                   const style: React.CSSProperties = {
                     display: 'flex',
                     alignItems: 'center',
+                    flexWrap: 'wrap',
+                  };
+                  const valueStyle: React.CSSProperties = {
+                    whiteSpace: 'nowrap',
                   };
                   const linkStyle: React.CSSProperties = {};
 
@@ -160,17 +164,30 @@ function ItemsList() {
                           src={`${BASE_URL}/app/${typeProperties?.icon}`}
                         />
                       )}
-                      {typeProperties?.prefix}
-                      {v?.map(({ v, id }) =>
+                      <span style={{ whiteSpace: 'pre' }}>
+                        {typeProperties?.prefix}
+                      </span>
+                      {v?.map(({ v: value, id }, index) =>
                         id ? (
                           <Link
-                            style={linkStyle}
+                            style={{
+                              ...linkStyle,
+                              ...valueStyle,
+                              marginRight: index < v.length - 1 ? '4px' : 0,
+                            }}
                             to={`${ModulePath.APU}/${id}`}
                           >
-                            {v}
+                            {value}
                           </Link>
                         ) : (
-                            <span>{v}</span>
+                            <span
+                              style={{
+                                ...valueStyle,
+                                marginRight: index < v.length - 1 ? '4px' : 0,
+                              }}
+                            >
+                              {value}
+                            </span>
                           )
                       )}
                       {index < lineItems.length - 1 && (
