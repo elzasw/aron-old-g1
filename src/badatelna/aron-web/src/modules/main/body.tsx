@@ -26,7 +26,7 @@ export const Body: React.FC = () => {
   const appClasses = useAppStyles();
   const layoutClasses = useLayoutStyles();
   const spacingClasses = useSpacingStyles();
-  const { otherSources } = useConfiguration();
+  const { otherSources, alternativeFavouritesStyle } = useConfiguration();
 
   const { formatMessage } = useIntl();
 
@@ -133,10 +133,10 @@ export const Body: React.FC = () => {
             </h3>
             <div
               className={classNames(
-                classes.mainFavourite,
                 layoutClasses.flex,
                 layoutClasses.flexWrap,
-                spacingClasses.paddingBottomBig
+                spacingClasses.paddingBottomBig,
+                classes.mainFavourite,
               )}
             >
               {loadingFavouriteQueries ? (
@@ -157,10 +157,17 @@ export const Body: React.FC = () => {
                           }
                           className={classNames(
                             layoutClasses.flexAlignCenter,
-                            spacingClasses.marginBottomSmall
+                            spacingClasses.marginBottomSmall,
+                            alternativeFavouritesStyle 
+                              ? classes.mainFavouriteItemAlt 
+                              : classes.mainFavouriteItem,
                           )}
                         >
-                          <span className={classes.mainFavouriteIcon}>
+                          <span className={
+                            alternativeFavouritesStyle 
+                              ? classes.mainFavouriteIconAlt 
+                              : classes.mainFavouriteIcon
+                          }>
                             <span className={icon} />
                           </span>
                           &nbsp;&nbsp;{label}
@@ -196,9 +203,16 @@ export const Body: React.FC = () => {
                           layoutClasses.flexAlignCenter,
                           spacingClasses.marginBottomSmall,
                           classes.otherSourceLink,
+                          alternativeFavouritesStyle 
+                            ? classes.mainFavouriteItemAlt 
+                            : classes.mainFavouriteItem,
                         )}
                       >
-                        <span className={classes.mainFavouriteIcon}>
+                        <span className={
+                          alternativeFavouritesStyle 
+                          ? classes.mainFavouriteIconAlt 
+                          : classes.mainFavouriteIcon
+                        }>
                           <span className={icon} />
                         </span>
                         &nbsp;&nbsp;{label}

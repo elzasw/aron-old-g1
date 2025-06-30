@@ -37,19 +37,54 @@ export const useStyles = (configuration?: StyleConfiguration) => makeStyles((the
     },
     mainFavourite: {
       width: '100%',
+    },
+    mainFavouriteItem: {
+      width: '100%',
+      cursor: 'pointer',
 
-      '& > div, & > a': {
-        width: '100%',
-        cursor: 'pointer',
-
-        [theme.breakpoints.up('md')]: {
-          width: '50%',
-        },
-
-        '&:hover': {
-          color: theme.palette.primary.main,
-        },
+      [theme.breakpoints.up('md')]: {
+        width: '50%',
       },
+
+      '&:hover': {
+        color: theme.palette.primary.main,
+      },
+    },
+    mainFavouriteItemAlt: {
+      width: '100%',
+      cursor: 'pointer',
+      background: theme.palette.primary.main,
+      borderRadius: theme.spacing(0.8),
+      margin: theme.spacing(0.5),
+      padding: theme.spacing(0.8),
+      color: theme.palette.primary.contrastText,
+      fontWeight: 'bold',
+      display: 'flex',
+      alignItems: 'center',
+
+      [theme.breakpoints.up('md')]: {
+        width: 'auto',
+      },
+
+      '&:hover': {
+        background: theme.palette.primary.dark,
+      },
+    },
+    mainFavouriteIcon: {
+      color: theme.palette.primary.main,
+      fontSize: "1.4em",
+      lineHeight: "1em",
+      width: "1.5em",
+      height: "1em",
+      display: "inline-block"
+    },
+    mainFavouriteIconAlt: {
+      color: theme.palette.primary.contrastText,
+      fontSize: "1.4em",
+      lineHeight: "1em",
+      width: "1.5em",
+      height: "1em",
+      display: "inline-block"
     },
     mainFooter: {
       marginTop: 'auto',
@@ -117,14 +152,6 @@ export const useStyles = (configuration?: StyleConfiguration) => makeStyles((the
       textDecoration: "none",
       color: "currentColor",
       display: "block",
-    },
-    mainFavouriteIcon: {
-      color: theme.palette.primary.main,
-      fontSize: "1.4em",
-      lineHeight: "1em",
-      width: "1.5em",
-      height: "1em",
-      display: "inline-block"
     },
   };
 })();

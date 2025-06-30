@@ -47,6 +47,7 @@ export interface ConfigurationType {
     showIncrementalTree?: boolean;
     otherSources?: OtherSource[];
     useStructuredResults?: boolean;
+    alternativeFavouritesStyle?: boolean;
 }
 
 
@@ -108,6 +109,7 @@ const defaultConfiguration: ConfigurationType = {
     orderResultsByScore: true,
     otherSources: undefined,
     useStructuredResults: false,
+    alternativeFavouritesStyle: true,
 }
 
 const ConfigurationContext = createContext<ConfigurationType>(defaultConfiguration)
