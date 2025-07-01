@@ -38,6 +38,7 @@ interface ListConfigItemProperties {
   bold: boolean;
   prefix: string;
   icon: string;
+  separator?: string;
 }
 
 interface ListConfigTypeIcon {
@@ -50,6 +51,7 @@ interface ListConfig {
   itemProperties: ListConfigItemProperties[];
   typeIcons: ListConfigTypeIcon[];
   typeIconSize: number;
+  itemSeparator?: string;
 }
 
 function ItemsList() {
@@ -61,21 +63,21 @@ function ItemsList() {
   const sortBy =
     orderResultsByScore === true
       ? [
-        {
-          field: 'name',
-          type: 'SCORE',
-          order: 'DESC',
-          sortMode: 'MIN',
-        },
-      ]
+          {
+            field: 'name',
+            type: 'SCORE',
+            order: 'DESC',
+            sortMode: 'MIN',
+          },
+        ]
       : [
-        {
-          field: 'name',
-          type: 'FIELD',
-          order: 'ASC',
-          sortMode: 'MIN',
-        },
-      ];
+          {
+            field: 'name',
+            type: 'FIELD',
+            order: 'ASC',
+            sortMode: 'MIN',
+          },
+        ];
 
   const { page, pageSize, apiFilters, updatePage, updatePageSize } =
     useFilters();
@@ -168,19 +170,20 @@ function ItemsList() {
                       <span style={{ whiteSpace: 'pre' }}>
                         {typeProperties?.prefix}
                       </span>
-                      {v?.map(({ v: value, id }, index) =>
-                        id ? (
-                          <Link
-                            style={{
-                              ...linkStyle,
-                              ...valueStyle,
-                              marginRight: index < v.length - 1 ? '4px' : 0,
-                            }}
-                            to={`${ModulePath.APU}/${id}`}
-                          >
-                            {value}
-                          </Link>
-                        ) : (
+                      {v?.map(({ v: value, id }, index) => (
+                        <>
+                          {id ? (
+                            <Link
+                              style={{
+                                ...linkStyle,
+                                ...valueStyle,
+                                marginRight: index < v.length - 1 ? '4px' : 0,
+                              }}
+                              to={`${ModulePath.APU}/${id}`}
+                            >
+                              {value}
+                            </Link>
+                          ) : (
                             <span
                               style={{
                                 ...valueStyle,
@@ -189,10 +192,18 @@ function ItemsList() {
                             >
                               {value}
                             </span>
-                          )
-                      )}
+                          )}
+                          {index < lineItems.length - 1 && (
+                            <span style={{ whiteSpace: 'pre' }}>
+                              {typeProperties?.separator || ' '}
+                            </span>
+                          )}
+                        </>
+                      ))}
                       {index < lineItems.length - 1 && (
-                        <span style={{ margin: '0 5px' }}>|</span>
+                        <span style={{ whiteSpace: 'pre' }}>
+                          {listConfig?.itemSeparator || ' | '}
+                        </span>
                       )}
                     </_element>
                   );
@@ -338,8 +349,8 @@ function ItemsList() {
                 </div>
               </div>
             ) : (
-                <></>
-              )}
+              <></>
+            )}
           </div>
         </>
       ) : infoEnabled ? (
@@ -347,8 +358,8 @@ function ItemsList() {
           <FormattedMessage id={Message.NO_ITEMS_FOUND} />
         </div>
       ) : (
-            <></>
-          )}
+        <></>
+      )}
     </div>
   );
 }
@@ -362,8 +373,8 @@ export function EvidenceResults() {
       {initialized ? (
         <ItemsList />
       ) : (
-          <Loading {...{ loading: !initialized || loading }} />
-        )}
+        <Loading {...{ loading: !initialized || loading }} />
+      )}
     </div>
   );
 }
