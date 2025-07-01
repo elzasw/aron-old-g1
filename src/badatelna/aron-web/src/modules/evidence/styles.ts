@@ -125,7 +125,7 @@ export const useStyles = makeStyles((theme) => {
 
       '& p': {
         margin: 0,
-        whiteSpace: "pre-wrap",
+        whiteSpace: 'pre-wrap',
       },
     },
     listItemTitleOnly: {
@@ -160,8 +160,8 @@ export const useStyles = makeStyles((theme) => {
       },
     },
     evidenceDetailSectionTitle: {
-      fontWeight: "bold",
-      fontSize: "1rem",
+      fontWeight: 'bold',
+      fontSize: '1rem',
     },
     evidenceDetailDescription: {
       fontWeight: 400,
@@ -173,7 +173,9 @@ export const useStyles = makeStyles((theme) => {
     evidenceDetailItemNotFirst: {
       borderTop: border,
     },
-    evidenceDetailItemLabel: ({ alternativeItemLabel }: StyleConfiguration) => ({
+    evidenceDetailItemLabel: ({
+      alternativeItemLabel,
+    }: StyleConfiguration) => ({
       width: 150,
       minWidth: 150,
       textTransform: alternativeItemLabel ? 'none' : 'uppercase',
@@ -186,7 +188,7 @@ export const useStyles = makeStyles((theme) => {
     evidenceDetailItemText: {
       marginTop: 0,
       marginBottom: 0,
-      whiteSpace: "pre-wrap",
+      whiteSpace: 'pre-wrap',
       display: 'flex',
       flexDirection: 'column',
     },
@@ -372,6 +374,7 @@ export const useStyles = makeStyles((theme) => {
       border,
       borderRadius: 4,
       width: 'fit-content',
+      background: theme.palette.background.paper,
     },
 
     attachmentLabel: {
@@ -425,16 +428,16 @@ export const useStyles = makeStyles((theme) => {
       flex: 1,
     },
     paginationButton: {
-      width: "32px",
-      height: "32px",
-      minWidth: "32px",
-      borderRadius: "32px !important",
+      width: '32px',
+      height: '32px',
+      minWidth: '32px',
+      borderRadius: '32px !important',
     },
     paginationButton_small: {
-      width: "26px",
-      height: "26px",
-      minWidth: "26px",
-      borderRadius: "26px !important",
-    }
+      width: '26px',
+      height: '26px',
+      minWidth: '26px',
+      borderRadius: '26px !important',
+    },
   };
 });

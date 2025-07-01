@@ -48,6 +48,7 @@ export interface ConfigurationType {
     otherSources?: OtherSource[];
     useStructuredResults?: boolean;
     alternativeFavouritesStyle?: boolean;
+    attachmentsOnTop?: boolean;
 }
 
 
@@ -110,6 +111,7 @@ const defaultConfiguration: ConfigurationType = {
     otherSources: undefined,
     useStructuredResults: false,
     alternativeFavouritesStyle: false,
+    attachmentsOnTop: false,
 }
 
 const ConfigurationContext = createContext<ConfigurationType>(defaultConfiguration)

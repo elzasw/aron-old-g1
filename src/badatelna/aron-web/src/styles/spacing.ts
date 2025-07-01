@@ -9,6 +9,7 @@ export const useSpacingStyles = makeStyles(({ spacing }) => {
   const big = spacing(BIG);
   const normal = spacing(NORMAL);
   const small = spacing(SMALL);
+  const extraSmall = spacing(EXTRA_SMALL);
 
   return {
     padding: {
@@ -90,6 +91,9 @@ export const useSpacingStyles = makeStyles(({ spacing }) => {
     },
     marginSmall: {
       margin: small,
+    },
+    marginExtraSmall: {
+      margin: extraSmall,
     },
     marginNone: {
       margin: '0 !important',

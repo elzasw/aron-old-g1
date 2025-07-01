@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback, useContext, ReactNode } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useContext,
+  ReactNode,
+} from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { get, find, flatten, compact, isEmpty, sortBy } from 'lodash';
 import classNames from 'classnames';
@@ -26,13 +33,7 @@ import {
   createFiltersParam,
 } from '../../common-utils';
 import { DetailProps } from './types';
-import {
-  ApuEntity,
-  ApuPartItem,
-  ApuLocale,
-  ApuPart,
-  Dao,
-} from '../../types';
+import { ApuEntity, ApuPartItem, ApuLocale, ApuPart, Dao } from '../../types';
 import {
   findApuParts,
   filterApuPartTypes,
@@ -49,11 +50,15 @@ import { EvidenceDetailAttachments } from './evidence-detail-attachments';
 import { LocaleContext, NavigationContext } from '@eas/common-web';
 import { EvidenceShareButtons } from './evidence-share-buttons';
 import { EvidenceLayout, LayoutType } from './evidence-layout';
-import { ActionsRenderProps, FileObject } from './evidence-detail-dao-dialog/types';
+import {
+  ActionsRenderProps,
+  FileObject,
+} from './evidence-detail-dao-dialog/types';
 import { ApuPathParams, createApuDaoFileUrl } from './evidence';
 import { getFiles } from './evidence-detail-dao-dialog/utils';
 import { CitationDialog } from './citation-dialog';
 import { EvidenceDetailIncrementalTree } from './evidence-detail-incremental-tree';
+import { EvidenceDetailCollapsibleAttachments } from './evidence-detail-collapsible-attachments';
 
 function EvidenceDao({
   customActionsLeft,
@@ -80,7 +85,7 @@ function EvidenceDao({
   useEffect(() => {
     setSelectedDao(null);
     setSelectedFile(null);
-  }, [apuInfo.id])
+  }, [apuInfo.id]);
 
   useEffect(() => {
     // ignore change when apu id does not match
@@ -103,32 +108,35 @@ function EvidenceDao({
     if (file) {
       setSelectedFile(file);
     }
-  }, [daoId, fileId])
-
+  }, [daoId, fileId]);
 
   const dao = selectedDao || items[0];
   const daoFiles = getFiles(dao);
-  const file = selectedFile || daoFiles.find(({selected}) => selected) || daoFiles[0];
+  const file =
+    selectedFile || daoFiles.find(({ selected }) => selected) || daoFiles[0];
 
-  return layoutType !== LayoutType.ONE_COLUMN ? <EvidenceDetailDaoDialog
-    // items={items} 
-    dao={dao}
-    file={file}
-    setItem={() => { }}
-    embed={true}
-    customActionsLeft={customActionsLeft}
-    customActionsRight={customActionsRight}
-    apuInfo={apuInfo}
-  /> :
+  return layoutType !== LayoutType.ONE_COLUMN ? (
+    <EvidenceDetailDaoDialog
+      // items={items}
+      dao={dao}
+      file={file}
+      setItem={() => {}}
+      embed={true}
+      customActionsLeft={customActionsLeft}
+      customActionsRight={customActionsRight}
+      apuInfo={apuInfo}
+    />
+  ) : (
     <EvidenceDetailDao
       item={selectedDao}
       file={selectedFile}
       setItem={(dao) => {
-        navigate(createApuDaoFileUrl(id, dao?.id))
+        navigate(createApuDaoFileUrl(id, dao?.id));
       }}
       apuInfo={apuInfo}
       items={sortBy(items, 'order')}
     />
+  );
 }
 
 export function EvidenceDetail({
@@ -237,11 +245,11 @@ export function EvidenceDetail({
   ]);
 
   const getLocalizedName = (langs: ApuLocale[], defaultName: string) => {
-    const lang = langs.find((lang) =>
-      lang.lang.substr(0, 2) === locale.locale.name
-    )
+    const lang = langs.find(
+      (lang) => lang.lang.substr(0, 2) === locale.locale.name
+    );
     return lang ? lang.text : defaultName;
-  }
+  };
 
   const getApuPartItems = (part: ApuPart) => {
     return flatten(
@@ -250,46 +258,44 @@ export function EvidenceDetail({
         .map(({ code, name, type, lang }) => {
           return compact(
             findApuParts(part.items, code).map((item) => {
-              return item.type ===
-                ApuPartItemEnum.ARCHDESC_ROOT_REF
+              return item.type === ApuPartItemEnum.ARCHDESC_ROOT_REF
                 ? null
                 : {
-                  ...item,
-                  code,
-                  name: getLocalizedName(lang, name),
-                  type,
-                };
+                    ...item,
+                    code,
+                    name: getLocalizedName(lang, name),
+                    type,
+                  };
             })
           );
-        }
-        )
-    )
-  }
+        })
+    );
+  };
 
   const getApuParts = (item: ApuEntity) => {
-    if (!item?.parts) { return [] }
+    if (!item?.parts) {
+      return [];
+    }
     return sortByArray(
       flatten(
         item.parts.map((part) =>
-          filterApuPartTypes(apuPartTypes, [part]).map(
-            (apuPartType) => {
-              return {
-                ...apuPartType,
-                name: getLocalizedName(apuPartType.lang, apuPartType.name),
-                items: getApuPartItems(part),
-                value: part.value,
-              };
-            }
-          )
+          filterApuPartTypes(apuPartTypes, [part]).map((apuPartType) => {
+            return {
+              ...apuPartType,
+              name: getLocalizedName(apuPartType.lang, apuPartType.name),
+              items: getApuPartItems(part),
+              value: part.value,
+            };
+          })
         )
       ),
       apuPartTypes,
       'code'
-    )
-  }
+    );
+  };
 
   const parts = useMemo(
-    () => item ? getApuParts(item) : [],
+    () => (item ? getApuParts(item) : []),
     [item, apuPartTypes, apuPartItemTypes, locale]
   );
 
@@ -326,53 +332,81 @@ export function EvidenceDetail({
         isLoading={loading}
         showTree={showTree}
         renderTree={
-          item && path === ModulePath.ARCH_DESC && root ?
-            () => <>
-              {configuration.showIncrementalTree
-                ? <EvidenceDetailIncrementalTree {...{ item, id: root.id, verticalResize: false }} />
-                : <EvidenceDetailTree {...{ item, id: root.id, verticalResize: false }} />
-              }
-              <div className={spacingClasses.paddingBottom} />
-            </>
+          item && path === ModulePath.ARCH_DESC && root
+            ? () => (
+                <>
+                  {configuration.showIncrementalTree ? (
+                    <EvidenceDetailIncrementalTree
+                      {...{ item, id: root.id, verticalResize: false }}
+                    />
+                  ) : (
+                    <EvidenceDetailTree
+                      {...{ item, id: root.id, verticalResize: false }}
+                    />
+                  )}
+                  <div className={spacingClasses.paddingBottom} />
+                </>
+              )
             : undefined
         }
         renderDao={
-          item && daos?.length > 0 && daosHaveFiles ?
-            ({ layoutType }) => <EvidenceDao
-              layoutType={layoutType}
-              customActionsLeft={({ fullscreen }) => <>
-                {!fullscreen && <Icon
-                  onClick={() => setShowTree(!showTree)}
-                  Component={showTree ? ArrowLeft : ArrowRight}
-                  title={formatMessage({ id: showTree ? Message.TREE_HIDE : Message.TREE_SHOW })}
-                />}
-              </>}
-              customActionsRight={({ fullscreen }) => <>
-                {!fullscreen
-                  && layoutType === LayoutType.THREE_COLUMN
-                  && <Icon
-                    onClick={() => setShowDescription(!showDescription)}
-                    Component={showDescription ? ArrowRight : ArrowLeft}
-                    title={formatMessage({ id: showDescription ? Message.DESCRIPTION_HIDE : Message.DESCRIPTION_SHOW })}
-                  />}
-              </>}
-              apuInfo={{
-                name: item.name,
-                description: item.description,
-                id: item.id,
-              }}
-              items={daos}
-            /> : undefined
+          item && daos?.length > 0 && daosHaveFiles
+            ? ({ layoutType }) => (
+                <EvidenceDao
+                  layoutType={layoutType}
+                  customActionsLeft={({ fullscreen }) => (
+                    <>
+                      {!fullscreen && (
+                        <Icon
+                          onClick={() => setShowTree(!showTree)}
+                          Component={showTree ? ArrowLeft : ArrowRight}
+                          title={formatMessage({
+                            id: showTree
+                              ? Message.TREE_HIDE
+                              : Message.TREE_SHOW,
+                          })}
+                        />
+                      )}
+                    </>
+                  )}
+                  customActionsRight={({ fullscreen }) => (
+                    <>
+                      {!fullscreen &&
+                        layoutType === LayoutType.THREE_COLUMN && (
+                          <Icon
+                            onClick={() => setShowDescription(!showDescription)}
+                            Component={showDescription ? ArrowRight : ArrowLeft}
+                            title={formatMessage({
+                              id: showDescription
+                                ? Message.DESCRIPTION_HIDE
+                                : Message.DESCRIPTION_SHOW,
+                            })}
+                          />
+                        )}
+                    </>
+                  )}
+                  apuInfo={{
+                    name: item.name,
+                    description: item.description,
+                    id: item.id,
+                  }}
+                  items={daos}
+                />
+              )
+            : undefined
         }
         showDesc={showDescription || daos.length === 0}
-        renderDesc={() =>
-          <div style={{ minWidth: '300px' }} className={spacingClasses.paddingBig}>
+        renderDesc={() => (
+          <div
+            style={{ minWidth: '300px' }}
+            className={spacingClasses.paddingBig}
+          >
             {item ? (
               <div
                 className={classNames(
                   classes.evidenceDetailTop,
                   layoutClasses.flexSpaceBetweenBottom,
-                  spacingClasses.marginBottom,
+                  spacingClasses.marginBottom
                 )}
               >
                 <div className={layoutClasses.flex}>
@@ -397,43 +431,60 @@ export function EvidenceDetail({
                     />
                     {item.description ? (
                       path === ModulePath.ARCH_DESC ||
-                        path === ModulePath.ENTITY ? (
-                          <h3
-                            className={classNames(
-                              classes.evidenceDetailDescription,
-                              spacingClasses.marginBottomSmall
-                            )}
-                          >
-                            {item.description}
-                          </h3>
-                        ) : (
-                          <h4
-                            className={classNames(
-                              classes.evidenceDetailDescription,
-                              spacingClasses.marginBottomSmall
-                            )}
-                          >
-                            {item.description}
-                          </h4>
-                        )
+                      path === ModulePath.ENTITY ? (
+                        <h3
+                          className={classNames(
+                            classes.evidenceDetailDescription,
+                            spacingClasses.marginBottomSmall
+                          )}
+                        >
+                          {item.description}
+                        </h3>
+                      ) : (
+                        <h4
+                          className={classNames(
+                            classes.evidenceDetailDescription,
+                            spacingClasses.marginBottomSmall
+                          )}
+                        >
+                          {item.description}
+                        </h4>
+                      )
                     ) : (
-                        <></>
-                      )}
-                    {((configuration.showCitationFor && configuration.showCitationFor.length > 0) || configuration.showShareButtons) && <div className={classes.buttonsContainer}>
-                      <EvidenceShareButtons item={item} />
-                      {configuration.showCitationFor
-                        && configuration.showCitationFor.indexOf(item.type) >= 0
-                        && <>
-                          <Button
-                            className={classNames(classes.findRelatedButton, classes.citationButton)}
-                            label={formatMessage({ id: Message.CITATION_CREATE })}
-                            outlined={true}
-                            size="small"
-                            onClick={() => setCitationOpen(true)}
-                          />
-                          {isCitationOpen && <CitationDialog apuId={id} isOpen={isCitationOpen} onClose={() => setCitationOpen(false)} />}
-                        </>}
-                    </div>}
+                      <></>
+                    )}
+                    {((configuration.showCitationFor &&
+                      configuration.showCitationFor.length > 0) ||
+                      configuration.showShareButtons) && (
+                      <div className={classes.buttonsContainer}>
+                        <EvidenceShareButtons item={item} />
+                        {configuration.showCitationFor &&
+                          configuration.showCitationFor.indexOf(item.type) >=
+                            0 && (
+                            <>
+                              <Button
+                                className={classNames(
+                                  classes.findRelatedButton,
+                                  classes.citationButton
+                                )}
+                                label={formatMessage({
+                                  id: Message.CITATION_CREATE,
+                                })}
+                                outlined={true}
+                                size="small"
+                                onClick={() => setCitationOpen(true)}
+                              />
+                              {isCitationOpen && (
+                                <CitationDialog
+                                  apuId={id}
+                                  isOpen={isCitationOpen}
+                                  onClose={() => setCitationOpen(false)}
+                                />
+                              )}
+                            </>
+                          )}
+                      </div>
+                    )}
                     {archdescRootRef && item.type === ApuType.FUND ? (
                       <div className={spacingClasses.marginTop}>
                         <Link
@@ -442,7 +493,8 @@ export function EvidenceDetail({
                           }}
                           className={classNames(
                             classes.link,
-                            !(item && path === ModulePath.ARCH_DESC && root) && classes.archdescRootLink,
+                            !(item && path === ModulePath.ARCH_DESC && root) &&
+                              classes.archdescRootLink,
                             layoutClasses.flexAlignCenter,
                             spacingClasses.marginRight
                           )}
@@ -462,49 +514,73 @@ export function EvidenceDetail({
                             })
                           )}
                         </Link>
-                        {
-                          configuration.showFindRecordsInFundButton &&
+                        {configuration.showFindRecordsInFundButton && (
                           <Link
                             to={{
                               pathname: ModulePath.ARCH_DESC,
-                              search: createUrlParams({ f: createFiltersParam([{ source: "FUND~REF", value: [{ id: item?.id, name: item?.name }] }]) }),
+                              search: createUrlParams({
+                                f: createFiltersParam([
+                                  {
+                                    source: 'FUND~REF',
+                                    value: [{ id: item?.id, name: item?.name }],
+                                  },
+                                ]),
+                              }),
                             }}
                             className={classNames(
                               classes.link,
-                              !(item && path === ModulePath.ARCH_DESC && root) && classes.searchLink,
-                              layoutClasses.flexAlignCenter,
+                              !(
+                                item &&
+                                path === ModulePath.ARCH_DESC &&
+                                root
+                              ) && classes.searchLink,
+                              layoutClasses.flexAlignCenter
                             )}
                           >
                             <Search
                               className={spacingClasses.marginRightSmall}
                             />
-                            <FormattedMessage id={Message.FIND_RECORDS_IN_FUND} />
+                            <FormattedMessage
+                              id={Message.FIND_RECORDS_IN_FUND}
+                            />
                           </Link>
-                        }
+                        )}
                       </div>
                     ) : (
-                        <></>
-                      )}
+                      <></>
+                    )}
                   </div>
                 </div>
-                {configuration.allowDetailExpand && <DoubleArrowIcon
-                  className={classNames(
-                    classes.evidenceDetailTopIcon,
-                    open && classes.evidenceDetailTopIconOpen,
-                    spacingClasses.marginBottom
-                  )}
-                  onClick={() => setOpen(!open)}
-                />}
+                {configuration.allowDetailExpand && (
+                  <DoubleArrowIcon
+                    className={classNames(
+                      classes.evidenceDetailTopIcon,
+                      open && classes.evidenceDetailTopIconOpen,
+                      spacingClasses.marginBottom
+                    )}
+                    onClick={() => setOpen(!open)}
+                  />
+                )}
               </div>
             ) : (
-                <></>
+              <></>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {item && configuration.attachmentsOnTop && (
+                <div style={{ flexShrink: 0 }}>
+                  <EvidenceDetailCollapsibleAttachments
+                    items={sortBy(item.attachments, 'order')}
+                    setLoading={setLoading}
+                  />
+                </div>
               )}
-            <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ flexGrow: 1 }}>
                 {parts
                   .map(({ items, ...part }) => ({
                     ...part,
-                    items: items.filter(({ visible, value, href }) => visible && (value || href)),
+                    items: items.filter(
+                      ({ visible, value, href }) => visible && (value || href)
+                    ),
                   }))
                   .filter(({ items }) => !isEmpty(items))
                   .map((partItem, index) => (
@@ -520,16 +596,17 @@ export function EvidenceDetail({
                     />
                   ))}
               </div>
-              <div style={{ flexShrink: 0 }}>
-                {item && (
+              {item && !configuration.attachmentsOnTop && (
+                <div style={{ flexShrink: 0 }}>
                   <EvidenceDetailAttachments
                     items={sortBy(item.attachments, 'order')}
                     setLoading={setLoading}
                   />
-                )}
-              </div>
+                </div>
+              )}
             </div>
-          </div>}
+          </div>
+        )}
       />
     </Module>
   );
