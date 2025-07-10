@@ -96,7 +96,7 @@ public class Peva2Utils {
     	var timeRangeTo = timeRange.getTimeRangeTo();
     	if (timeRangeFrom!=null) {
     		if (timeRangeTo!=null&&!timeRangeFrom.equals(timeRangeTo)) {
-    			sj.add(timeRangeFrom+ "-" + timeRangeTo);
+    			sj.add(timeRangeFrom+ " — " + timeRangeTo);
     		} else {
     			sj.add(timeRangeFrom);
     		}
