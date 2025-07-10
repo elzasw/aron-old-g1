@@ -177,7 +177,7 @@ function ItemsList() {
                               style={{
                                 ...linkStyle,
                                 ...valueStyle,
-                                marginRight: index < v.length - 1 ? '4px' : 0,
+                                marginRight: (index < v.length - 1 && typeProperties?.separator === undefined ) ? '4px' : 0,
                               }}
                               to={`${ModulePath.APU}/${id}`}
                             >
@@ -187,13 +187,13 @@ function ItemsList() {
                             <span
                               style={{
                                 ...valueStyle,
-                                marginRight: index < v.length - 1 ? '4px' : 0,
+                                marginRight: (index < v.length - 1 && typeProperties?.separator === undefined) ? '4px' : 0,
                               }}
                             >
                               {value}
                             </span>
                           )}
-                          {index < lineItems.length - 1 && (
+                          {index < v.length - 1 && (
                             <span style={{ whiteSpace: 'pre' }}>
                               {typeProperties?.separator || ' '}
                             </span>
