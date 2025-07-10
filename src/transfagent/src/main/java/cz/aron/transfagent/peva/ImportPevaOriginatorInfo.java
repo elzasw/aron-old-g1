@@ -244,6 +244,10 @@ public class ImportPevaOriginatorInfo {
 
 	public String getCamUUID() {
 		return camUUID;
-	}	
+	}
 
+	public ApuSourceBuilder getApusBuilder() {
+		return apusBuilder;
+	}	
+	
 }

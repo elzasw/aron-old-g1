@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import cz.aron.transfagent.domain.ArchivalEntity;
+
 public class PropertiesDataProvider implements ContextDataProvider {
 
 	Properties props = new Properties();
@@ -76,6 +78,12 @@ public class PropertiesDataProvider implements ContextDataProvider {
 
 	@Override
 	public FindingAidInfo getFindingAidInfo(UUID uuid) {
+		return null;
+	}
+
+	@Override
+	public List<ArchivalEntity> getArchivalEntitiesByUuid(UUID uuid) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 }

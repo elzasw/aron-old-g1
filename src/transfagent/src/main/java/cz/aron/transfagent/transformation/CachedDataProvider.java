@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.apache.commons.collections4.map.LRUMap;
 
+import cz.aron.transfagent.domain.ArchivalEntity;
+
 
 /**
  * Cache pro nacitani archivnich entit s jejich predky
@@ -68,6 +70,11 @@ public class CachedDataProvider implements ContextDataProvider {
 	@Override
 	public FindingAidInfo getFindingAidInfo(UUID uuid) {
 		return provider.getFindingAidInfo(uuid);
+	}
+
+	@Override
+	public List<ArchivalEntity> getArchivalEntitiesByUuid(UUID uuid) {
+		return provider.getArchivalEntitiesByUuid(uuid);
 	}
 
 }

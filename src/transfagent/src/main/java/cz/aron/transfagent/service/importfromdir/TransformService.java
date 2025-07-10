@@ -66,7 +66,7 @@ public class TransformService {
 	public static String TRANSFORM_DZI = "dzi";
 	
 	// konstanta zapisovana do databaze pro transormaci deep zoom v zip souboru
-	public static String TRANSFORM_DZI_ZIP = "dzizip";
+	//public static String TRANSFORM_DZI_ZIP = "dzizip";
 
 	// konstanta zapisovana do databaze pro transformaci vytvareni nahledu
 	public static String TRANSFORM_THUMBNAIL = "thumbnail";
@@ -96,6 +96,9 @@ public class TransformService {
 	
 	@Value("${tile.urlPrefix:#{NULL}}")
 	private String tileUrlPrefix;
+	
+	@Value("${tile.zip:false}")
+	private boolean tileZip;
 
 	@Value("${thumbnail.folder:#{NULL}}")
 	private String thumbnailFolder;
@@ -558,9 +561,12 @@ public class TransformService {
 		if (tileFolder != null) {
 			if (tileAsync) {
 				filesToTransformAsync.put(new FileTransformKey(file.getFileName().toString(), TRANSFORM_DZI), uuid);
-			} else {
+			} else {				
 				createDziOut(file, uuid);
-			}
+			}			
+			if (tileUrlPrefix!=null) {
+				DaoBuilder.addPath(daoFile, tileUrlPrefix + uuid + "/image.dzi");
+			}						
 			DaoBuilder.addReferenceFlag(daoFile);
 		} else {
 			createDzi(file, filesDir.resolve("file-" + uuid));
@@ -671,17 +677,33 @@ public class TransformService {
 		log.debug("Creating hiResView file {}", id);
 
 		Path path = getTileDir(id);
-		try {
-			Files.createDirectories(path);
-		} catch (IOException e) {
-			log.error("Error creating dir prefix={} ", path, e);
-			throw new RuntimeException(e);
+		if (tileZip) {
+			var parent = path.getParent();
+			try {
+				Files.createDirectories(parent);
+			} catch (IOException e) {
+				log.error("Error creating dir prefix={} ", path, e);
+				throw new RuntimeException(e);
+			}
+			path = parent.resolve(path.getFileName().toString() + ".zip");
+		} else {
+			try {
+				Files.createDirectories(path);
+			} catch (IOException e) {
+				log.error("Error creating dir prefix={} ", path, e);
+				throw new RuntimeException(e);
+			}
 		}
 
 		boolean deleteCreated = true;
 		try {
 			ScalablePyramidBuilder spb = new ScalablePyramidBuilder(254, 1, "jpg", "dzi");
-			FilesArchiver archiver = new DirectoryArchiver(path.toFile());
+			FilesArchiver archiver;
+			if (tileZip) {
+				archiver = new ZipMemoryArchiver(path);
+			} else {
+				archiver = new DirectoryArchiver(path.toFile());	
+			}			
 			PartialImageReader pir = new BufferedImageReader(sourceImage.toFile());
 			spb.buildPyramid(pir, "image", archiver, Runtime.getRuntime().availableProcessors());
 			deleteCreated = false;
@@ -702,44 +724,7 @@ public class TransformService {
 				throw new RuntimeException(e);
 			}
 		}
-	}
-	
-	public void createDziZipOut(Path sourceImage, String id) {
-		log.debug("Creating zipped hiResView file {}", id);
-		Path path = getZippedTilePath(id);
-		try {
-			Files.createDirectories(path.getParent());
-		} catch (IOException e) {
-			log.error("Error creating dir prefix={} ", path, e);
-			throw new RuntimeException(e);
-		}
-
-		boolean deleteCreated = true;
-		try {
-			var spb = new ScalablePyramidBuilder(254, 1, "jpg", "dzi");
-			var archiver = new ZipMemoryArchiver(path);
-			var pir = new BufferedImageReader(sourceImage.toFile());
-			spb.buildPyramid(pir, "image", archiver, Runtime.getRuntime().availableProcessors());
-			deleteCreated = false;
-			log.info("Dzi created for id {}", id);
-		} catch (IOException e) {
-			log.error("Error in creating dzi {}", path, e);
-			throw new UntransformableEntityException(e);
-		} finally {
-			try {
-				if (deleteCreated) {
-					log.debug("Deleting file {}", path);
-					if (!FileSystemUtils.deleteRecursively(path)) {
-						log.warn("Fail to delete dzi directory", path);
-					}
-				}
-			} catch (IOException e) {
-				log.error("Error deleting unused file(s) ", e);
-				throw new RuntimeException(e);
-			}
-		}
-	}
-	
+	}	
 
 	private Path getPath(String id, int hierarchicalLevel, String folder) {
 		String[] path = new String[hierarchicalLevel + 1];
@@ -761,8 +746,12 @@ public class TransformService {
 
 	public Path getThumbnailPath(String uuid) {
 		return getPath(uuid+".jpg", thumbnailHierarchicalLevel, thumbnailFolder);
-	}
+	}	
 	
+	public boolean isTileZip() {
+		return tileZip;
+	}
+
 	public static class UntransformableEntityException extends RuntimeException {
 
 		private static final long serialVersionUID = 1L;

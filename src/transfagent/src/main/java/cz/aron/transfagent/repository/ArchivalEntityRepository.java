@@ -34,6 +34,8 @@ public interface ArchivalEntityRepository extends JpaRepository<ArchivalEntity, 
     List<IdProjection> findTop1000ByStatusOrderById(EntityStatus status);
 
 	List<ArchivalEntity> findAllByParentEntity(ArchivalEntity archivalEntity);
+	
+	List<ArchivalEntity> findAllByUuid(UUID uuid);
 
 	@EntityGraph(attributePaths = {"parentEntity"})
 	ArchivalEntity findByApuSource(ApuSource apuSource);
@@ -92,8 +94,10 @@ public interface ArchivalEntityRepository extends JpaRepository<ArchivalEntity, 
     /**
      * Vrati seznam archivnich entit, u kterych je potreba nastavit stav NOT_ACCESSIBLE
      * @return List<ArchivalEntity>
+     * 
+     * Note: ignoruje entity s entityClass  'pevageo','pevaoriginator'
      */
-    @Query("SELECT ae FROM ArchivalEntity ae WHERE ae NOT IN (SELECT DISTINCT es.archivalEntity FROM EntitySource es) AND ae.status<>'NOT_ACCESSIBLE'")
+    @Query("SELECT ae FROM ArchivalEntity ae WHERE ae NOT IN (SELECT DISTINCT es.archivalEntity FROM EntitySource es) AND ae.status<>'NOT_ACCESSIBLE' AND ae.entityClass NOT IN ('pevageo','pevaoriginator')")
     List<ArchivalEntity> findNewlyUnaccesibleEntities();
 
     @Query("SELECT new cz.aron.transfagent.transformation.ArchEntitySourceInfo(ae.uuid, apuS.dataDir, apuS.uuid, ae.status, apuS.lastSent) "

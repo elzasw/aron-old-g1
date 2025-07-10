@@ -492,9 +492,32 @@ public class ImportPevaFundInfo {
 							throw new IllegalStateException();
 						}
 						if (ipoi.getCamUUID() != null) {
+							if (fundProperties.isTextOriginators()) {
+								var existingEntities = dataProvider
+										.getArchivalEntitiesByUuid(UUID.fromString(ipoi.getCamUUID()));
+								// check existency of non peva entity in available state
+								var exist = false;
+								for (var entity : existingEntities) {
+									if (entity.getEntityClass() != null
+											&& !ImportPevaOriginator.ENTITY_CLASS.equals(entity.getEntityClass())
+											&& entity.getStatus() == EntityStatus.AVAILABLE) {
+										exist = true;
+										break;
+									}
+								}
+								if (!exist) {
+									// elza entity not exist, generate text originator from peva
+									fillTextOriginator(ipoi, partFundInfo);
+									continue;
+								}
+							}
 							apusBuilder.addApuRef(partFundInfo, CoreTypes.ORIGINATOR_REF,
 									UUID.fromString(ipoi.getCamUUID()));
 							camOriginators.add(ipoi.getCamUUID());
+						} else {
+							if (fundProperties.isTextOriginators()) {
+								fillTextOriginator(ipoi, partFundInfo);
+							}
 						}
 					}
 					this.originators.addAll(originators.getOriginator());
@@ -506,7 +529,17 @@ public class ImportPevaFundInfo {
 				}
 			}
 		}
-	}	
+	}
+	
+	private void fillTextOriginator(ImportPevaOriginatorInfo ipoi, Part partFundInfo) {
+		// add text description of originator
+		var entityApu = ipoi.getApusBuilder().getMainApu();
+		var text = entityApu.getName();
+		if (StringUtils.isNotBlank(entityApu.getDesc())) {
+			text += ", " + entityApu.getDesc();
+		}
+		ApuSourceBuilder.addString(partFundInfo, "ORIGINATOR_TEXT", text);
+	}
 	
     private static Comparator<Object> COMPARATOR_CS_CZ = Collator.getInstance(new Locale("cs","CZ"));
     

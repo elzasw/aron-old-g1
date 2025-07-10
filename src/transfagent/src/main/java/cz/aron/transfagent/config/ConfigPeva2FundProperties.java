@@ -99,6 +99,9 @@ public class ConfigPeva2FundProperties {
     // posle odkazy na puvodce z CAM
     private boolean camOriginators = false;
     
+    // vygeneruje nazev puvodce z PEvA pokud neni dostupny CAM originator
+	private boolean textOriginators = false;
+    
     private boolean departments = false;
     
     private boolean permalink = false;
@@ -345,6 +348,10 @@ public class ConfigPeva2FundProperties {
 
 	public void setCamOriginators(boolean camOriginators) {
 		this.camOriginators = camOriginators;
+	}	
+	
+	public boolean isTextOriginators() {
+		return textOriginators;
 	}
 
 	public boolean isLengthOld() {
@@ -398,6 +405,10 @@ public class ConfigPeva2FundProperties {
 
 	public void setPermalink(boolean permalink) {
 		this.permalink = permalink;
+	}
+
+	public void setTextOriginators(boolean textOriginators) {
+		this.textOriginators = textOriginators;
 	}
 
 }

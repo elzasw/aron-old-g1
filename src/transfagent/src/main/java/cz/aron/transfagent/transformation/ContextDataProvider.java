@@ -3,6 +3,8 @@ package cz.aron.transfagent.transformation;
 import java.util.List;
 import java.util.UUID;
 
+import cz.aron.transfagent.domain.ArchivalEntity;
+
 /**
  * Interface for reading specific data 
  *
@@ -36,5 +38,12 @@ public interface ContextDataProvider {
      * @return FindingAidInfo
      */
     FindingAidInfo getFindingAidInfo(UUID uuid);
+    
+    /**
+     * Get all archival entities with same UUID
+     * @param uuid
+     * @return list of entities
+     */
+    List<ArchivalEntity> getArchivalEntitiesByUuid(UUID uuid);
     
 }

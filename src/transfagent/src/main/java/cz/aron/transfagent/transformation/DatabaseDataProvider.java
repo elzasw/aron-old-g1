@@ -1,7 +1,6 @@
 package cz.aron.transfagent.transformation;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,10 +14,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import cz.aron.transfagent.domain.ApuSource;
+import cz.aron.transfagent.domain.ArchivalEntity;
 import cz.aron.transfagent.domain.Institution;
 import cz.aron.transfagent.elza.ImportInstitution;
 import cz.aron.transfagent.peva.ImportPevaFindingAidInfo;
-import cz.aron.transfagent.peva.Peva2XmlReader;
 import cz.aron.transfagent.repository.ArchivalEntityRepository;
 import cz.aron.transfagent.repository.DaoRepository;
 import cz.aron.transfagent.repository.FindingAidRepository;
@@ -156,6 +155,11 @@ public class DatabaseDataProvider implements ContextDataProvider {
 			}							
 		}		
 		return null;
+	}
+
+	@Override
+	public List<ArchivalEntity> getArchivalEntitiesByUuid(UUID uuid) {		
+		return entityRepository.findAllByUuid(uuid);
 	}
 
 }
