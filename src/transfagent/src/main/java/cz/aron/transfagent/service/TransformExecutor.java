@@ -155,12 +155,20 @@ public class TransformExecutor implements SmartLifecycle {
 		String transformType = null;
 		Object requestBody = null;
 		var filePath = daoFileStoreService.getDaoDir(transform.getDaoUuid().toString()).resolve(transform.getFile());
-		if (TransformService.TRANSFORM_DZI.equals(transform.getType())) {
-			TransformRequestDzi tr = new TransformRequestDzi();
-			tr.setSrcFile(filePath.toString());
-			tr.setTargetDir(transformService.getTileDir(transform.getFileUuid().toString()).toString());
-			requestBody = tr;
-			transformType = TransformService.TRANSFORM_DZI;
+		if (TransformService.TRANSFORM_DZI.equals(transform.getType())) {			
+			if (transformService.isTileZip()) {
+				TransformRequestZip tr = new TransformRequestZip();
+				tr.setSrcFile(filePath.toString());
+				tr.setTargetFile(transformService.getZippedTilePath(transform.getFileUuid().toString()).toString());
+				requestBody = tr;
+				transformType = "dzizip";
+			} else {
+				TransformRequestDzi tr = new TransformRequestDzi();
+				tr.setSrcFile(filePath.toString());
+				tr.setTargetDir(transformService.getTileDir(transform.getFileUuid().toString()).toString());
+				requestBody = tr;
+				transformType = TransformService.TRANSFORM_DZI;
+			}
 		} else if (TransformService.TRANSFORM_THUMBNAIL.equals(transform.getType())) {
 			TransformRequestThumbnail tr = new TransformRequestThumbnail();
 			tr.setSrcFile(filePath.toString());
@@ -266,6 +274,30 @@ public class TransformExecutor implements SmartLifecycle {
 			this.targetDir = targetDir;
 		}				
 	}
+	
+	static class TransformRequestZip {
+
+		private String srcFile;
+		
+		private String targetFile;
+
+		public String getSrcFile() {
+			return srcFile;
+		}
+
+		public void setSrcFile(String srcFile) {
+			this.srcFile = srcFile;
+		}
+
+		public String getTargetFile() {
+			return targetFile;
+		}
+
+		public void setTargetFile(String targetFile) {
+			this.targetFile = targetFile;
+		}
+	}
+
 	
 	static class TransformRequestThumbnail {
 		private String srcFile;
