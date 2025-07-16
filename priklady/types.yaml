@@ -631,6 +631,10 @@ itemTypes:
     name: Původce
     type: APU_REF
     indexed: true
+  - code: ORIGINATOR_TEXT
+    name: Původce
+    type: STRING
+    indexed: true
   - code: CISLO_NAD
     name: Číslo archivního souboru
     type: STRING

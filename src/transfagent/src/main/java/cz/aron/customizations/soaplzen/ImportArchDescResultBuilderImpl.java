@@ -235,6 +235,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		String invCislo = valueCollector.getInvCislo();
 		String poradoveCislo = valueCollector.getPoradoveCislo();
 		String ukladaciCislo = valueCollector.getUkladaciCislo();
+		String ukladaciJednotka = valueCollector.getUkladaciJednotka();
 
 		var items = new ArrayList<ResultRowItem>(2);
 
@@ -244,7 +245,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			var itemValue = new ResultRowItemValue();
 			itemValue.setV(refOzn);
 			rowItem.addVItem(itemValue);
-			rowItem.setT("J_IC");
+			rowItem.setT("J_RO");
 			somethingAdded = true;
 		} else if (StringUtils.isNotBlank(invCislo)) {
 			var itemValue = new ResultRowItemValue();
@@ -256,7 +257,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			var itemValue = new ResultRowItemValue();
 			itemValue.setV(poradoveCislo);
 			rowItem.addVItem(itemValue);
-			rowItem.setT("J_IC");
+			rowItem.setT("J_PC");
 			somethingAdded = true;
 		}
 		if (somethingAdded) {
@@ -269,6 +270,13 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			var ucRowItemValue = new ResultRowItemValue();
 			ucRowItem.addVItem(ucRowItemValue);
 			ucRowItemValue.setV(ukladaciCislo);
+			items.add(ucRowItem);
+		} else if (ukladaciJednotka != null) {
+			var ucRowItem = new ResultRowItem();
+			ucRowItem.setT("J_UC");
+			var ucRowItemValue = new ResultRowItemValue();
+			ucRowItem.addVItem(ucRowItemValue);
+			ucRowItemValue.setV(ukladaciJednotka);
 			items.add(ucRowItem);
 		}
 
