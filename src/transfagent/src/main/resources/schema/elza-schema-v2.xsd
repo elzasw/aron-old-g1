@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema targetNamespace="http://elza.tacr.cz/schema/v2" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:e="http://elza.tacr.cz/schema/v2">
+	<xs:annotation>
+		<xs:documentation>Native Elza XML Schema&#xD;
+This schema may be updated as needed. It can be used for integration, but without any guarantees.&#xD;
+&#xD;
+Version 2.1&#xD;
+	- New complex type: InhibitedItem&#xD;
+	- Optional attribute id in DescriptionItem</xs:documentation>
+	</xs:annotation>
 	<xs:element name="edx" type="e:ElzaDataExchange">
 		<xs:annotation>
 			<xs:documentation>Root element for elza data exchange format</xs:documentation>
@@ -59,8 +67,8 @@
 			</xs:element>
 			<xs:element name="nms" type="e:AccessPointNames" minOccurs="0" maxOccurs="1">
 				<xs:annotation>
-					<xs:documentation>Names of accesspoint
-
+					<xs:documentation>Names of accesspoint&#xD;
+&#xD;
 At least one name have to be defined.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
@@ -97,6 +105,11 @@ At least one name have to be defined.</xs:documentation>
 			<xs:documentation>Variant name of record</xs:documentation>
 		</xs:annotation>
 		<xs:sequence/>
+		<xs:attribute name="cpl" use="optional" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>Complement</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 		<xs:attribute name="l" use="optional" type="xs:string">
 			<xs:annotation>
 				<xs:documentation>Language of name (ISO code, 3letters)</xs:documentation>
@@ -105,11 +118,6 @@ At least one name have to be defined.</xs:documentation>
 		<xs:attribute name="n" use="required" type="xs:string">
 			<xs:annotation>
 				<xs:documentation>Name of access point</xs:documentation>
-			</xs:annotation>
-		</xs:attribute>
-		<xs:attribute name="cpl" use="optional" type="xs:string">
-			<xs:annotation>
-				<xs:documentation>Complement</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>
@@ -150,6 +158,11 @@ At least one name have to be defined.</xs:documentation>
 			<xs:documentation>Abstract description item</xs:documentation>
 		</xs:annotation>
 		<xs:sequence/>
+		<xs:attribute name="id" use="optional" type="e:Id">
+			<xs:annotation>
+				<xs:documentation>Optional ID of the description item. This ID is used to reference this item inside XML.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 		<xs:attribute name="s" use="optional" type="xs:string">
 			<xs:annotation>
 				<xs:documentation>Specification of description item. Specification is subtype of the type.</xs:documentation>
@@ -227,7 +240,7 @@ At least one name have to be defined.</xs:documentation>
 				<xs:sequence/>
 				<xs:attribute name="v" use="required" type="xs:decimal">
 					<xs:annotation>
-						<xs:documentation>Value
+						<xs:documentation>Value&#xD;
 Type: decimal</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
@@ -268,7 +281,7 @@ Type: decimal</xs:documentation>
 				<xs:sequence/>
 				<xs:attribute name="v" use="required" type="xs:integer">
 					<xs:annotation>
-						<xs:documentation>Value
+						<xs:documentation>Value&#xD;
 Type: Integer</xs:documentation>
 					</xs:annotation>
 				</xs:attribute>
@@ -292,13 +305,13 @@ Type: Integer</xs:documentation>
 	</xs:complexType>
 	<xs:complexType name="DescriptionItemString">
 		<xs:annotation>
-			<xs:documentation>Description item for single String value. This is most generic description item. It can be used to store values of other types.
-
-Item is used to represent at least:
-Coordinates serialized in string
-Simple string value
-Text  / LongText with unlimited length
-Formatted text
+			<xs:documentation>Description item for single String value. This is most generic description item. It can be used to store values of other types.&#xD;
+&#xD;
+Item is used to represent at least:&#xD;
+Coordinates serialized in string&#xD;
+Simple string value&#xD;
+Text  / LongText with unlimited length&#xD;
+Formatted text&#xD;
 Item ID</xs:documentation>
 		</xs:annotation>
 		<xs:complexContent>
@@ -466,7 +479,7 @@ Item ID</xs:documentation>
 	</xs:complexType>
 	<xs:complexType name="File">
 		<xs:annotation>
-			<xs:documentation>Single file.
+			<xs:documentation>Single file.&#xD;
 Each file has name and its content - binary data.</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
@@ -599,6 +612,17 @@ Each file has name and its content - binary data.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 	</xs:complexType>
+	<xs:complexType name="InhibitedItem">
+		<xs:annotation>
+			<xs:documentation>Inhibited description item</xs:documentation>
+		</xs:annotation>
+		<xs:sequence/>
+		<xs:attribute name="refItem" use="optional" type="e:Id">
+			<xs:annotation>
+				<xs:documentation>ID of inhibited item. Item exists on higher/parent level.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
 	<xs:complexType name="Institution">
 		<xs:annotation>
 			<xs:documentation>Single institution</xs:documentation>
@@ -678,6 +702,11 @@ Each file has name and its content - binary data.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="daos" type="e:DigitalArchivalObjects" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="inhs" type="e:InhibitedItem" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Inhibited items on this level</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 		<xs:attribute name="id" use="required" type="e:Id">
 			<xs:annotation>
@@ -822,13 +851,13 @@ Each file has name and its content - binary data.</xs:documentation>
 		<xs:sequence/>
 		<xs:attribute name="cid" use="optional" type="e:Id">
 			<xs:annotation>
-				<xs:documentation>ID of the creator.
+				<xs:documentation>ID of the creator.&#xD;
 This is person who created description.</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="paid" use="optional" type="e:Id">
 			<xs:annotation>
-				<xs:documentation>Party ID.
+				<xs:documentation>Party ID.&#xD;
 This is ID of the created party</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
@@ -1200,14 +1229,14 @@ This is ID of the created party</xs:documentation>
 	</xs:complexType>
 	<xs:complexType name="TimeInterval">
 		<xs:annotation>
-			<xs:documentation>Complex date.
+			<xs:documentation>Complex date.&#xD;
 Allows to represent single time point and also interval</xs:documentation>
 		</xs:annotation>
 		<xs:sequence/>
 		<xs:attribute name="ct" use="optional" type="xs:string">
 			<xs:annotation>
-				<xs:documentation>Calendar type. If calendar type is not present then Gregorian calendar is used. Typical values are: 
-G - Gregorian calendar
+				<xs:documentation>Calendar type. If calendar type is not present then Gregorian calendar is used. Typical values are: &#xD;
+G - Gregorian calendar&#xD;
 J - Julian calendar</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
@@ -1239,8 +1268,8 @@ J - Julian calendar</xs:documentation>
 	</xs:complexType>
 	<xs:complexType name="TimeIntervalExt">
 		<xs:annotation>
-			<xs:documentation>Extended complex date with:
-	- text form of date
+			<xs:documentation>Extended complex date with:&#xD;
+	- text form of date&#xD;
 	- note</xs:documentation>
 		</xs:annotation>
 		<xs:complexContent>
