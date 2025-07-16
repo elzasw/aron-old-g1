@@ -1,0 +1,93 @@
+openapi: 3.0.3
+info:
+  title: Archive Metadata API
+  description: API for managing archival records and their metadata
+  version: 1.0.0
+
+paths:
+  /results:
+    get:
+      responses:
+        '200':
+          description: A paginated list of archive items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: object
+                    items:
+                      $ref: '#/components/schemas/Results'
+
+
+components:
+  schemas:
+  
+    ResultRowItemValue:
+      type: object
+      required:
+        - v
+      properties:
+        v:
+          type: string
+        id:
+          type: string
+          description: Unique identifier of the referenced archive item
+          
+    ResultRowItem:
+      type: object
+      required:
+        - t
+        - v
+      properties:
+        t:
+          type: string
+          description: type of item
+        v:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultRowItemValue'
+          description: value of item
+
+    ResultRow:
+      type: array
+      items:
+        $ref: '#/components/schemas/ResultRowItem'
+
+    Result:
+      type: object
+      required:
+        - id
+        - t
+        - l
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the archive item
+          example: "1f052676-be76-40f4-8e79-f55cfd68dd9d"
+        t:
+          type: string
+          description: Type of the archive item
+          example: "ARCHIVALIE"
+        tn:
+          type: string
+          format: string
+          description: Thumbnail URL
+          example: "http://10.2.0.28/thumbnails/xyz.jpg"
+        l:
+          type: array
+          description: List of result rows
+          items:
+            $ref: '#/components/schemas/ResultRow'
+
+    Results:
+      type: object
+      properties:
+        r:
+          type: array
+          items:
+            $ref: '#/components/schemas/Result'
+        c:
+          type: integer
+          description: total count of results
