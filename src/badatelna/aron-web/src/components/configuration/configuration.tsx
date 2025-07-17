@@ -112,7 +112,7 @@ const defaultConfiguration: ConfigurationType = {
     useStructuredResults: false,
     alternativeFavouritesStyle: false,
     attachmentsOnTop: false,
-    refsOnTop: ['FINDINGAID~REF'],
+    refsOnTop: [],
 };
 
 const ConfigurationContext =

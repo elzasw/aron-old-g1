@@ -70,4 +70,5 @@ var _configuration = {
   //   url: "http://www.google.com",
   //   tooltip: "Vyhledavac google",
   // }]
-}
+  // refsOnTop: ['FINDINGAID~REF'],
+};
