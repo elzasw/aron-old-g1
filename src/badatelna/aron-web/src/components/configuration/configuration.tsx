@@ -20,11 +20,11 @@ interface OtherSource {
 }
 
 export interface ConfigurationType {
-    allowDetailExpand?: boolean,
+    allowDetailExpand?: boolean;
     alternativeItemLabel?: boolean;
     compactAppHeader?: boolean;
-    showAppLogo?: boolean,
-    showAppTopImage?: boolean,
+    showAppLogo?: boolean;
+    showAppTopImage?: boolean;
     showHeader?: boolean;
     showShareButtons?: boolean;
     showStandalonePartName?: boolean;
@@ -51,7 +51,6 @@ export interface ConfigurationType {
     attachmentsOnTop?: boolean;
     refsOnTop?: string[];
 }
-
 
 const defaultConfiguration: ConfigurationType = {
     allowDetailExpand: true,
@@ -113,27 +112,28 @@ const defaultConfiguration: ConfigurationType = {
     useStructuredResults: false,
     alternativeFavouritesStyle: false,
     attachmentsOnTop: false,
-}
     refsOnTop: ['FINDINGAID~REF'],
+};
 
-const ConfigurationContext = createContext<ConfigurationType>(defaultConfiguration)
+const ConfigurationContext =
+    createContext<ConfigurationType>(defaultConfiguration);
 
-export const useConfiguration = () => useContext(ConfigurationContext)
+export const useConfiguration = () => useContext(ConfigurationContext);
 
-export const ConfigurationProvider: FC = ({
-    children
-}) => {
-    let configuration = { ...defaultConfiguration }
+export const ConfigurationProvider: FC = ({ children }) => {
+    let configuration = { ...defaultConfiguration };
     try {
         configuration = {
             ...configuration,
             //@ts-ignore load configuration from global variable
-            ...(_configuration ? _configuration : {})
-        }
+            ...(_configuration ? _configuration : {}),
+        };
     } catch {
-        configuration = { ...defaultConfiguration }
+        configuration = { ...defaultConfiguration };
     }
-    return <ConfigurationContext.Provider value={configuration}>
-        {children}
-    </ConfigurationContext.Provider>
-}
+    return (
+        <ConfigurationContext.Provider value={configuration}>
+            {children}
+        </ConfigurationContext.Provider>
+    );
+};
