@@ -49,6 +49,7 @@ export interface ConfigurationType {
     useStructuredResults?: boolean;
     alternativeFavouritesStyle?: boolean;
     attachmentsOnTop?: boolean;
+    refsOnTop?: string[];
 }
 
 
@@ -113,6 +114,7 @@ const defaultConfiguration: ConfigurationType = {
     alternativeFavouritesStyle: false,
     attachmentsOnTop: false,
 }
+    refsOnTop: ['FINDINGAID~REF'],
 
 const ConfigurationContext = createContext<ConfigurationType>(defaultConfiguration)
 

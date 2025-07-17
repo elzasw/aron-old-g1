@@ -2,14 +2,14 @@ import makeStyles from '@material-ui/core/styles/makeStyles';
 import {
   // appHeaderHeight,
   // breadcrumbsHeight,
-  colorBlueDark,
   colorBlueVeryLight,
+  // colorBlueDark,
   colorGrey,
   colorGreyLight,
   colorWhite,
   border,
   borderBold,
-  colorBlue,
+  // colorBlue,
 } from '../../styles';
 
 const sidebarWidth = 300;
@@ -255,25 +255,27 @@ export const useStyles = makeStyles((theme) => {
       },
     },
     archdescRootLink: {
-      padding: '10px',
+      margin: theme.spacing(0.5),
+      padding: `${theme.spacing(0.5)}px ${theme.spacing(1)}px`,
       textDecoration: 'none',
-      background: colorBlue,
+      background: theme.palette.primary.main,
       color: colorWhite,
-      fontSize: '1.1rem',
+      fontSize: '0.8rem',
+      fontWeight: 'bold',
       borderRadius: '5px',
       display: 'inline-flex',
 
       '&:hover': {
-        background: colorBlueDark,
-        color: colorWhite,
+        background: theme.palette.primary.dark,
+        color: theme.palette.primary.contrastText,
       },
 
       '&:visited': {
-        color: colorWhite,
+        color: theme.palette.primary.contrastText,
       },
 
       '&:active': {
-        color: colorWhite,
+        color: theme.palette.primary.contrastText,
       },
     },
     searchLink: {

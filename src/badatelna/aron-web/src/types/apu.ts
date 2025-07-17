@@ -83,6 +83,18 @@ export interface ApuPartItemType extends Entity {
   caseInsensitive: boolean;
 }
 
+export interface ApuDisplayPart extends ApuPartType {
+  name: string;
+  items: ApuDisplayPartItem[];
+  value: string;
+}
+
+export interface ApuDisplayPartItem extends ApuPartItem {
+  code: string;
+  name: string;
+  type: string;
+}
+
 export interface ApuTree extends Entity {
   name: string;
   type: ApuType;

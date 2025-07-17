@@ -33,7 +33,15 @@ import {
   createFiltersParam,
 } from '../../common-utils';
 import { DetailProps } from './types';
-import { ApuEntity, ApuPartItem, ApuLocale, ApuPart, Dao } from '../../types';
+import {
+  ApuEntity,
+  ApuPartItem,
+  ApuLocale,
+  ApuPart,
+  Dao,
+  ApuDisplayPart,
+  ApuDisplayPartItem,
+} from '../../types';
 import {
   findApuParts,
   filterApuPartTypes,
@@ -59,6 +67,7 @@ import { getFiles } from './evidence-detail-dao-dialog/utils';
 import { CitationDialog } from './citation-dialog';
 import { EvidenceDetailIncrementalTree } from './evidence-detail-incremental-tree';
 import { EvidenceDetailCollapsibleAttachments } from './evidence-detail-collapsible-attachments';
+import { InfoOnTop } from './info-on-top/info-on-top';
 
 function EvidenceDao({
   customActionsLeft,
@@ -260,12 +269,12 @@ export function EvidenceDetail({
             findApuParts(part.items, code).map((item) => {
               return item.type === ApuPartItemEnum.ARCHDESC_ROOT_REF
                 ? null
-                : {
+                : ({
                     ...item,
                     code,
                     name: getLocalizedName(lang, name),
                     type,
-                  };
+                  } as ApuDisplayPartItem);
             })
           );
         })
@@ -285,7 +294,7 @@ export function EvidenceDetail({
               name: getLocalizedName(apuPartType.lang, apuPartType.name),
               items: getApuPartItems(part),
               value: part.value,
-            };
+            } as ApuDisplayPart;
           })
         )
       ),
@@ -549,6 +558,7 @@ export function EvidenceDetail({
                     ) : (
                       <></>
                     )}
+                    <InfoOnTop parts={parts} />
                   </div>
                 </div>
                 {configuration.allowDetailExpand && (
