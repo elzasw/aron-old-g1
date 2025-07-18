@@ -178,11 +178,11 @@ public class ImportPevaOriginatorInfo {
 		if (StringUtils.isNotBlank(eventName.getGeneralSupplement())) {
 			supplements.add(eventName.getGeneralSupplement());
 		}
-		if (StringUtils.isNotBlank(eventName.getChronologicalSupplement())) {
-			supplements.add(eventName.getChronologicalSupplement());
-		}
 		if (StringUtils.isNotBlank(eventName.getGeoSupplement())) {
 			supplements.add(eventName.getGeoSupplement());
+		}		
+		if (StringUtils.isNotBlank(eventName.getChronologicalSupplement())) {
+			supplements.add(eventName.getChronologicalSupplement());
 		}
 		if (supplements.length() > 2) {
 			sb.append(" ").append(supplements.toString());
@@ -200,12 +200,12 @@ public class ImportPevaOriginatorInfo {
 		if (StringUtils.isNotBlank(pgn.getGeneralSupplement())) {
 			supplements.add(pgn.getGeneralSupplement());
 		}
-		if (StringUtils.isNotBlank(pgn.getChronologicalSupplement())) {
-			supplements.add(pgn.getChronologicalSupplement());
-		}
 		if (StringUtils.isNotBlank(pgn.getGeoSupplement())) {
 			supplements.add(pgn.getGeoSupplement());
 		}
+		if (StringUtils.isNotBlank(pgn.getChronologicalSupplement())) {
+			supplements.add(pgn.getChronologicalSupplement());
+		}		
 		if (supplements.length() > 2) {
 			sb.append(" ").append(supplements.toString());
 		}

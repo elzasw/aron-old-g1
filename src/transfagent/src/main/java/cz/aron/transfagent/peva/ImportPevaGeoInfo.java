@@ -15,7 +15,6 @@ import cz.aron.apux._2020.Part;
 import cz.aron.peva2.wsdl.GeoObject;
 import cz.aron.peva2.wsdl.GeoObjectName;
 import cz.aron.peva2.wsdl.GetGeoObjectResponse;
-import cz.aron.peva2.wsdl.GetOriginatorResponse;
 import cz.aron.transfagent.elza.ApTypeService;
 import cz.aron.transfagent.transformation.ContextDataProvider;
 import cz.aron.transfagent.transformation.CoreTypes;
@@ -70,14 +69,14 @@ public class ImportPevaGeoInfo {
 		sb.append(geoObjectName.getPrimaryPart());
 
 		var supplements = new StringJoiner(" : ", "(", ")");
+		if (StringUtils.isNotBlank(geoObjectName.getGeoSupplement())) {
+			supplements.add(geoObjectName.getGeoSupplement());
+		}		
 		if (StringUtils.isNotBlank(geoObjectName.getGeneralSupplement())) {
 			supplements.add(geoObjectName.getGeneralSupplement());
 		}
 		if (StringUtils.isNotBlank(geoObjectName.getChronologicalSupplement())) {
 			supplements.add(geoObjectName.getChronologicalSupplement());
-		}
-		if (StringUtils.isNotBlank(geoObjectName.getGeoSupplement())) {
-			supplements.add(geoObjectName.getGeoSupplement());
 		}
 		if (supplements.length() > 2) {
 			sb.append(" ").append(supplements.toString());
