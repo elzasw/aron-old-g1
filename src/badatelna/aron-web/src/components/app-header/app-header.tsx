@@ -12,11 +12,13 @@ import { useStyles } from './styles';
 import { useLayoutStyles, useSpacingStyles } from '../../styles';
 import { Language } from '../language';
 import { Props } from './types';
-import { useConfiguration } from '../configuration'
+import { useConfiguration } from '../configuration';
 
 export function AppHeader({ pageTemplate, ...props }: Props) {
   const configuration = useConfiguration();
-  const classes = useStyles({compactAppHeader: configuration.compactAppHeader});
+  const classes = useStyles({
+    compactAppHeader: configuration.compactAppHeader,
+  });
   const layoutClasses = useLayoutStyles();
   const spacingClasses = useSpacingStyles();
   const location = useLocation();
@@ -38,7 +40,10 @@ export function AppHeader({ pageTemplate, ...props }: Props) {
     }
   }, [localizations, switchLocale]);
 
-  const showLanguages = localizations && localizations.length > 1 && !configuration.localeCookieName;
+  const showLanguages =
+    localizations &&
+    localizations.length > 1 &&
+    !configuration.localeCookieName;
 
   return (
     <header className={classes.appHeader}>
@@ -50,42 +55,52 @@ export function AppHeader({ pageTemplate, ...props }: Props) {
       >
         <AppTitle appName={pageTemplate?.name} {...props} />
         <div className={classes.appHeaderItems}>
-          {getAppHeaderItems(configuration).map(({ path, label, url }, i) =>
-            !path ? (
-              <a
-                key={i}
-                href={url}
-                target="blank"
-                className={classNames(
-                  classes.appHeaderItem,
-                  layoutClasses.flexCentered,
-                  spacingClasses.paddingHorizontal
-                )}
-              >
-                {label}
-              </a>
-            ) : (
-              <Link
-                key={path}
-                to={{
-                  pathname: path,
-                }}
-                className={classNames(
-                  classes.appHeaderItem,
-                  layoutClasses.flexCentered,
-                  spacingClasses.paddingHorizontal,
-                  location.pathname === path && classes.appHeaderItemActive
-                )}
-              >
-                {label}
-              </Link>
-            )
+          {getAppHeaderItems(configuration).map(
+            ({ path, label, url, code }, i) =>
+              !path ? (
+                <a
+                  key={i}
+                  href={url}
+                  target="blank"
+                  style={{
+                    borderColor: code && configuration.headerItemColors?.[code],
+                    // color: code && configuration.headerItemColors?.[code],
+                  }}
+                  className={classNames(
+                    classes.appHeaderItem,
+                    layoutClasses.flexCentered,
+                    spacingClasses.paddingHorizontal
+                  )}
+                >
+                  {label}
+                </a>
+              ) : (
+                <Link
+                  key={path}
+                  to={{
+                    pathname: path,
+                  }}
+                  style={{
+                    borderColor: code && configuration.headerItemColors?.[code],
+                    // color: code && configuration.headerItemColors?.[code],
+                  }}
+                  className={classNames(
+                    classes.appHeaderItem,
+                    layoutClasses.flexCentered,
+                    spacingClasses.paddingHorizontal,
+                    location.pathname === path && classes.appHeaderItemActive
+                  )}
+                >
+                  {label}
+                </Link>
+              )
           )}
-          {showLanguages && 
-             <Language 
-               localizations={pageTemplate?.localizations} 
-               className={spacingClasses.marginLeft} 
-             />}
+          {showLanguages && (
+            <Language
+              localizations={pageTemplate?.localizations}
+              className={spacingClasses.marginLeft}
+            />
+          )}
         </div>
         <>
           <div className={classNames(classes.mobileMenu, layoutClasses.flex)}>
@@ -95,38 +110,40 @@ export function AppHeader({ pageTemplate, ...props }: Props) {
             >
               <MenuIcon />
             </IconButton>
-            {showLanguages && 
-              <Language 
-                localizations={pageTemplate?.localizations} 
-                className={spacingClasses.marginLeft} 
-              />}
+            {showLanguages && (
+              <Language
+                localizations={pageTemplate?.localizations}
+                className={spacingClasses.marginLeft}
+              />
+            )}
           </div>
           {open ? (
             <div
               className={classes.appHeaderItemsMobile}
               onClick={() => setOpen(false)}
             >
-              {getAppHeaderItems(configuration).map(({ path, label, url }, i) =>
-                !path ? (
-                  <a
-                    key={i}
-                    href={url}
-                    target="blank"
-                    className={classes.appHeaderItemMobile}
-                  >
-                    {label}
-                  </a>
-                ) : (
-                  <Link
-                    key={path}
-                    to={{
-                      pathname: path,
-                    }}
-                    className={classes.appHeaderItemMobile}
-                  >
-                    {label}
-                  </Link>
-                )
+              {getAppHeaderItems(configuration).map(
+                ({ path, label, url }, i) =>
+                  !path ? (
+                    <a
+                      key={i}
+                      href={url}
+                      target="blank"
+                      className={classes.appHeaderItemMobile}
+                    >
+                      {label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={path}
+                      to={{
+                        pathname: path,
+                      }}
+                      className={classes.appHeaderItemMobile}
+                    >
+                      {label}
+                    </Link>
+                  )
               )}
             </div>
           ) : (

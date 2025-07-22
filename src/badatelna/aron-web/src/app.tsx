@@ -11,7 +11,14 @@ import {
   LocaleName,
 } from '@eas/common-web';
 
-import { AppWrapper, Loading, ConfigurationProvider, useConfiguration, getLocaleFromCookie, ConfigurationType } from './components';
+import {
+  AppWrapper,
+  Loading,
+  ConfigurationProvider,
+  useConfiguration,
+  getLocaleFromCookie,
+  ConfigurationType,
+} from './components';
 import { getNavigationItems, ApiUrl, messages, Message } from './enums';
 import {
   useGet,
@@ -22,11 +29,44 @@ import {
 } from './common-utils';
 import { useAppStyles, colorWhite } from './styles';
 
+// import {
+//   Palette as MuiPallete,
+//   PaletteOptions as MuiPaletteOptions,
+//   PaletteColor
+// } from '@material-ui/core/styles/createPalette';
+
+// declare module '@material-ui/core/styles/createPalette' {
+//   interface Palette extends MuiPallete {
+//      primary: {
+//       veryLight: string;
+//       light: string;
+//       main: string;
+//       dark: string;
+//       contrastText: string;
+//     };
+//   }
+//
+//   interface PaletteOptions extends MuiPaletteOptions {
+//     neutralShade?: { main: string };
+//   }
+// }
+// const primary = {
+//   light: '#70a0c9',
+//   main: '#306ea4',
+//   dark: '#1a3a56',
+// };
 const primary = {
-  light: '#70a0c9',
-  main: '#306ea4',
-  dark: '#1a3a56',
+  veryLight: 'hsl(210, 10%, 90%)',
+  light: 'hsl(210, 20%, 50%)',
+  main: 'hsl(210, 20%, 30%)',
+  dark: 'hsl(210, 20%, 20%)',
 };
+// const primary = {
+//   veryLight: 'hsl(60, 0%, 90%)',
+//   light: 'hsl(60, 0%, 50%)',
+//   main: 'hsl(60, 0%, 30%)',
+//   dark: 'hsl(60, 0%, 10%)',
+// };
 const editing = colorWhite;
 const highlight = '#feb28a';
 const fontSize = 13;
@@ -38,18 +78,21 @@ const fontFamily = [
   'sans-serif',
 ];
 
-const overrideLocale = (messages: Record<string, Record<Message, string>>, configuration: ConfigurationType) => {
-  const newMessages = {...messages};
+const overrideLocale = (
+  messages: Record<string, Record<Message, string>>,
+  configuration: ConfigurationType
+) => {
+  const newMessages = { ...messages };
 
-  Object.entries(newMessages).forEach(([locale, messages])=>{
+  Object.entries(newMessages).forEach(([locale, messages]) => {
     newMessages[locale] = {
       ...messages,
-      ...(configuration.localeOverride?.[locale] || {})
-    }
-  })
+      ...(configuration.localeOverride?.[locale] || {}),
+    };
+  });
 
   return newMessages;
-}
+};
 
 function AppComponent() {
   const classes = useAppStyles();
@@ -69,9 +112,10 @@ function AppComponent() {
     { textResponse: true }
   );
 
-  const pageTemplate = useMemo(() => parseYaml(pageTemplateString), [
-    pageTemplateString,
-  ]);
+  const pageTemplate = useMemo(
+    () => parseYaml(pageTemplateString),
+    [pageTemplateString]
+  );
 
   const loading =
     loadingApuPartTypes ||
@@ -82,7 +126,9 @@ function AppComponent() {
 
   useEffect(() => {
     const loadImages = async () => {
-      const logo = configuration.showAppLogo ? await getPageTemplateLogo() : null;
+      const logo = configuration.showAppLogo
+        ? await getPageTemplateLogo()
+        : null;
       const topImage = await getPageTemplateTopImage();
 
       if (logo) {
@@ -145,31 +191,35 @@ function AppWithConfiguration() {
   const classes = useAppStyles();
   const configuration = useConfiguration();
 
-  return <ThemeProvider {...{ primary, editing, highlight, fontSize, fontFamily }}>
-    <LocaleProvider
-      defaultLocale={getLocaleFromCookie(configuration.localeCookieName) || LocaleName.cs}
-      messages={overrideLocale(messages, configuration)}
-      translationsUrl=""
-    >
-      <div className={classes.app}>
-        <SnackbarProvider timeout={3000}>
-          <AppStateProvider>
-            <BrowserRouter {...{ basename: process.env.URL_PREFIX }}>
-              <NavigationProvider>
-                <AppComponent />
-              </NavigationProvider>
-            </BrowserRouter>
-          </AppStateProvider>
-        </SnackbarProvider>
-      </div>
-    </LocaleProvider>
-  </ThemeProvider>
+  return (
+    <ThemeProvider {...{ primary, editing, highlight, fontSize, fontFamily }}>
+      <LocaleProvider
+        defaultLocale={
+          getLocaleFromCookie(configuration.localeCookieName) || LocaleName.cs
+        }
+        messages={overrideLocale(messages, configuration)}
+        translationsUrl=""
+      >
+        <div className={classes.app}>
+          <SnackbarProvider timeout={3000}>
+            <AppStateProvider>
+              <BrowserRouter {...{ basename: process.env.URL_PREFIX }}>
+                <NavigationProvider>
+                  <AppComponent />
+                </NavigationProvider>
+              </BrowserRouter>
+            </AppStateProvider>
+          </SnackbarProvider>
+        </div>
+      </LocaleProvider>
+    </ThemeProvider>
+  );
 }
 
 export function App() {
   return (
     <ConfigurationProvider>
-      <AppWithConfiguration/>
+      <AppWithConfiguration />
     </ConfigurationProvider>
   );
 }

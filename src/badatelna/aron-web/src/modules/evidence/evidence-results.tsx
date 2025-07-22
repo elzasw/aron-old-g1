@@ -111,6 +111,7 @@ function ItemsList() {
 
   const renderItem = ({ tn, l, id, t }: EvidenceResultItem) => {
     const typeIcon = listConfig?.typeIcons.find(({ type }) => type === t);
+    const typeIconSize = listConfig?.typeIconSize || 24;
     return (
       <Link
         key={id}
@@ -123,14 +124,27 @@ function ItemsList() {
         style={{ display: 'flex' }}
       >
         {typeIcon && (
-          <div style={{ flexGrow: 0, flexShrink: 0, marginRight: '6px' }}>
+          <div
+            style={{
+              flexGrow: 0,
+              flexShrink: 0,
+              padding: '16px',
+              // borderRight: '1px solid #ddd',
+              paddingRight: '0px',
+              marginRight: `${typeIconSize / 2}px`,
+              background: 'hsl(210, 20%, 30%)',
+            }}
+          >
             <img
               src={`${BASE_URL}/app/${typeIcon.icon}`}
-              style={{ width: `${listConfig?.typeIconSize}px` }}
+              style={{
+                width: `${typeIconSize}px`,
+                marginRight: `-${typeIconSize / 2}px`,
+              }}
             />
           </div>
         )}
-        <div style={{ flexGrow: 1 }}>
+        <div style={{ flexGrow: 1, padding: '24px' }}>
           {l.map((lineItems) => {
             return (
               <div style={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -146,7 +160,7 @@ function ItemsList() {
                     margin: '0',
                   };
                   const valueStyle: React.CSSProperties = {
-                    whiteSpace: 'nowrap',
+                    // whiteSpace: 'nowrap',
                   };
                   const linkStyle: React.CSSProperties = {};
 
@@ -178,7 +192,11 @@ function ItemsList() {
                               style={{
                                 ...linkStyle,
                                 ...valueStyle,
-                                marginRight: (index < v.length - 1 && typeProperties?.separator === undefined ) ? '4px' : 0,
+                                marginRight:
+                                  index < v.length - 1 &&
+                                  typeProperties?.separator === undefined
+                                    ? '4px'
+                                    : 0,
                               }}
                               to={`${ModulePath.APU}/${id}`}
                             >
@@ -188,7 +206,11 @@ function ItemsList() {
                             <span
                               style={{
                                 ...valueStyle,
-                                marginRight: (index < v.length - 1 && typeProperties?.separator === undefined) ? '4px' : 0,
+                                marginRight:
+                                  index < v.length - 1 &&
+                                  typeProperties?.separator === undefined
+                                    ? '4px'
+                                    : 0,
                               }}
                             >
                               {value}
@@ -214,12 +236,13 @@ function ItemsList() {
           })}
         </div>
         {tn && (
-          <div>
+          <div style={{ padding: '24px', paddingLeft: 0 }}>
             <img
               src={tn}
               style={{
                 height: '100%',
-                maxHeight: '80px',
+                maxHeight: '120px',
+                maxWidth: '192px',
                 flexGrow: 0,
                 borderRadius: '8px',
               }}
@@ -245,7 +268,7 @@ function ItemsList() {
           />
           <div
             className={classNames(
-              spacingClasses.padding,
+              spacingClasses.paddingSmall,
               spacingClasses.paddingBottomSmall
             )}
           >

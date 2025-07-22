@@ -2,8 +2,8 @@ import makeStyles from '@material-ui/core/styles/makeStyles';
 import {
   // appHeaderHeight,
   // breadcrumbsHeight,
-  colorBlueVeryLight,
   // colorBlueDark,
+  // colorBlueVeryLight,
   colorGrey,
   colorGreyLight,
   colorWhite,
@@ -12,7 +12,7 @@ import {
   // colorBlue,
 } from '../../styles';
 
-const sidebarWidth = 300;
+const sidebarWidth = 340;
 const sidebarMinWidth = 30;
 
 export interface StyleConfiguration {
@@ -22,6 +22,7 @@ export interface StyleConfiguration {
 
 export const useStyles = makeStyles((theme) => {
   const md = theme.breakpoints.up('md');
+  const sm = theme.breakpoints.up('sm');
   return {
     sidebar: {
       position: 'absolute',
@@ -29,14 +30,21 @@ export const useStyles = makeStyles((theme) => {
       // top: `calc(${appHeaderHeight} + ${breadcrumbsHeight})`,
       height: '100%',
       width: sidebarMinWidth,
-      background: colorBlueVeryLight,
+      // background: colorBlueVeryLight,
+      background: colorWhite,
       borderRight: border,
       transition: 'width 300ms',
       zIndex: 1,
 
       [md]: {
-        width: sidebarWidth,
+        width: sidebarWidth - 20,
         overflowY: 'auto',
+        margin: theme.spacing(1),
+        borderRadius: '10px',
+        borderRight: 'none',
+        height: 'calc(100% - 20px)',
+        // boxShadow: '0 0 15px #0002',
+        boxShadow: theme.shadows[8],
       },
     },
     sidebarContent: {
@@ -50,8 +58,11 @@ export const useStyles = makeStyles((theme) => {
       },
     },
     sidebarVisible: {
-      width: sidebarWidth,
+      width: '100%',
       overflowY: 'auto',
+      [sm]: {
+        width: sidebarWidth,
+      },
     },
     sidebarContentVisible: {
       display: 'block',
@@ -89,6 +100,13 @@ export const useStyles = makeStyles((theme) => {
     },
     sidebarButton: {
       width: '100%',
+      background: theme.palette.primary.main,
+      color: theme.palette.primary.contrastText,
+      fontWeight: 'bold',
+
+      '&:hover': {
+        background: theme.palette.primary.light,
+      },
     },
     listContainer: {
       overflowX: 'auto',
@@ -107,15 +125,22 @@ export const useStyles = makeStyles((theme) => {
     },
     listItem: {
       width: '100%',
-      borderRadius: 4,
-      padding: `0.8rem 1.25rem`,
+      borderRadius: 8,
+      // padding: `${theme.spacing(3)}px ${theme.spacing(3)}px`,
       cursor: 'pointer',
       display: 'block',
       textDecoration: 'none',
       color: 'currentColor',
+      boxShadow: theme.shadows[2],
+      background: theme.palette.background.paper,
+      transition: 'box-shadow 150ms ease-out, margin 150ms ease-out',
+      overflow: 'hidden',
 
       '&:hover': {
-        boxShadow: 'rgba(0, 0, 0, 0.35) 0px 5px 15px',
+        // boxShadow: 'rgba(0, 0, 0, 0.35) 0px 5px 15px',
+        boxShadow: theme.shadows[10],
+        // marginTop: -1,
+        // marginBottom: 9,
       },
 
       '& h4': {
@@ -308,7 +333,7 @@ export const useStyles = makeStyles((theme) => {
     daoPreviewImage: {
       width: '100%',
       height: '100%',
-      maxWidth: '100%',
+      axWidth: '100%',
       maxHeight: '100%',
 
       '& > img': {
@@ -366,6 +391,20 @@ export const useStyles = makeStyles((theme) => {
         whiteSpace: 'nowrap',
         maxWidth: 'none',
       },
+    },
+
+    evidenceMainContainer: {
+      [md]: {
+        width: '1200px',
+        position: 'relative',
+      },
+    },
+
+    evidenceMainWrapper: {
+      background: '#f5f5f5',
+      display: 'flex',
+      justifyContent: 'center',
+      height: '100%',
     },
 
     itemsCount: {

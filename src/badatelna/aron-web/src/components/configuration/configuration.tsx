@@ -32,6 +32,7 @@ export interface ConfigurationType {
     showFindRecordsInFundButton?: boolean;
     showCitationFor?: ApuType[];
     headerItems?: AppHeaderItemCode[];
+    headerItemColors?: Partial<Record<AppHeaderItemCode, string>>;
     searchOptions?: SearchOption[];
     localeCookieName?: string;
     localeOverride?: Record<string, Partial<Record<Message, string>>>;
@@ -81,6 +82,11 @@ const defaultConfiguration: ConfigurationType = {
         AppHeaderItemCode.NEWS,
         AppHeaderItemCode.HELP,
     ],
+    headerItemColors: {
+        // [AppHeaderItemCode.FUND]: '#5f5bc2',
+        // [AppHeaderItemCode.ARCH_DESC]: '#79a7d1',
+        // [AppHeaderItemCode.ENTITY]: '#fdad3c',
+    },
     searchOptions: [
         SearchOption.ARCH_DESC_DAO_ONLY,
         SearchOption.ARCH_DESC,

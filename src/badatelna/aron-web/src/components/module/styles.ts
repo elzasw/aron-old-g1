@@ -20,6 +20,9 @@ export const useStyles = makeStyles((theme) => {
       position: 'relative',
       flex: 1,
       height: '50%',
+      // background: '#f5f5f5',
+      // display: 'flex',
+      // justifyContent: 'center',
       // overflowX: 'auto',
     },
     breadcrumbsWrapper: {

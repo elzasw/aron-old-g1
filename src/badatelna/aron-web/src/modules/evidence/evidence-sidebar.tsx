@@ -122,7 +122,7 @@ export const EvidenceSidebar: React.FC<SidebarProps> = ({
       >
         <Loading {...{ loading: !initialized || loading }} />
         {initialized && (
-          <div className={spacingClasses.padding}>
+          <div className={spacingClasses.paddingBig}>
             <div className={spacingClasses.paddingBottom}>
               <Search value={query} onSearch={onSearch} />
             </div>
@@ -132,18 +132,25 @@ export const EvidenceSidebar: React.FC<SidebarProps> = ({
                 <p>
                   {formatMessage({ id: Message.TRY_REFINING_YOUR_SEARCH_AREA })}
                 </p>
-                {searchOptions.map(({ path, name, filters: searchOptionFilters }) => (
-                  <Button
-                    key={name}
-                    contained={true}
-                    label={name}
-                    onClick={() => navigateTo(path, 1, 10, query, [...filters, ...(searchOptionFilters || [])])} // doplneni filtru ze searchOptions o prave pouzivane filtry
-                    className={classNames(
-                      classes.sidebarButton,
-                      spacingClasses.marginBottom
-                    )}
-                  />
-                ))}
+                {searchOptions.map(
+                  ({ path, name, filters: searchOptionFilters }) => (
+                    <Button
+                      key={name}
+                      contained={true}
+                      label={name}
+                      onClick={() =>
+                        navigateTo(path, 1, 10, query, [
+                          ...filters,
+                          ...(searchOptionFilters || []),
+                        ])
+                      } // doplneni filtru ze searchOptions o prave pouzivane filtry
+                      className={classNames(
+                        classes.sidebarButton,
+                        spacingClasses.marginBottom
+                      )}
+                    />
+                  )
+                )}
               </div>
             ) : (
               <></>
@@ -155,8 +162,8 @@ export const EvidenceSidebar: React.FC<SidebarProps> = ({
                   (typeof value === 'string'
                     ? value
                     : isArray(value)
-                    ? value.length
-                    : false)
+                      ? value.length
+                      : false)
               )
               .map((f) => (
                 <FilterComponent

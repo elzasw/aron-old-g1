@@ -43,19 +43,23 @@ export function EvidenceMain({
         items: [{ label }],
         ...(textId
           ? {
-            toolbar: (
-              <div className={classes.evidenceTextInfo}>
-                <FormattedMessage id={textId} />
-              </div>
-            ),
-          }
+              toolbar: (
+                <div className={classes.evidenceTextInfo}>
+                  <FormattedMessage id={textId} />
+                </div>
+              ),
+            }
           : {}),
       }}
     >
-      <FiltersProvider {...{ path, facets, apuPartItemTypes }}>
-        <EvidenceSidebar {...{ apuPartItemTypes, facets, path }} />
-        {useStructuredResults ? <EvidenceResults /> : <EvidenceList />}
-      </FiltersProvider>
+      <div className={classes.evidenceMainWrapper}>
+        <div className={classes.evidenceMainContainer}>
+          <FiltersProvider {...{ path, facets, apuPartItemTypes }}>
+            <EvidenceSidebar {...{ apuPartItemTypes, facets, path }} />
+            {useStructuredResults ? <EvidenceResults /> : <EvidenceList />}
+          </FiltersProvider>
+        </div>
+      </div>
     </Module>
   );
 }

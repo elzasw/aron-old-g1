@@ -47,6 +47,10 @@ export const useStyles = makeStyles((theme) => {
     searchButton: {
       height: '100%',
       borderRadius: '0 5px 5px 0 !important',
+
+      '&:hover': {
+        background: theme.palette.primary.light,
+      },
     },
     searchResetButton: {
       position: 'absolute',

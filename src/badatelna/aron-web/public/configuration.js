@@ -71,4 +71,9 @@ var _configuration = {
   //   tooltip: "Vyhledavac google",
   // }]
   // refsOnTop: ['FINDINGAID~REF'],
+  // headerItemColors: {
+    // [AppHeaderItemCode.FUND]: '#5f5bc2',
+    // [AppHeaderItemCode.ARCH_DESC]: '#79a7d1',
+    // [AppHeaderItemCode.ENTITY]: '#fdad3c',
+  // },
 };

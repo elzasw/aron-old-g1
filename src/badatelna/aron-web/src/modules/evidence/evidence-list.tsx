@@ -85,6 +85,7 @@ function ItemsList() {
                 className={classNames(
                   classes.listItem,
                   spacingClasses.marginBottomSmall,
+                  spacingClasses.padding,
                   !description && classes.listItemTitleOnly
                 )}
               >
