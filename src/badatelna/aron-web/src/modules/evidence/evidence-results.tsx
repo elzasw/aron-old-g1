@@ -1,26 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import classNames from 'classnames';
-import Pagination from '@material-ui/lab/Pagination';
 import { FormattedMessage } from 'react-intl';
 import { get } from 'lodash';
-import {
-  KeyboardArrowLeft,
-  KeyboardArrowRight,
-  WarningRounded,
-} from '@material-ui/icons';
+import { WarningRounded } from '@material-ui/icons';
 
 import { useStyles } from './styles';
-import { useLayoutStyles } from '../../styles/layout';
 import {
   useSpacingStyles,
   colorYellow,
   colorYellowDark,
   colorYellowLight,
 } from '../../styles';
-import { ModulePath, pageSizeOptions, Message, BASE_URL } from '../../enums';
-import { Select, Loading, useConfiguration, Button } from '../../components';
+import { ModulePath, Message, BASE_URL } from '../../enums';
+import { Loading, useConfiguration, PaginationEx } from '../../components';
 import {
-  useWindowSize,
   // useApiListSimple,
   useBaseGet,
   useApiListResultsSimple,
@@ -56,8 +49,8 @@ interface ListConfig {
 
 function ItemsList() {
   const classes = useStyles();
-  const layoutClasses = useLayoutStyles();
   const spacingClasses = useSpacingStyles();
+  const firstElementRef = useRef<HTMLDivElement>(null);
 
   const { orderResultsByScore } = useConfiguration();
   const sortBy =
@@ -95,8 +88,6 @@ function ItemsList() {
 
   const [infoEnabled, setInfoEnabled] = useState(false);
 
-  const { width } = useWindowSize();
-
   useEffect(() => {
     if (loading) {
       setInfoEnabled(true);
@@ -107,6 +98,16 @@ function ItemsList() {
   const count = get(result, 'count');
 
   const maxPage = count ? Math.ceil(Math.min(count, 9999) / pageSize) : 0;
+
+  function handleUpdatePage(page: number) {
+    firstElementRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => updatePage(page), 100);
+  }
+
+  function handleUpdatePageSize(page: number) {
+    firstElementRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => updatePageSize(page), 100);
+  }
 
   const renderItem = ({ tn, l, id, t }: EvidenceResultItem) => {
     const typeIcon = listConfig?.typeIcons.find(({ type }) => type === t);
@@ -234,6 +235,14 @@ function ItemsList() {
       {loading || items.length ? (
         <>
           <Loading {...{ loading }} />
+          <div ref={firstElementRef} />
+          <PaginationEx
+            page={page}
+            pageSize={pageSize}
+            count={count}
+            onUpdatePage={updatePage}
+            onUpdatePageSize={updatePageSize}
+          />
           <div
             className={classNames(
               spacingClasses.padding,
@@ -267,90 +276,13 @@ function ItemsList() {
                 </i>
               </div>
             )}
-            {items.length ? (
-              <div
-                className={classNames(
-                  layoutClasses.flexSpaceBetween,
-                  layoutClasses.flexColumnPhone,
-                  spacingClasses.paddingTopSmall
-                )}
-              >
-                <div style={{ display: 'flex' }}>
-                  <Button
-                    className={
-                      width > 600
-                        ? classes.paginationButton
-                        : classes.paginationButton_small
-                    }
-                    label={
-                      <>
-                        <KeyboardArrowLeft style={{ height: '0.8em' }} />
-                        <KeyboardArrowLeft
-                          style={{ marginLeft: '-17px', height: '0.8em' }}
-                        />
-                      </>
-                    }
-                    onClick={() => {
-                      const newPage = page - 10;
-                      updatePage(newPage >= 0 ? newPage : 0);
-                    }}
-                    disabled={page <= 1}
-                  />
-                  <Pagination
-                    count={
-                      count ? Math.ceil(Math.min(count, 9999) / pageSize) : 0
-                    }
-                    size={width > 600 ? 'medium' : 'small'}
-                    siblingCount={width < 600 ? 0 : 1}
-                    color="primary"
-                    page={page}
-                    onChange={(_, page) => updatePage(page)}
-                    className={spacingClasses.marginBottomSmall}
-                  />
-                  <Button
-                    className={
-                      width > 600
-                        ? classes.paginationButton
-                        : classes.paginationButton_small
-                    }
-                    label={
-                      <>
-                        <KeyboardArrowRight style={{ height: '0.8em' }} />
-                        <KeyboardArrowRight
-                          style={{ marginLeft: '-17px', height: '0.8em' }}
-                        />
-                      </>
-                    }
-                    onClick={() => {
-                      const newPage = page + 10;
-                      updatePage(newPage <= maxPage ? newPage : maxPage);
-                    }}
-                    disabled={page >= maxPage}
-                  />
-                </div>
-                <div
-                  className={classNames(
-                    classes.listPageNumber,
-                    spacingClasses.marginBottomSmall
-                  )}
-                >
-                  <span>
-                    <FormattedMessage id={Message.PER_PAGE} />
-                    :&nbsp;&nbsp;&nbsp;
-                  </span>
-                  <div className={classes.pageSizeSelect}>
-                    <Select
-                      value={{ id: pageSize.toString(), name: pageSize }}
-                      options={pageSizeOptions}
-                      onChange={({ id }) => updatePageSize(id)}
-                      clearable={false}
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <></>
-            )}
+            <PaginationEx
+              page={page}
+              pageSize={pageSize}
+              count={count}
+              onUpdatePage={handleUpdatePage}
+              onUpdatePageSize={handleUpdatePageSize}
+            />
           </div>
         </>
       ) : infoEnabled ? (
