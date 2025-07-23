@@ -42,11 +42,37 @@ var _configuration = {
   //   "INSTITUTION",
   // ],
   // daoFooter: {
-  //   copyrightText: 'Držitel licence: Literární archiv Památníku národního písemnictví, ' + new Date().getFullYear(),
-  //   links: [{
-  //     text: 'Smluvní podmínky',
-  //     url: 'https://www.google.com',
-  //   }]
+  //     licenses: [
+  //         {
+  //             code: 'default',
+  //             parts: [
+  //                 {
+  //                     name:
+  //                         'Držitel licence: Literární archiv Památníku národního písemnictví, ' +
+  //                         new Date().getFullYear(),
+  //                     separator: true,
+  //                 },
+  //                 { name: 'Smluvní podmínky', link: 'https://www.google.com' },
+  //                 { name: 'Reprografické služby', link: 'https://www.google.com' },
+  //             ],
+  //         },
+  //         {
+  //             code: 'bolzano',
+  //             description:
+  //                 'Tento dokument z archivního fondu Bolzano Bernard byl digitalizován ve spolupráci Památníku národního písemnictví a Filosofického ústavu AV ČR prostřednictvím výzkumné skupiny PragMatika (grantový projekt GA ČR 23-06540M). Licence CC BY-NC 4.0. Metadata byla vytvořena ve spolupráci Památníku národního písemnictví a Filosofického ústavu AV ČR prostřednictvím výzkumné skupiny PragMatika (grantový projekt GA ČR 23-06540M). Licence CC BY-NC 4.0',
+  //             parts: [
+  //                 {
+  //                     name: 'Licence',
+  //                     link: 'https://www.muzeumliteratury.cz/sluzby-reprograficke',
+  //                 },
+  //                 {
+  //                     iconUrl:
+  //                         'https://mirrors.creativecommons.org/presskit/buttons/88x31/svg/by-nc.svg',
+  //                     link: 'https://creativecommons.org/licenses/by-nc/4.0/legalcode.cs',
+  //                 },
+  //             ],
+  //         },
+  //     ],
   // },
   // localeOverride: {
   //   CZECH: {
@@ -73,8 +99,8 @@ var _configuration = {
   // refsOnTop: ['FINDINGAID~REF'],
   // useStructuredResults: false,
   // headerItemColors: {
-    // FUND: '#5f5bc2',
-    // ARCH_DESC: '#79a7d1',
-    // ENTITY: '#fdad3c',
+  // FUND: '#5f5bc2',
+  // ARCH_DESC: '#79a7d1',
+  // ENTITY: '#fdad3c',
   // },
 };

@@ -4,7 +4,7 @@ import { findIndex } from 'lodash';
 import React, { useEffect, useRef, useState, useContext } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { downloadFileByUrl, createUrlParams } from '../../../common-utils';
-import { useConfiguration } from '../../../components';
+import { useConfiguration, Tooltip } from '../../../components';
 import { ImageViewer, ImageViewerExposedFunctions } from '../../../components/file-viewer/image-viewer';
 import { Message, API_URL } from '../../../enums';
 import { useLayoutStyles, useSpacingStyles } from '../../../styles';
@@ -175,6 +175,8 @@ export function EvidenceDetailDaoDialog({
     })
   }
 
+  const daoLicenses = daoFooter?.licenses?.filter(({code}) => dao.licenseCode ? code === dao.licenseCode : code === "default") || [];
+
   return (
     <div tabIndex={0} ref={daoDialogElement} className={classNames(
       classes.daoDialog,
@@ -317,32 +319,45 @@ export function EvidenceDetailDaoDialog({
                 {fileIndex + 1}/{files.length} - {file.published?.metadata?.find((item) => item.type === "name")?.value}
               </div>
             </div>
-            {daoFooter &&
-              <div
-                className={classes.daoDialogFloatingOverlay}
-                style={{ bottom: 0, right: 0 }}
-              >
-                <span style={{
-                  paddingRight: '10px',
-                  borderRight: '1px solid currentColor',
-                  margin: '0 5px'
-                }}>
-                  {daoFooter.copyrightText}
-                </span>
-                {daoFooter.links?.map((link, index) => {
-                  return <a
-                    key={index}
-                    target='_'
-                    style={{
-                      margin: '0 5px',
-                      color: 'white'
-                    }}
-                    href={link.url}
-                  >
-                    {link.text}
-                  </a>
-                })}
-              </div>
+            {
+                daoLicenses.length > 0 
+                && <div
+                  className={classes.daoDialogFloatingOverlay}
+                  style={{ bottom: 0, right: 0 }}
+                >
+                  {daoLicenses.map(({description, parts}) => {
+                      return <div style={{display: "flex", alignItems: "center"}}>
+                        {parts.map(({link, iconUrl, name, separator}) => {
+                          if(link){
+                            return <>
+                              <a href={link} style={{margin: "0 8px", color: "white", display: "flex"}}>
+                                {iconUrl && <img src={iconUrl} style={{width: '60px', marginRight: name ? "5px" : undefined}} />}
+                                {name && <span>{name}</span>}
+                              </a>
+                              {separator && "|"}
+                            </>
+                          }
+                          return <>
+                            <span style={{margin: "0 8px", color: "white", display: "flex"}}>
+                              {iconUrl && <img src={iconUrl} style={{width: '60px', marginRight: name ? "5px" : undefined}} />}
+                              {name && <span>{name}</span>}
+                            </span>
+                            {separator && "|"}
+                          </>
+                        })}
+                        {description && <Tooltip title={description}>
+                          <span style={{
+                            paddingLeft: '10px',
+                            borderLeft: '1px solid currentColor',
+                            margin: '0 5px'
+                          }}>
+                            <InfoOutlined/>
+                          </span>
+                        </Tooltip>}
+                      </div>
+                    })}
+
+                </div>
             }
           </div>
           {showMetadata && <div

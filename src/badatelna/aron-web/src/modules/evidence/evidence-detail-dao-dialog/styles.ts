@@ -104,7 +104,7 @@ export const useStyles = makeStyles((theme) => {
       height: '100%',
       [md]: {
         padding: '0px',
-      }
+      },
     },
     daoThumbnailContainer: {
       width: '100%',
@@ -114,7 +114,7 @@ export const useStyles = makeStyles((theme) => {
       cursor: 'pointer',
       position: 'relative',
       marginBottom: '4px',
-      minHeight: '4em'
+      minHeight: '4em',
     },
     daoThumbnailTitle: {
       color: 'white',
@@ -148,7 +148,7 @@ export const useStyles = makeStyles((theme) => {
         width: '100%',
         height: '100%',
         objectFit: 'cover',
-      }
+      },
     },
     daoDialogSectionPartActive: {
       outline: `2px solid ${theme.palette.primary.main}`,
@@ -157,12 +157,12 @@ export const useStyles = makeStyles((theme) => {
         cursor: 'auto',
         filter: 'brightness(1)',
         color: '#fff',
-      }
+      },
     },
     daoDialogMetadataContainer: {
       right: 0,
       width: 'auto',
-      height: 'auto'
+      height: 'auto',
     },
     daoDialogMetadata: {
       overflowY: 'auto',
@@ -193,7 +193,7 @@ export const useStyles = makeStyles((theme) => {
       position: 'absolute',
       color: 'white',
       background: '#0008',
-      padding: '8px 5px',
+      padding: '5px 8px',
     },
     daoDialogMenu: {
       [md]: {
@@ -229,7 +229,7 @@ export const useStyles = makeStyles((theme) => {
       // overflowY: 'visible',
       [md]: {
         // overflowX: 'hidden',
-      }
+      },
     },
     daoDialogToolbarInner: {
       padding: '10px',
@@ -254,6 +254,6 @@ export const useStyles = makeStyles((theme) => {
     },
     imageSettingsButton: {
       cursor: 'pointer',
-    }
+    },
   };
 });

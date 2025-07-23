@@ -2,8 +2,9 @@ import { DaoBundleType } from '../enums';
 import { LinkedEntity, Entity } from './basic';
 
 export interface Dao extends LinkedEntity {
-  name: string;
+  // name: string;
   files: DaoFile[];
+  licenseCode?: string;
 }
 
 export interface DaoFile extends LinkedEntity {
