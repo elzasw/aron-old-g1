@@ -54,6 +54,7 @@ import cz.aron.transfagent.elza.convertor.EdxStringSpecConvertor;
 import cz.aron.transfagent.elza.convertor.EdxTimeLenghtConvertor;
 import cz.aron.transfagent.elza.convertor.EdxUnitDateConvertor;
 import cz.aron.transfagent.elza.convertor.EdxUnitDateConvertorEnum;
+import cz.aron.transfagent.elza.convertor.EdxUnitTypeConvertor;
 import cz.aron.transfagent.elza.convertor.UnitDateConvertor;
 import cz.aron.transfagent.elza.dao.ArchDescLevelDaoImporter;
 import cz.aron.transfagent.elza.datace.ItemDateRangeAppender;
@@ -123,7 +124,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
     static final String ignoredTypes[] = {"ZP2015_ARRANGEMENT_TYPE", "ZP2015_LEVEL_TYPE",
             "ZP2015_SERIAL_NUMBER", "ZP2015_NAD", "ZP2015_ZNACKA_FONDU",
             "ZP2015_LEVEL_TYPE", "ZP2015_ARRANGER",
-            "ZP2015_UNIT_DATE_BULK","ZP2015_FOLDER_TYPE",
+            "ZP2015_UNIT_DATE_BULK",/*"ZP2015_FOLDER_TYPE",*/
             "ZP2015_ITEM_ORDER", // processed with ZP2015_STORAGE_ID
             "ZP2015_UNIT_COUNT_ITEM",
             "ZP2015_INTERNAL_NOTE",
@@ -556,7 +557,13 @@ public class ImportArchDesc implements EdxItemCovertContext {
         // TITLE is used as default APU name, it is not converted as separate ABSTRACT
         //stringTypeMap.put("ZP2015_TITLE",new EdxStringConvertor("ABSTRACT"));     
         stringTypeMap.put("ZP2015_TITLE",new EdxNullConvertor());
-        stringTypeMap.put("ZP2015_UNIT_TYPE", new EdxEnumConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.unitTypeMap));
+		if (configArchDesc.isFileType()) {
+			stringTypeMap.put("ZP2015_UNIT_TYPE", new EdxUnitTypeConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.unitTypeMap, ElzaTypes.spisSet));
+			stringTypeMap.put("ZP2015_FOLDER_TYPE", new EdxEnumConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.folderTypeUnitTypeMap,false));
+		} else {
+			stringTypeMap.put("ZP2015_UNIT_TYPE", new EdxEnumConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.unitTypeMap));
+			stringTypeMap.put("ZP2015_FOLDER_TYPE", new EdxNullConvertor());
+		}
         stringTypeMap.put(ElzaTypes.ZP2015_EXTRA_UNITS, new EdxEnumConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.extraUnitTypeMap));
         stringTypeMap.put(ElzaTypes.ZP2015_UNIT_SUBTYPE, new EdxEnumConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.subtypeMap));
         stringTypeMap.put(ElzaTypes.ZP2015_RECORD_TYPE, new EdxEnumConvertor(CoreTypes.RECORD_TYPE, ElzaTypes.recordTypeMap));      

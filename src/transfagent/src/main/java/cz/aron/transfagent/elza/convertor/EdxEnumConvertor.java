@@ -9,36 +9,44 @@ import cz.tacr.elza.schema.v2.DescriptionItemInteger;
 
 public class EdxEnumConvertor implements EdxItemConvertor {
 
-	final private String targetType;
-	final private Map<String, String> enumMap;
+	private final String targetType;
+	private final Map<String, String> enumMap;
+	private final boolean visible;
 
 	public EdxEnumConvertor(final String targetType,
 			final Map<String, String> enumMap) {
 		this.targetType = targetType;
 		this.enumMap = enumMap;
+		this.visible = false;
 	}
+	
+	public EdxEnumConvertor(String targetType,
+			Map<String, String> enumMap, boolean visible) {
+		this.targetType = targetType;
+		this.enumMap = enumMap;
+		this.visible = visible;
+	}
+
 
 	@Override
 	public void convert(EdxItemCovertContext ctx, DescriptionItem item) {
 	    
 	    String specCode = null;
 	    if(item instanceof DescriptionItemEnum) {
-	        DescriptionItemEnum itemEnum = (DescriptionItemEnum)item;
+	        var itemEnum = (DescriptionItemEnum)item;
 	        specCode = itemEnum.getS();
 	    } else
 	    if(item instanceof DescriptionItemInteger) {
-	        DescriptionItemInteger dii = (DescriptionItemInteger)item;
+	        var dii = (DescriptionItemInteger)item;
 	        specCode = dii.getS();
 	    }
 		
-		String value = enumMap.get(specCode);
+		var value = enumMap.get(specCode);
 		// skip values without mapping
 		if(value==null) {
 			return;
 		}
-		
-		ApuSourceBuilder apusBuilder = ctx.getApusBuilder();
-		apusBuilder.addEnum(ctx.getActivePart(), targetType, value, true);
+		ApuSourceBuilder.addEnum(ctx.getActivePart(), targetType, value, visible);
 	}
 
 }

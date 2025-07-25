@@ -1,7 +1,9 @@
 package cz.aron.transfagent.elza;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Seznam typu/constant v Elza
@@ -182,6 +184,17 @@ public abstract class ElzaTypes {
         unitTypeMap.put("ZP2015_UNIT_TYPE_KTT_BOX", "kartotéční zásuvka");
         unitTypeMap.put("ZP2015_UNIT_TYPE_KTT_ITEM", "kartotéční lístek");
     }
+    
+    public static final Set<String> spisSet = new HashSet<>();
+    static {
+	    spisSet.add("ZP2015_UNIT_TYPE_OTHER");
+    }
+    
+    public static final Map<String, String> folderTypeUnitTypeMap = new HashMap<>();
+	static {
+		folderTypeUnitTypeMap.put("ZP2015_FOLDER_UNITS", "spis");
+		folderTypeUnitTypeMap.put("ZP2015_FOLDER_LOGICAL", "spis");
+	}	
 
     public static final Map<String, String> extraUnitTypeMap = new HashMap<>();
     static {

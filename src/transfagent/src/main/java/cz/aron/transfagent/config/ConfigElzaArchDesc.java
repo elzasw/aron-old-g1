@@ -46,6 +46,8 @@ public class ConfigElzaArchDesc {
     private Set<String> digitalFlagWhen = new HashSet<>();
     
     private boolean refreshEntities;
+    
+    private boolean fileType;
 
     public boolean isAddDateToName() {
         return addDateToName;
@@ -167,6 +169,14 @@ public class ConfigElzaArchDesc {
 
 	public void setRefreshEntities(boolean refreshEntities) {
 		this.refreshEntities = refreshEntities;
+	}
+
+	public boolean isFileType() {
+		return fileType;
+	}
+
+	public void setFileType(boolean fileFlag) {
+		this.fileType = fileFlag;
 	}	
 
 }
