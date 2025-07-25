@@ -35,7 +35,6 @@ import cz.aron.transfagent.transformation.InstitutionInfo;
 import cz.tacr.elza.schema.v2.DescriptionItem;
 import cz.tacr.elza.schema.v2.DescriptionItemAPRef;
 import cz.tacr.elza.schema.v2.DescriptionItemEnum;
-import cz.tacr.elza.schema.v2.DescriptionItemInteger;
 import cz.tacr.elza.schema.v2.DescriptionItemString;
 import cz.tacr.elza.schema.v2.DescriptionItemStructObjectRef;
 import cz.tacr.elza.schema.v2.DescriptionItemUnitDate;
@@ -233,7 +232,6 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 	public void generateNumber(Result result, ValueCollector valueCollector) {
 		String refOzn = valueCollector.getRefOzn();
 		String invCislo = valueCollector.getInvCislo();
-		String poradoveCislo = valueCollector.getPoradoveCislo();
 		String ukladaciCislo = valueCollector.getUkladaciCislo();
 		String ukladaciJednotka = valueCollector.getUkladaciJednotka();
 
@@ -252,12 +250,6 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			itemValue.setV(invCislo);
 			rowItem.addVItem(itemValue);
 			rowItem.setT("J_IC");
-			somethingAdded = true;
-		} else if (StringUtils.isNotBlank(poradoveCislo)) {
-			var itemValue = new ResultRowItemValue();
-			itemValue.setV(poradoveCislo);
-			rowItem.addVItem(itemValue);
-			rowItem.setT("J_PC");
 			somethingAdded = true;
 		}
 		if (somethingAdded) {
@@ -437,7 +429,6 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 
 		String refOzn = null;
 		String invCislo = null;
-		String poradoveCislo = null;
 		String ukladaciCislo = null;
 
 		String title = null;
@@ -507,9 +498,6 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					} else if ("ZP2015_INV_CISLO".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
 						DescriptionItemString invCisloStr = (DescriptionItemString) pp;
 						invCislo = invCisloStr.getV();
-					} else if ("ZP2015_SERIAL_NUMBER".equals(pp.getT()) && (pp instanceof DescriptionItemInteger)) {
-						DescriptionItemInteger serNum = (DescriptionItemInteger) pp;
-						poradoveCislo = serNum.getV().toString();
 					} else if ("ZP2015_PACKET_NUMBER".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
 						DescriptionItemString uklC = (DescriptionItemString) pp;
 						ukladaciCislo = uklC.getV();
@@ -642,10 +630,6 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 
 		public String getInvCislo() {
 			return invCislo;
-		}
-
-		public String getPoradoveCislo() {
-			return poradoveCislo;
 		}
 
 		public String getUkladaciCislo() {
