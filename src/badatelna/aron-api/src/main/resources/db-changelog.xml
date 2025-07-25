@@ -292,5 +292,10 @@
           <column name="result" type="nclob"/>
       </addColumn>
     </changeSet>
+    <changeSet id="aron:16" author="zacek@lightcomp.cz">
+      <addColumn tableName="digital_object">
+	  <column name="license_code" type="nclob"/>
+      </addColumn>
+    </changeSet>
 
 </databaseChangeLog>

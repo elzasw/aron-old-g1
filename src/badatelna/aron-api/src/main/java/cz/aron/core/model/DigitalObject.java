@@ -22,6 +22,7 @@ public class DigitalObject extends DomainObject<DigitalObject> {
     private String name;
     private String permalink;
     private int order;
+    private String licenseCode;
 
     @OneToMany(mappedBy = "digitalObject", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.JOIN)
