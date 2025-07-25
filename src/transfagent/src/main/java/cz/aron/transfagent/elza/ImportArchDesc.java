@@ -182,11 +182,14 @@ public class ImportArchDesc implements EdxItemCovertContext {
     private final TypesConfiguration typesConfig;
     
     private final ImportArchDescResultBuilder resultBuilder;
+    
+    private final ImportArchDescNameBuilder nameBuilder;
 
     public ImportArchDesc(ApTypeService apTypeService, DaoFileStoreService daoFileStoreService,
                           LevelEnrichmentService levelEnrichmentService,
                           ConfigElzaArchDesc configArchDesc, List<ArchDescLevelDaoImporter> levelDaoImporters,
-                          TypesConfiguration typesConfig, @Nullable ImportArchDescResultBuilder resultBuilder) {
+                          TypesConfiguration typesConfig, @Nullable ImportArchDescResultBuilder resultBuilder,
+                          ImportArchDescNameBuilder nameBuilder) {
         this.apTypeService = apTypeService;
         this.daoFileStoreService = daoFileStoreService;
         this.levelEnrichmentService = levelEnrichmentService;
@@ -194,6 +197,11 @@ public class ImportArchDesc implements EdxItemCovertContext {
         this.levelDaoImporters = levelDaoImporters;
         this.typesConfig = typesConfig;
         this.resultBuilder = resultBuilder;
+        if (nameBuilder==null) {
+        	this.nameBuilder = new ImportArchdescNameBuilderDefault(configArchDesc);
+        } else {
+        	this.nameBuilder = nameBuilder;
+        }
     }
 
     public Set<UUID> getApRefs() {
@@ -219,7 +227,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
 	public static void main(String[] args) {
 		Path inputFile = Path.of(args[0]);
 		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, null, new ConfigElzaArchDesc(),
-				Collections.emptyList(), null, null);
+				Collections.emptyList(), null, null, null);
 		try {
 			ApuSourceBuilder apusrcBuilder = iad.importArchDesc(inputFile, args[1]);
 			Path outputPath = Path.of(args[2]);
@@ -412,7 +420,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
         var levelContext = new LevelContext(lvl,apu,parentContext);
         apuContexts.put(lvl.getId(), levelContext);
         
-        String name = getName(sect, lvl, parentContext);
+        String name = nameBuilder.getName(sect, lvl, parentContext, institutionName, institutionShortName);
         apu.setName(name);
         String desc = getDesc(lvl, parentContext, duplicities.get(lvl.getPid()));        
         apu.setDesc(desc);
@@ -806,90 +814,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
         otherIdPriorityMap.put("ZP2015_OTHERID_MATRIXID", 85);
     }
     
-
-    private String getName(Section sect, Level lvl, LevelContext parentContext) {
-        String parentId = lvl.getPid();
-
-        StringBuilder sb = new StringBuilder();
-        
-        if (configArchDesc.isComposedShortName()) {
-        	sb.append(institutionShortName).append(": ");
-        } else {        
-        	sb.append(institutionName).append(": ");
-        }
-        sb.append(sect.getFi().getN());
-
-        if(parentId == null) {
-            // Koren AS je bez dalsich identifikatoru
-            return sb.toString();
-        }
-
-        String refOzn = null;
-        String invCislo = null;
-        String poradoveCislo = null;
-        String otherIdent = null;
-        String otherIdentType = null;
-        int otherIdentPriority = -1;
-        String datace = null;
-        for(DescriptionItem item : lvl.getDdOrDoOrDp()) {
-            if(item.getT().equals("ZP2015_UNIT_ID")&&(item instanceof DescriptionItemString)) {
-                DescriptionItemString title = (DescriptionItemString)item;
-                refOzn = title.getV();
-            } else 
-            if(item.getT().equals("ZP2015_INV_CISLO")&&(item instanceof DescriptionItemString)) {
-                DescriptionItemString title = (DescriptionItemString)item;
-                invCislo = title.getV();
-            } else 
-            if(item.getT().equals("ZP2015_SERIAL_NUMBER")&&(item instanceof DescriptionItemInteger)) {
-                DescriptionItemInteger serNum = (DescriptionItemInteger)item;
-                poradoveCislo = serNum.getV().toString();
-            } else 
-            if(item.getT().equals(ElzaTypes.ZP2015_OTHER_ID)&&(item instanceof DescriptionItemString)) {
-                DescriptionItemString otherId = (DescriptionItemString) item;
-                if(otherIdPriorityMap.get(otherId.getS())>otherIdentPriority) {
-                    otherIdentPriority = otherIdPriorityMap.get(otherId.getS());
-                    otherIdentType = ElzaTypes.otherIdNameMap.get(otherId.getS());
-                    otherIdent = otherId.getV();
-                }
-            }
-            if(item.getT().equals(ElzaTypes.ZP2015_UNIT_DATE)&&(item instanceof DescriptionItemUnitDate)) {
-                DescriptionItemUnitDate dataceUnitDate = (DescriptionItemUnitDate)item;
-                datace = UnitDateConvertor.convertToString(dataceUnitDate);
-            }
-        }
-        
-        if (StringUtils.isBlank(datace)) {
-            datace = inheritDatace(parentContext);
-        }
-
-        if(StringUtils.isNotEmpty(refOzn)) {
-            sb.append(", ").append(refOzn);
-        } else if(StringUtils.isNotEmpty(invCislo)) {
-            sb.append(", inv. č.: ").append(invCislo);
-        } else if(StringUtils.isNotEmpty(poradoveCislo)) {
-            sb.append(", poř. č.: ").append(poradoveCislo);
-        } else if(StringUtils.isNotEmpty(otherIdent)) {
-            if(otherIdentType!=null) {
-                sb.append(", ").append(otherIdentType);                
-            }
-            sb.append(": ").append(otherIdent);
-        } else {
-            // TODO: stanoveni cesty pomoci hierarchie
-            // var parentApu = this.apuMap.get(lvl.getPid());
-            // while(parentApu!=null) {
-            //    apuPosMap.get()
-            // }
-            
-            // Variantne lze pridat UUID jako ident
-            //sb.append(lvl.getUuid().toString());
-        }
-        if(StringUtils.isNotBlank(datace)) {
-            sb.append(", ").append(datace);            
-        }
-        return sb.toString();
-    }
-    
-    public String inheritTitle(LevelContext parentContext) {
+    public static String inheritTitle(LevelContext parentContext) {
         if (parentContext==null) {
             return null;
         }        
@@ -909,7 +834,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
      *            context nadrizenych urovni, muze byt null
      * @return textova reprezentace datace nebo null
      */
-    public String inheritDatace(LevelContext parentContext) {
+    public static String inheritDatace(LevelContext parentContext) {
         while (parentContext != null) {
             for (DescriptionItem item : parentContext.getLevel().getDdOrDoOrDp()) {
                 if (item.getT().equals(ElzaTypes.ZP2015_UNIT_DATE) && (item instanceof DescriptionItemUnitDate)) {
