@@ -3,7 +3,7 @@ package cz.aron.transfagent.peva.dao;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import cz.aron.transfagent.service.DaoFileStore5Service;
+import cz.aron.customizations.soaplzen.DaoFileStore5Service;
 
 @ConditionalOnProperty(value = "filestore5.path")
 @Service

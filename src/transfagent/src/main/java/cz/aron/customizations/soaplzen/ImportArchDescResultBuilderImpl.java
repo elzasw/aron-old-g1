@@ -28,6 +28,7 @@ import cz.aron.transfagent.elza.ElzaTypes;
 import cz.aron.transfagent.elza.ElzaXmlReader;
 import cz.aron.transfagent.elza.ImportArchDesc.LevelContext;
 import cz.aron.transfagent.elza.ImportArchDescResultBuilder;
+import cz.aron.transfagent.elza.convertor.EdxLinkConvertor;
 import cz.aron.transfagent.elza.convertor.UnitDateConvertor;
 import cz.aron.transfagent.repository.ArchivalEntityRepository;
 import cz.aron.transfagent.transformation.CoreTypes;
@@ -38,6 +39,7 @@ import cz.tacr.elza.schema.v2.DescriptionItemEnum;
 import cz.tacr.elza.schema.v2.DescriptionItemString;
 import cz.tacr.elza.schema.v2.DescriptionItemStructObjectRef;
 import cz.tacr.elza.schema.v2.DescriptionItemUnitDate;
+import cz.tacr.elza.schema.v2.DescriptionItemUriRef;
 import cz.tacr.elza.schema.v2.Level;
 import cz.tacr.elza.schema.v2.Section;
 import cz.tacr.elza.schema.v2.StructuredObject;
@@ -65,10 +67,13 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 	private final ObjectMapper objectMapper;
 
 	private final ArchivalEntityRepository aeRepository;
+	
+	private final ThumbnailFileStore thumbnailFileStore;
 
-	public ImportArchDescResultBuilderImpl(ObjectMapper objectMapper, ArchivalEntityRepository aeRepository) {
+	public ImportArchDescResultBuilderImpl(ObjectMapper objectMapper, ArchivalEntityRepository aeRepository, ThumbnailFileStore thumbnailFileStore) {
 		this.objectMapper = objectMapper;
 		this.aeRepository = aeRepository;
+		this.thumbnailFileStore = thumbnailFileStore;
 	}
 
 	@Override
@@ -81,8 +86,8 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		var result = new Result();
 		result.setId(lvl.getUuid());
 		result.setT(getType(valueCollector));
-		result.setTn(
-				"https://www.inventare.cz/fcgi-bin/iipsrv.fcgi?DeepZoom=archival-aid/soap-pn/soap-pn_ap0002_10005_ku-plzen2/soap-pn_ap0002_10005_ku-plzen2_0030.jp2");
+		
+		generateThumbnail(valueCollector, result);				
 		
 		if (valueCollector.isMatrika()) {
 			generateMatrika(result, valueCollector, levelContext, elzaXmlReader, instInfo, sect, fundApuUuid);
@@ -103,6 +108,17 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 	}
 	
+	private void generateThumbnail(ValueCollector valueCollector, Result result) {
+		var daoLink = valueCollector.getDaoLink();
+		if (daoLink != null) {
+			var thumbnailLink = thumbnailFileStore.getThumbnailLink(daoLink);
+			if (StringUtils.isNotBlank(thumbnailLink)) {
+				result.setTnLink(thumbnailLink);
+				result.setTn("pf.svg");
+			}
+		}
+	}
+
 	private void generateMatrika(Result result, ValueCollector valueCollector, LevelContext levelContext, ElzaXmlReader elzaXmlReader,
 			InstitutionInfo instInfo, Section sect, UUID fundApuUuid) {
 		generateNameMatrika(result, levelContext, sect, valueCollector);
@@ -440,6 +456,8 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		
 		String typZaznamu = null;
 		
+		String daoLink = null;
+		
 		boolean oddani = false;
 		boolean oddaniIndex = false;
 		boolean narozeni = false;
@@ -529,6 +547,10 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 							zemreliIndex = true;
 							break;
 						}					
+					} else if (ElzaTypes.ZP2015_DAO_LINK.equals(pp.getT())) {
+						var uriRef = (DescriptionItemUriRef)pp;
+						if (!EdxLinkConvertor.ELZA_NODE.equals(uriRef.getSchm())) {
+							daoLink = uriRef.getUri();						}
 					}
 				} else {
 					// inherited attributes					
@@ -654,6 +676,10 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		
 		public String getTypZaznamu() {
 			return typZaznamu;
+		}
+		
+		public String getDaoLink() {
+			return daoLink;
 		}
 	}
 

@@ -9,7 +9,7 @@ import cz.tacr.elza.schema.v2.DescriptionItemUriRef;
 
 public class EdxLinkConvertor implements EdxItemConvertor {
 	
-	private static final String ELZA_NODE = "elza-node";
+	public static final String ELZA_NODE = "elza-node";
     
     private final String targetTypeRef;
     private final String targetTypeLink;

@@ -1,4 +1,4 @@
-package cz.aron.transfagent.service;
+package cz.aron.customizations.soaplzen;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -29,6 +29,7 @@ import cz.aron.transfagent.config.ConfigDaoFileStore5Institution;
 import cz.aron.transfagent.domain.Dao;
 import cz.aron.transfagent.domain.DaoState;
 import cz.aron.transfagent.peva.PermalinkGenerator;
+import cz.aron.transfagent.service.AttachmentSource;
 import cz.aron.transfagent.service.DaoImportService.DaoImporter;
 import cz.aron.transfagent.service.importfromdir.TransformService;
 import cz.aron.transfagent.service.importfromdir.TransformService.TileThumbnailUrl;
