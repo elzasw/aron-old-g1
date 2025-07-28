@@ -75,6 +75,11 @@ components:
           format: string
           description: Thumbnail URL
           example: "http://10.2.0.28/thumbnails/xyz.jpg"
+        tn_link:
+          type: string
+          format: string
+          description: Odkaz kam se ma skocit po kliknuti na thumbnail, pokud neni uvedeno skoci se na detail APU
+          example: "http://externi_web/obrazek.jpg"
         l:
           type: array
           description: List of result rows
