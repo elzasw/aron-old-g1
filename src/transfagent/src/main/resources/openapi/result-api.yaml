@@ -73,7 +73,7 @@ components:
         tn:
           type: string
           format: string
-          description: Thumbnail URL
+          description: Thumbnail URL, muze byt jak absolutni, tak relativni
           example: "http://10.2.0.28/thumbnails/xyz.jpg"
         tn_link:
           type: string
