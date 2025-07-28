@@ -11,7 +11,6 @@ import java.util.List;
 import java.time.OffsetDateTime;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
-import io.swagger.v3.oas.annotations.media.Schema;
 
 
 import java.util.*;
@@ -28,6 +27,8 @@ public class Result {
   private String t;
 
   private String tn;
+
+  private String tnLink;
 
   @Valid
   private List<List<@Valid ResultRowItem>> l = new ArrayList<>();
@@ -89,7 +90,7 @@ public class Result {
   }
 
   /**
-   * Thumbnail URL
+   * Thumbnail URL, muze byt jak absolutni, tak relativni
    * @return tn
    */
 
@@ -100,6 +101,25 @@ public class Result {
 
   public void setTn(String tn) {
     this.tn = tn;
+  }
+
+  public Result tnLink(String tnLink) {
+    this.tnLink = tnLink;
+    return this;
+  }
+
+  /**
+   * Odkaz kam se ma skocit po kliknuti na thumbnail, pokud neni uvedeno skoci se na detail APU
+   * @return tnLink
+   */
+
+  @JsonProperty("tn_link")
+  public String getTnLink() {
+    return tnLink;
+  }
+
+  public void setTnLink(String tnLink) {
+    this.tnLink = tnLink;
   }
 
   public Result l(List<List<@Valid ResultRowItem>> l) {
@@ -141,12 +161,13 @@ public class Result {
     return Objects.equals(this.id, result.id) &&
         Objects.equals(this.t, result.t) &&
         Objects.equals(this.tn, result.tn) &&
+        Objects.equals(this.tnLink, result.tnLink) &&
         Objects.equals(this.l, result.l);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, t, tn, l);
+    return Objects.hash(id, t, tn, tnLink, l);
   }
 
   @Override
@@ -156,6 +177,7 @@ public class Result {
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
     sb.append("    t: ").append(toIndentedString(t)).append("\n");
     sb.append("    tn: ").append(toIndentedString(tn)).append("\n");
+    sb.append("    tnLink: ").append(toIndentedString(tnLink)).append("\n");
     sb.append("    l: ").append(toIndentedString(l)).append("\n");
     sb.append("}");
     return sb.toString();
