@@ -48,6 +48,8 @@ export const useStyles = (configuration?: StyleConfiguration) =>
       mainFavouriteItem: {
         width: '100%',
         cursor: 'pointer',
+        color: theme.palette.text.primary,
+        display: 'flex',
 
         [theme.breakpoints.up('md')]: {
           width: '50%',
@@ -84,6 +86,7 @@ export const useStyles = (configuration?: StyleConfiguration) =>
         width: '1.5em',
         height: '1em',
         display: 'inline-block',
+        marginRight: theme.spacing(0.5),
       },
       mainFavouriteIconAlt: {
         color: theme.palette.primary.contrastText,
@@ -92,6 +95,7 @@ export const useStyles = (configuration?: StyleConfiguration) =>
         width: '1.5em',
         height: '1em',
         display: 'inline-block',
+        marginRight: theme.spacing(0.5),
       },
       mainFooter: {
         marginTop: 'auto',
@@ -157,8 +161,6 @@ export const useStyles = (configuration?: StyleConfiguration) =>
       },
       otherSourceLink: {
         textDecoration: 'none',
-        color: 'currentColor',
-        display: 'block',
       },
     };
   })();

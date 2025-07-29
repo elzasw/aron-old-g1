@@ -7,7 +7,7 @@ import { FormattedMessage } from 'react-intl';
 import { Tooltip } from '@eas/common-web';
 
 import { Search, useConfiguration } from '../../components';
-import { ModulePath, Message, ApiUrl } from '../../enums';
+import { ModulePath, Message, ApiUrl, BASE_URL } from '../../enums';
 import { useStyles } from './styles';
 import { useLayoutStyles, useSpacingStyles, useAppStyles } from '../../styles';
 import {
@@ -50,9 +50,9 @@ export const Body: React.FC = () => {
     ...q,
     filters: filters
       ? filters.map(({ source, ...f }: FilterConfig) => ({
-        ...f,
-        source: replace(source, '_', '~'),
-      }))
+          ...f,
+          source: replace(source, '_', '~'),
+        }))
       : [],
   }));
 
@@ -75,8 +75,8 @@ export const Body: React.FC = () => {
           break;
         case ModulePath.FUND:
           placeholder = current.filters
-          ? Message.SEARCH_FUND_FA_ONLY
-          : Message.SEARCH_FUND;
+            ? Message.SEARCH_FUND_FA_ONLY
+            : Message.SEARCH_FUND;
           break;
         case ModulePath.ORIGINATOR:
           placeholder = Message.SEARCH_ORIGINATOR;
@@ -104,10 +104,13 @@ export const Body: React.FC = () => {
       <div className={classes.mainBodyInner}>
         <div className={spacingClasses.paddingBottomBig} />
         <h2 className={appClasses.screenReaderHidden}>
-          <FormattedMessage id={Message.SEARCH}/>
+          <FormattedMessage id={Message.SEARCH} />
         </h2>
         <Search
-          main={searchOptions.filter(so => so.path === ModulePath.ARCH_DESC).length > 0}
+          main={
+            searchOptions.filter((so) => so.path === ModulePath.ARCH_DESC)
+              .length > 0
+          }
           placeholder={placeholder}
           onSearch={({ query }) => {
             const selectedPath = selectedOptions[0]?.path;
@@ -119,7 +122,7 @@ export const Body: React.FC = () => {
           }}
         />
         <h3 className={appClasses.screenReaderHidden}>
-          <FormattedMessage id={Message.SEARCH_CHANGE_TYPE}/>
+          <FormattedMessage id={Message.SEARCH_CHANGE_TYPE} />
         </h3>
         <ClickableSelection
           radio={true}
@@ -136,46 +139,48 @@ export const Body: React.FC = () => {
                 layoutClasses.flex,
                 layoutClasses.flexWrap,
                 spacingClasses.paddingBottomBig,
-                classes.mainFavourite,
+                classes.mainFavourite
               )}
             >
               {loadingFavouriteQueries ? (
                 <CircularProgress />
               ) : (
-                  (favouriteQueries || []).map(
-                    ({ icon, label, tooltip, type, query, filters }) => (
-                      <Tooltip key={label} title={tooltip}>
-                        <div
-                          onClick={() =>
-                            navigateTo(
-                              type ? getPathByType(type) : ModulePath.APU,
-                              1,
-                              10,
-                              query,
-                              filters
-                            )
-                          }
-                          className={classNames(
-                            layoutClasses.flexAlignCenter,
-                            spacingClasses.marginBottomSmall,
-                            alternativeFavouritesStyle 
-                              ? classes.mainFavouriteItemAlt 
-                              : classes.mainFavouriteItem,
-                          )}
-                        >
-                          <span className={
-                            alternativeFavouritesStyle 
-                              ? classes.mainFavouriteIconAlt 
+                (favouriteQueries || []).map(
+                  ({ icon, label, tooltip, type, query, filters }) => (
+                    <Tooltip key={label} title={tooltip}>
+                      <div
+                        onClick={() =>
+                          navigateTo(
+                            type ? getPathByType(type) : ModulePath.APU,
+                            1,
+                            10,
+                            query,
+                            filters
+                          )
+                        }
+                        className={classNames(
+                          layoutClasses.flexAlignCenter,
+                          spacingClasses.marginBottomSmall,
+                          alternativeFavouritesStyle
+                            ? classes.mainFavouriteItemAlt
+                            : classes.mainFavouriteItem
+                        )}
+                      >
+                        <span
+                          className={
+                            alternativeFavouritesStyle
+                              ? classes.mainFavouriteIconAlt
                               : classes.mainFavouriteIcon
-                          }>
-                            <span className={icon} />
-                          </span>
-                          &nbsp;&nbsp;{label}
-                        </div>
-                      </Tooltip>
-                    )
+                          }
+                        >
+                          <span className={icon} />
+                        </span>
+                        {label}
+                      </div>
+                    </Tooltip>
                   )
-                )}
+                )
+              )}
             </div>
           </>
         )}
@@ -192,35 +197,49 @@ export const Body: React.FC = () => {
                 spacingClasses.paddingBottomBig
               )}
             >
-              {(
-                (otherSources || []).map(
-                  ({ icon, label, url, tooltip }) => (
-                    <Tooltip key={label} title={tooltip}>
-                      <a
-                        href={url}
-                        target="blank"
-                        className={classNames(
-                          layoutClasses.flexAlignCenter,
-                          spacingClasses.marginBottomSmall,
-                          classes.otherSourceLink,
-                          alternativeFavouritesStyle 
-                            ? classes.mainFavouriteItemAlt 
-                            : classes.mainFavouriteItem,
-                        )}
-                      >
-                        <span className={
-                          alternativeFavouritesStyle 
-                          ? classes.mainFavouriteIconAlt 
-                          : classes.mainFavouriteIcon
-                        }>
-                          <span className={icon} />
+              {(otherSources || []).map(({ icon, label, url, tooltip }) => {
+                const isAbsoluteUrl = /(http|https):\/\//g.test(icon || '');
+                const isFileName = /.\.[\w\d,\-,_]+$/g.test(icon || '');
+                const iconUrl = isAbsoluteUrl
+                  ? icon
+                  : isFileName
+                    ? `${BASE_URL}/app/${icon}`
+                    : undefined;
+
+                return (
+                  <Tooltip key={label} title={tooltip}>
+                    <a
+                      href={url}
+                      target="blank"
+                      className={classNames(
+                        layoutClasses.flexAlignCenter,
+                        spacingClasses.marginBottomSmall,
+                        classes.otherSourceLink,
+                        alternativeFavouritesStyle
+                          ? classes.mainFavouriteItemAlt
+                          : classes.mainFavouriteItem
+                      )}
+                    >
+                      {icon && (
+                        <span
+                          className={
+                            alternativeFavouritesStyle
+                              ? classes.mainFavouriteIconAlt
+                              : classes.mainFavouriteIcon
+                          }
+                        >
+                          {iconUrl ? (
+                            <img src={iconUrl} style={{ height: '1em' }} />
+                          ) : (
+                            <span className={icon} />
+                          )}
                         </span>
-                        &nbsp;&nbsp;{label}
-                      </a>
-                    </Tooltip>
-                  )
-                )
-              )}
+                      )}
+                      {label}
+                    </a>
+                  </Tooltip>
+                );
+              })}
             </div>
           </>
         )}
