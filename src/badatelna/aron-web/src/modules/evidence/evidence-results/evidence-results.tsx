@@ -4,24 +4,25 @@ import { FormattedMessage } from 'react-intl';
 import { get } from 'lodash';
 import { WarningRounded } from '@material-ui/icons';
 
-import { useStyles } from './styles';
+import { useStyles } from '../styles';
 import {
   useSpacingStyles,
   colorYellow,
   colorYellowDark,
   colorYellowLight,
-} from '../../styles';
-import { ModulePath, Message, BASE_URL } from '../../enums';
-import { Loading, useConfiguration, PaginationEx } from '../../components';
+} from '../../../styles';
+import { ModulePath, Message, BASE_URL } from '../../../enums';
+import { Loading, useConfiguration, PaginationEx } from '../../../components';
 import {
   // useApiListSimple,
   useBaseGet,
   useApiListResultsSimple,
   EvidenceResultItem,
-} from '../../common-utils';
-import { useFilters } from './evidence-filters';
+} from '../../../common-utils';
+import { useFilters } from '../evidence-filters';
 // import { ApuEntitySimplified } from '../../types';
 import { Link } from 'react-router-dom';
+import { Thumbnail } from './thumbnail';
 
 interface ListConfigItemProperties {
   type: string;
@@ -56,21 +57,21 @@ function ItemsList() {
   const sortBy =
     orderResultsByScore === true
       ? [
-          {
-            field: 'name',
-            type: 'SCORE',
-            order: 'DESC',
-            sortMode: 'MIN',
-          },
-        ]
+        {
+          field: 'name',
+          type: 'SCORE',
+          order: 'DESC',
+          sortMode: 'MIN',
+        },
+      ]
       : [
-          {
-            field: 'name',
-            type: 'FIELD',
-            order: 'ASC',
-            sortMode: 'MIN',
-          },
-        ];
+        {
+          field: 'name',
+          type: 'FIELD',
+          order: 'ASC',
+          sortMode: 'MIN',
+        },
+      ];
 
   const { page, pageSize, apiFilters, updatePage, updatePageSize } =
     useFilters();
@@ -109,7 +110,7 @@ function ItemsList() {
     setTimeout(() => updatePageSize(page), 100);
   }
 
-  const renderItem = ({ tn, l, id, t }: EvidenceResultItem) => {
+  const renderItem = ({ tn, tn_link, l, id, t }: EvidenceResultItem) => {
     const typeIcon = listConfig?.typeIcons.find(({ type }) => type === t);
     const typeIconSize = listConfig?.typeIconSize || 24;
     return (
@@ -194,7 +195,7 @@ function ItemsList() {
                                 ...valueStyle,
                                 marginRight:
                                   index < v.length - 1 &&
-                                  typeProperties?.separator === undefined
+                                    typeProperties?.separator === undefined
                                     ? '4px'
                                     : 0,
                               }}
@@ -203,19 +204,19 @@ function ItemsList() {
                               {value}
                             </Link>
                           ) : (
-                            <span
-                              style={{
-                                ...valueStyle,
-                                marginRight:
-                                  index < v.length - 1 &&
-                                  typeProperties?.separator === undefined
-                                    ? '4px'
-                                    : 0,
-                              }}
-                            >
-                              {value}
-                            </span>
-                          )}
+                              <span
+                                style={{
+                                  ...valueStyle,
+                                  marginRight:
+                                    index < v.length - 1 &&
+                                      typeProperties?.separator === undefined
+                                      ? '4px'
+                                      : 0,
+                                }}
+                              >
+                                {value}
+                              </span>
+                            )}
                           {index < v.length - 1 && (
                             <span style={{ whiteSpace: 'pre' }}>
                               {typeProperties?.separator || ' '}
@@ -235,20 +236,7 @@ function ItemsList() {
             );
           })}
         </div>
-        {tn && (
-          <div style={{ padding: '24px', paddingLeft: 0 }}>
-            <img
-              src={tn}
-              style={{
-                height: '100%',
-                maxHeight: '120px',
-                maxWidth: '192px',
-                flexGrow: 0,
-                borderRadius: '8px',
-              }}
-            />
-          </div>
-        )}
+        <Thumbnail thumbnailUrl={tn} thumbnailLink={tn_link} />
       </Link>
     );
   };
@@ -313,8 +301,8 @@ function ItemsList() {
           <FormattedMessage id={Message.NO_ITEMS_FOUND} />
         </div>
       ) : (
-        <></>
-      )}
+            <></>
+          )}
     </div>
   );
 }
@@ -328,8 +316,8 @@ export function EvidenceResults() {
       {initialized ? (
         <ItemsList />
       ) : (
-        <Loading {...{ loading: !initialized || loading }} />
-      )}
+          <Loading {...{ loading: !initialized || loading }} />
+        )}
     </div>
   );
 }

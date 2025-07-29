@@ -85,17 +85,20 @@ var _configuration = {
   // newsUrl: 'https://www.seznam.cz',
   // helpUrl: 'https://www.google.cz',
   // showIncrementalTree: false,
-  // otherSources: [{
-  //   icon: "fas fa-edit",
-  //   label: "seznam",
-  //   url: "http://www.seznam.cz",
-  //   tooltip: "Vyhledavac seznam",
-  // }, {
-  //   icon: "fas fa-file",
-  //   label: "Google",
-  //   url: "http://www.google.com",
-  //   tooltip: "Vyhledavac google",
-  // }]
+  // otherSources: [
+  // {
+  //   icon: `https://www.portafontium.eu/sites/default/files/logo.png`,
+  //   label: 'Porta fontium',
+  //   url: 'http://www.portafontium.eu',
+  //   tooltip: 'Porta fontium',
+  // },
+  // {
+  //   icon: 'fas fa-file',
+  //   label: 'Google',
+  //   url: 'http://www.google.com',
+  //   tooltip: 'Vyhledavac google',
+  // },
+  // ]
   // refsOnTop: ['FINDINGAID~REF'],
   // useStructuredResults: false,
   // headerItemColors: {
