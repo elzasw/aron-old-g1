@@ -65,6 +65,7 @@ export interface ConfigurationType {
   alternativeFavouritesStyle?: boolean;
   attachmentsOnTop?: boolean;
   refsOnTop?: string[];
+  hideDescriptionFor?: string[];
 }
 
 const defaultConfiguration: ConfigurationType = {
@@ -173,6 +174,9 @@ const defaultConfiguration: ConfigurationType = {
   attachmentsOnTop: false,
   refsOnTop: [
     // 'FINDINGAID~REF'
+  ],
+  hideDescriptionFor: [
+    // 'ARCH_DESC'
   ],
 };
 

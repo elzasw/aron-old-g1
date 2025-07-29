@@ -312,6 +312,10 @@ export function EvidenceDetail({
   const daos = item ? sortBy(item.digitalObjects, 'order') : [];
   const daosHaveFiles = !!daos.find((dao) => dao.files.length > 0);
 
+  const canShowDescription =
+    item &&
+    !configuration.hideDescriptionFor?.find((type) => type === item.type);
+
   useEffect(() => {
     if (evidencePath && path) {
       updateAppState({ evidencePath: null });
@@ -438,7 +442,7 @@ export function EvidenceDetail({
                         );
                       }}
                     />
-                    {item.description ? (
+                    {item.description && canShowDescription ? (
                       path === ModulePath.ARCH_DESC ||
                       path === ModulePath.ENTITY ? (
                         <h3

@@ -106,4 +106,5 @@ var _configuration = {
   // ARCH_DESC: '#79a7d1',
   // ENTITY: '#fdad3c',
   // },
+  // hideDescriptionFor: ['ARCH_DESC'],
 };
