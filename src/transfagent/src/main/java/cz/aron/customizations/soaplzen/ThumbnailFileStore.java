@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.csv.CSVFormat;
@@ -21,8 +20,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import cz.aron.core.api.rest.model.Result;
 import cz.aron.transfagent.common.MonitoredFileResource;
-import cz.aron.transfagent.config.ConfigDaoFileStore5;
 
 @Service
 @ConditionalOnProperty(value = "filestore5.path")
@@ -42,16 +41,17 @@ public class ThumbnailFileStore {
 		this.imagesLink = new ImagesLink(path.resolve("web").resolve("aron").resolve("alias2digi.csv"));
 	}
 
-	public String getThumbnailLink(String daoLink) {		
+	public void fillThumbnailLink(String daoLink, Result result) {		
 		if (!daoLink.startsWith("https://www.portafontium.eu/")) {
-			return null;
+			return;
 		}
 		var alias = daoLink.substring("https://www.portafontium.eu/".length());				
 		var thumbnailLinks= imagesLink.getResource();
 		var imagesLink = thumbnailLinks.get(alias);
 		if (imagesLink != null) {
 			if (imagesLink.getThumbnail() != null) {
-				return daoLink + "/" + imagesLink.getThumbnail()+".jp2";
+				result.setTn(createPfImageServerLink(imagesLink.getDigi() + "/" + imagesLink.getThumbnail()+".jp2"));
+				return;
 			} else {
 				var digiDir = webPath.resolve(webPath.resolve(imagesLink.getDigi()));
 				var files = new ArrayList<String>();
@@ -62,19 +62,31 @@ public class ThumbnailFileStore {
 						}
 					});
 				} catch (NoSuchFileException e) {
-					log.warn("Directory not exist {}", digiDir);
-					return null;
+					result.setTn("pf.svg");
+					result.setTnLink(daoLink);
+					return;
 				} catch (IOException e) {
 					log.error("Fail to read directory", e);
-					return null;
-				}				
+					return;
+				}																
 				Collections.sort(files);
 				if (!files.isEmpty()) {
-					return daoLink + "/" + files.get(0);
+					result.setTn(createPfImageServerLink(imagesLink.getDigi() + "/" + files.get(0)));
+					return;
 				}
 			}
-		}		
-		return null;
+		} else {
+			result.setTn("pf.svg");
+			result.setTnLink(daoLink);
+		}
+	}
+	
+	private String createPfImageServerLink(String path) {		
+		StringBuilder sb = new StringBuilder();
+		sb.append("https://www.portafontium.eu/fcgi-bin/iipsrv.fcgi?FIF=");
+		sb.append(path);
+		sb.append("&wid=100&rot=0&rfm=0&cvt=jpeg");
+		return sb.toString();				
 	}
 	
 	private class ImagesLink extends MonitoredFileResource<Map<String, ImageUrl>> {
@@ -135,5 +147,5 @@ public class ThumbnailFileStore {
 		}
 		
 	} 
-	
+
 }

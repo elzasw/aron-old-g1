@@ -1,4 +1,4 @@
-package cz.aron.transfagent.config;
+package cz.aron.customizations.soaplzen;
 
 import java.nio.file.Path;
 import java.util.List;

@@ -1,4 +1,4 @@
-package cz.aron.transfagent.config;
+package cz.aron.customizations.soaplzen;
 
 public class ConfigDaoFileStore5Institution {
 

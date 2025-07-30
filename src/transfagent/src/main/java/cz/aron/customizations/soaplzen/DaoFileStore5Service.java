@@ -24,8 +24,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import cz.aron.transfagent.common.MonitoredFileResource;
-import cz.aron.transfagent.config.ConfigDaoFileStore5;
-import cz.aron.transfagent.config.ConfigDaoFileStore5Institution;
 import cz.aron.transfagent.domain.Dao;
 import cz.aron.transfagent.domain.DaoState;
 import cz.aron.transfagent.peva.PermalinkGenerator;
@@ -228,7 +226,7 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource, Perm
 			} else {
 				fileName = String.format("ap%1$04d.csv", ifKey.getFindingAidCode());
 			}
-			var zipPath = path.resolve("ap").resolve("img").resolve(shortcut).resolve(fileName);
+			var zipPath = path.resolve("web").resolve("aron").resolve("ap-csv").resolve(shortcut).resolve(fileName);
 			resource = new FindingAidDaoLinks(zipPath);
 			links.put(ifKey, resource);
 		}

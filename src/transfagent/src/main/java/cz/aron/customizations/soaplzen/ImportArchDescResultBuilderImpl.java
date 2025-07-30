@@ -111,11 +111,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 	private void generateThumbnail(ValueCollector valueCollector, Result result) {
 		var daoLink = valueCollector.getDaoLink();
 		if (daoLink != null) {
-			var thumbnailLink = thumbnailFileStore.getThumbnailLink(daoLink);
-			if (StringUtils.isNotBlank(thumbnailLink)) {
-				result.setTnLink(thumbnailLink);
-				result.setTn("pf.svg");
-			}
+			thumbnailFileStore.fillThumbnailLink(daoLink, result);
 		}
 	}
 
