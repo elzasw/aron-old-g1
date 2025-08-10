@@ -45,6 +45,9 @@ public class ThumbnailFileStore {
 		if (!daoLink.startsWith("https://www.portafontium.eu/")) {
 			return;
 		}
+		// link do portafontium
+		result.setTnLink(daoLink);
+		
 		var alias = daoLink.substring("https://www.portafontium.eu/".length());				
 		var thumbnailLinks= imagesLink.getResource();
 		var imagesLink = thumbnailLinks.get(alias);
@@ -62,8 +65,7 @@ public class ThumbnailFileStore {
 						}
 					});
 				} catch (NoSuchFileException e) {
-					result.setTn("pf.svg");
-					result.setTnLink(daoLink);
+					result.setTn("pf.svg");					
 					return;
 				} catch (IOException e) {
 					log.error("Fail to read directory", e);
@@ -76,8 +78,8 @@ public class ThumbnailFileStore {
 				}
 			}
 		} else {
+			// defaultni obrazek pontafontium
 			result.setTn("pf.svg");
-			result.setTnLink(daoLink);
 		}
 	}
 	
@@ -85,7 +87,7 @@ public class ThumbnailFileStore {
 		StringBuilder sb = new StringBuilder();
 		sb.append("https://www.portafontium.eu/fcgi-bin/iipsrv.fcgi?FIF=");
 		sb.append(path);
-		sb.append("&wid=100&rot=0&rfm=0&cvt=jpeg");
+		sb.append("&wid=400&rot=0&rfm=0&cvt=jpeg");
 		return sb.toString();				
 	}
 	
@@ -105,11 +107,11 @@ public class ThumbnailFileStore {
 			var ret = new HashMap<String, ImageUrl>();
 			try (Reader in = new FileReader(monitoredPath.toFile());) {
 				Iterable<CSVRecord> records = CSVFormat.DEFAULT.builder().setDelimiter(';').setTrim(true).build()
-						.parse(in);
+						.parse(in);												
 				for (CSVRecord record : records) {
-					var alias = record.get(0);
-					var digi = record.get(1);
-					var thumbnail = StringUtils.defaultIfBlank(record.get(2), null);
+					var alias = record.get(1);
+					var digi = record.get(2);
+					var thumbnail = StringUtils.defaultIfBlank(record.get(3), null);
 					ret.put(alias, new ImageUrl(digi, thumbnail));
 				}
 			} catch (FileNotFoundException e) {
