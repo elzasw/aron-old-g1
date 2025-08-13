@@ -1,8 +1,10 @@
 package cz.aron.customizations.soaplzen;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.BOMInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -319,6 +322,10 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource, Perm
 		
 	}
 	
+	/*
+	try (InputStream is = new FileInputStream("input.csv");
+            BOMInputStream bis = new BOMInputStream(is);
+	*/
 
 	private class FindingAidDaoLinks extends MonitoredFileResource<List<ImageUrl>> {
 
@@ -333,7 +340,9 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource, Perm
 				return null;
 			}
 			var ret = new ArrayList<ImageUrl>();
-			try (Reader in = new FileReader(monitoredPath.toFile());) {
+			try (var is = new FileInputStream(monitoredPath.toFile());
+					var bis = new BOMInputStream(is);
+					Reader in = new InputStreamReader(bis);) {
 				Iterable<CSVRecord> records = CSVFormat.DEFAULT.builder().setDelimiter(';').setTrim(true).build()
 						.parse(in);
 				for (CSVRecord record : records) {

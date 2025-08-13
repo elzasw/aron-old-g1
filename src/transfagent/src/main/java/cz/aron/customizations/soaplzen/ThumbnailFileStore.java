@@ -1,8 +1,10 @@
 package cz.aron.customizations.soaplzen;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -14,6 +16,7 @@ import java.util.Map;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,9 +108,11 @@ public class ThumbnailFileStore {
 			}
 
 			var ret = new HashMap<String, ImageUrl>();
-			try (Reader in = new FileReader(monitoredPath.toFile());) {
+			try (var is = new FileInputStream(monitoredPath.toFile());
+					var bis = new BOMInputStream(is);
+					Reader in = new InputStreamReader(bis);) {
 				Iterable<CSVRecord> records = CSVFormat.DEFAULT.builder().setDelimiter(';').setTrim(true).build()
-						.parse(in);												
+						.parse(in);
 				for (CSVRecord record : records) {
 					var alias = record.get(1);
 					var digi = record.get(2);
