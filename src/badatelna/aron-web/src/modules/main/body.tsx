@@ -197,7 +197,7 @@ export const Body: React.FC = () => {
                 spacingClasses.paddingBottomBig
               )}
             >
-              {(otherSources || []).map(({ icon, label, url, tooltip }) => {
+              {(otherSources || []).map(({ icon, label, url, tooltip, iconBackground, iconRadius }) => {
                 const isAbsoluteUrl = /(http|https):\/\//g.test(icon || '');
                 const isFileName = /.\.[\w\d,\-,_]+$/g.test(icon || '');
                 const iconUrl = isAbsoluteUrl
@@ -229,7 +229,13 @@ export const Body: React.FC = () => {
                           }
                         >
                           {iconUrl ? (
-                            <img src={iconUrl} style={{ height: '1em' }} />
+                            <img 
+                              src={iconUrl} 
+                              style={{ 
+                                height: '1em', 
+                                backgroundColor: iconBackground, 
+                                borderRadius: iconRadius ? `${iconRadius}px` : 0,
+                              }} />
                           ) : (
                             <span className={icon} />
                           )}

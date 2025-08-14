@@ -31,6 +31,8 @@ interface OtherSource {
   url?: string;
   label?: string;
   tooltip?: string;
+  iconBackground?: string;
+  iconRadius?: number;
 }
 
 export interface ConfigurationType {
@@ -156,6 +158,14 @@ const defaultConfiguration: ConfigurationType = {
   // helpUrl: 'https://www.google.cz',
   orderResultsByScore: true,
   otherSources: [
+    // {
+    //   icon: `charter.png`,
+    //   label: 'Porta fontium',
+    //   url: 'http://www.portafontium.eu',
+    //   tooltip: 'Porta fontium',
+    //   iconBackground: 'black',
+    //   iconRadius: 8,
+    // },
     // {
     //   icon: `https://www.portafontium.eu/sites/default/files/logo.png`,
     //   label: 'Porta fontium',
