@@ -23,39 +23,42 @@ public class Peva2Utils {
 	 
 	private static final Pattern CENTURY_PATTERN = Pattern.compile(EXP_CENTURY);
 	
-	public static void fillDateRange(UniversalTimeRange timeRange, Part partFundInfo, ApuSourceBuilder apusBuilder) {    	
-    	String timeRangeFrom = timeRange.getTimeRangeFrom();
-    	String timeRangeTo = timeRange.getTimeRangeTo();
-    	
-    	String fromFormat = "Y";
-    	String toFormat = "Y";
-    	
-    	var itemDateRange = new ItemDateRange();    	
-    	if (timeRangeFrom!=null) {
+	public static void fillDateRange(UniversalTimeRange timeRange, Part partFundInfo, ApuSourceBuilder apusBuilder) {    	    
+    	var itemDateRange = createItemDateRange(timeRange);
+    	itemDateRange.setType(CoreTypes.UNIT_DATE);
+    	itemDateRange.setVisible(true);
+    	ApuSourceBuilder.addDateRange(partFundInfo, itemDateRange);
+    }
+	
+	public static ItemDateRange createItemDateRange(UniversalTimeRange timeRange) {
+		var timeRangeFrom = timeRange.getTimeRangeFrom();
+    	var timeRangeTo = timeRange.getTimeRangeTo();
+		
+    	var formatBuilder = new StringBuilder();		
+		var itemDateRange = new ItemDateRange();
+		if (timeRangeFrom!=null) {
     		var fromDate = getDate(timeRangeFrom);
     		if (isCentury(fromDate)) {
-    			fromFormat = "C";
+    			formatBuilder.append("C");
 				itemDateRange.setF(getCentury(fromDate, true));
     		} else {
-    			itemDateRange.setF(fromDate);
+    			fillDate(fromDate, itemDateRange, true, false, formatBuilder);
     		}
         	itemDateRange.setFe(isEstimate(timeRangeFrom));    		
     	}    	
     	if (timeRangeTo!=null) {
     		var toDate = getDate(timeRangeTo);
     		if (isCentury(toDate)) {
-    			toFormat = "C";
+    			formatBuilder.append("-C");
 				itemDateRange.setTo(getCentury(toDate, false));
     		} else {
-    			itemDateRange.setTo(toDate);
+    			fillDate(toDate, itemDateRange, false, true, formatBuilder);
     		}
         	itemDateRange.setToe(isEstimate(timeRangeTo));    		
-    	}    	
-		itemDateRange.setFmt(fromFormat + "-" + toFormat);
-    	itemDateRange.setType(CoreTypes.UNIT_DATE);
-    	itemDateRange.setVisible(true);    	
-    	ApuSourceBuilder.addDateRange(partFundInfo, itemDateRange);
-    }
+    	}
+    	itemDateRange.setFmt(formatBuilder.toString());
+		return itemDateRange;
+	}
     
     public static String getDate(String date) {
     	if (isEstimate(date)) {
@@ -65,26 +68,28 @@ public class Peva2Utils {
     	}
     }
     
-    public static String getCentury(String date, boolean start) {
-		Matcher matcher = CENTURY_PATTERN.matcher(date);    		
-        if (matcher.find()) {
-            int c = Integer.parseInt(matcher.group(1));
-            if (start) {
-            	return ""+((c-1)*100+1);	
-            } else {
-            	return ""+(c*100);
-            }            
-        } else {
-            throw new IllegalStateException("Invalid century format");
-        }    		
-    }
-    
+	public static String getCentury(String date, boolean start) {
+		Matcher matcher = CENTURY_PATTERN.matcher(date);
+		if (matcher.find()) {
+			int c = Integer.parseInt(matcher.group(1));
+			if (start) {
+				return LocalDate.of((c - 1) * 100 + 1, 1, 1).with(TemporalAdjusters.firstDayOfYear()).atTime(0, 0, 0)
+						.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+			} else {
+				return LocalDate.of(c * 100, 12, 31).with(TemporalAdjusters.lastDayOfYear()).atTime(23, 59, 59)
+						.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+			}
+		} else {
+			throw new IllegalStateException("Invalid century format");
+		}
+	}
+
     public static boolean isEstimate(String date) {
     	return date.startsWith("[");
     }
     
     public static boolean isCentury(String date) {
-    	return date.endsWith(" st.");
+    	return date.endsWith("st.")||date.endsWith("st");
     }
 
     public static String getAsString(UniversalTimeRange timeRange) {    	
@@ -229,9 +234,10 @@ public class Peva2Utils {
 	}
 
 	private static void setEndYear(LocalDate localDate, ItemDateRange idr) {
-		idr.setTo(localDate.with(TemporalAdjusters.lastDayOfYear()).atTime(23, 59, 59).toString());
+		idr.setTo(localDate.with(TemporalAdjusters.lastDayOfYear()).atTime(23, 59, 59)
+				.format(DateTimeFormatter.ISO_DATE_TIME));
 		idr.setToe(false);
-	}	
+	}
 	
 	private static void setStartYearMonthDay(LocalDate localDate, ItemDateRange idr) {
 		idr.setF(localDate.atTime(0, 0, 0).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
