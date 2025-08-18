@@ -2,18 +2,24 @@ package cz.aron.transfagent.elza;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpCookie;
+import java.net.CookieManager;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.time.Duration;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import cz.aron.transfagent.config.ConfigElza;
@@ -23,11 +29,20 @@ import cz.aron.transfagent.service.CommandProcessorException;
 import cz.aron.transfagent.service.StorageService;
 import cz.tacr.elza.ApiClient;
 import cz.tacr.elza.ApiException;
+import cz.tacr.elza.ApiResponse;
 import cz.tacr.elza.client.IoApi;
 import cz.tacr.elza.client.vo.ExportParams;
-import cz.tacr.elza.client.vo.ExportRequestState;
 import cz.tacr.elza.client.vo.FundSections;
+import cz.tacr.elza.client.vo.RequestProcessState;
 
+/**
+ * Command for import archdesc from elza
+ * 
+ * Command file format:
+ * 
+ * elzaarchdesc-${fundVersion} 
+ * 
+ */
 @Component
 public class ImportArchDescCommand implements CommandProcessor {
 
@@ -36,45 +51,39 @@ public class ImportArchDescCommand implements CommandProcessor {
 	private static final String PREFIX_DASH = "elzaarchdesc-";
 
 	private final StorageService storageService;
+	
+	private final ApiClientEx apiClient;
 
 	private final IoApi ioApi;
 
-	private final ConfigElza configElza;
-
-	private final String COOKIE_NAME = "JSESSIONID";
-
-	private final String elzaUrl;
-
-	private String cookie;
-
 	public ImportArchDescCommand(StorageService storageService, ConfigElza configElza) {
-		this.storageService = storageService;
-		this.ioApi = new IoApi(new ApiClient());
-		this.configElza = configElza;
-		// TODO predelat url elzy
-		this.elzaUrl = configElza.getUrl().substring(0, configElza.getUrl().indexOf("/services/ExportService"));
-		ioApi.setCustomBaseUrl(elzaUrl + "/api/v1");
+		var elzaUrl = configElza.getUrl().substring(0, configElza.getUrl().indexOf("/services/ExportService"));		
+		this.storageService = storageService;		
+		this.apiClient = new ApiClientEx(configElza.getUsername(), configElza.getPassword(),elzaUrl+"/login",elzaUrl+"/api/v1");
+		this.ioApi = new IoApi(apiClient);
 	}
 
 	@Override
-	public void processCommand(Path path, CommandProcessorContext context) {
+	public void processCommand(Path commandFile, CommandProcessorContext context) {
 
 		// check if files is writeable
-		if (!Files.isWritable(path)) {
-			log.error("File have to be writeable {}", path);
+		if (!Files.isWritable(commandFile)) {
+			log.error("File have to be writeable {}", commandFile);
 			return;
 		}
 
-		var fileName = path.getFileName().toString();
+		var fileName = commandFile.getFileName().toString();
+		
+		// get fund version from filename
 		var id = fileName.substring(PREFIX_DASH.length());
 
-		Integer existingRequestId = readRequestId(path);
+		Integer existingRequestId = readRequestId(commandFile);
 		loginIfNeed();
 		if (existingRequestId == null) {
-			existingRequestId = createRequest(id, path);
+			existingRequestId = createRequest(id, commandFile);
 		}
 
-		while (!checkState(existingRequestId, path)) {
+		while (!checkState(existingRequestId, commandFile)) {
 			try {
 				Thread.sleep(5000);
 			} catch (InterruptedException e) {
@@ -84,71 +93,91 @@ public class ImportArchDescCommand implements CommandProcessor {
 				return;
 			}
 		}
-		var archDescXml = downloadResult(existingRequestId, path);
-		storeResult(archDescXml, path);
+		var archDescXml = downloadResult(existingRequestId, commandFile);
+		storeResult(archDescXml, commandFile);
 		try {
-			Files.delete(path);
+			Files.delete(commandFile);
 		} catch (IOException e) {
 			log.error("Fail to delete file {}",e);
 			throw new CommandProcessorException(e);
 		}
 	}
 
-	private Integer readRequestId(Path path) {
+	/**
+	 * Read request id from command file when exist
+	 * @param commandFile command file
+	 * @return id or null when not exist
+	 */
+	private Integer readRequestId(Path commandFile) {
 		try {
-			var lines = Files.readAllLines(path);
+			var lines = Files.readAllLines(commandFile);
 			if (!lines.isEmpty()) {
 				return Integer.parseInt(lines.get(0));
 			}
 		} catch (IOException e) {
-			log.error("Fail to read command file {}", path, e);
+			log.error("Fail to read command file {}", commandFile, e);
 			throw new CommandProcessorException(e);
 		}
 		return null;
 	}
 
 	private void loginIfNeed() {
-		if (cookie == null) {
-			try {
-				login();
-			} catch (ApiException e) {
-				cookie = null;
-				throw new CommandProcessorException(e);
-			}
+		try {
+			apiClient.loginIfNeed();
+		} catch (Exception e) {
+			apiClient.clearCookie();
+			throw new CommandProcessorException(e);
 		}
 	}
 
-	private Integer createRequest(String fundId, Path path) {
+	/**
+	 * Create request to export archdesc in Elza
+	 * @param fundVersionId fund version id
+	 * @param commandFile command file
+	 * @return id of request
+	 * 
+	 * Store request id to command file
+	 */
+	private Integer createRequest(String fundVersionId, Path commandFile) {
 		var exportParams = new ExportParams();
 		var fundSection = new FundSections();
-		fundSection.setFundVersionId(Integer.parseInt(fundId));
+		fundSection.setFundVersionId(Integer.parseInt(fundVersionId));
 		exportParams.getFundsSections().add(fundSection);
+		exportParams.setExportFilterId(1);
 		try {
 			Integer requestId = ioApi.ioExportRequest(exportParams);
-			log.info("Created request to Elza to export fund {}, request id {}", fundId, requestId);
+			log.info("Created request to Elza to export fund {}, request id {}", fundVersionId, requestId);
 			try {
 				// store request id to command file
-				Files.write(path, String.valueOf(requestId).getBytes(), StandardOpenOption.TRUNCATE_EXISTING);
+				Files.write(commandFile, String.valueOf(requestId).getBytes(), StandardOpenOption.TRUNCATE_EXISTING);
 			} catch (IOException e) {
-				log.error("Fail to write to file {}", path);
+				log.error("Fail to write to file {}", commandFile);
 				System.exit(-1);
 			}
 			return requestId;
 		} catch (ApiException e) {
 			if (e.getCode() == 404) {
-				log.error("Fund id {} not exists", fundId);
-				moveToError(path);
+				log.error("Fund id {} not exists", fundVersionId);
+				moveToError(commandFile);
 				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
 			}
-			cookie = null;
+			apiClient.clearCookie();
 			throw new CommandProcessorException(e);
 		}
 	}
 
-	private boolean checkState(Integer id, Path path) {
+	/**
+	 * Check state of running export in Elza
+	 * @param id id of export request
+	 * @param commandFile command file
+	 * @return true - finished, false - still running
+	 * 
+	 * Move to command file to error director when request not exist
+	 */
+	private boolean checkState(Integer id, Path commandFile) {
 		try {
 			var status = ioApi.ioGetExportStatus(id);
-			if (status.getState().equals(ExportRequestState.FINISHED)) {
+			if (RequestProcessState.FINISHED.equals(status.getState())) {
 				log.info("Request to Elza id {} finished", id);
 				return true;
 			} else {
@@ -157,31 +186,44 @@ public class ImportArchDescCommand implements CommandProcessor {
 		} catch (ApiException e) {
 			if (e.getCode() == 404) {
 				log.error("Request to Elza id {} not exist", id);
-				moveToError(path);
+				moveToError(commandFile);
 				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
 			}
-			cookie = null;
-			throw new CommandProcessorException(e);
-		}
-	}
-
-	private Path downloadResult(Integer id, Path path) {
-		try {
-			var ret = ioApi.ioGetExportFile(id).toPath(); 			
-			log.info("Data for request id {} downloaded from Elza", id);
-			return ret;
-		} catch (ApiException e) {
-			if (e.getCode() == 404) {
-				log.error("Request to Elza id {} not exist", id);
-				moveToError(path);
-				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
-			}
-			cookie = null;
+			apiClient.clearCookie();
 			throw new CommandProcessorException(e);
 		}
 	}
 	
-	private void storeResult(Path srcXml, Path path) {
+	/**
+	 * Download exported file
+	 * @param id id of export request
+	 * @param commandFile
+	 * @return path to downloaded file
+	 */
+	private Path downloadResult(Integer id, Path commandFile) {
+		try {
+			var tmp = commandFile.getParent().resolve(commandFile.getFileName().toString()+"_"+id);
+			apiClient.ioGetExportFileWithHttpInfo(id, tmp);								
+			log.info("Data for request id {} downloaded from Elza", id);
+			return tmp;
+		} catch (ApiException e) {
+			if (e.getCode() == 404) {
+				log.error("Request to Elza id {} not exist", id);
+				moveToError(commandFile);
+				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
+			}
+			log.error("Fail to download data for request id {} from Elza", id, e);
+			apiClient.clearCookie();
+			throw new CommandProcessorException(e);
+		}
+	}
+	
+	/**
+	 * Store downloaded file to import directory 
+	 * @param srcXml source xml file
+	 * @param commandFile command file
+	 */
+	private void storeResult(Path srcXml, Path commandFile) {
 		var archDescPath = storageService.getInputPath().resolve("archdesc");
 		try (InputStream is = Files.newInputStream(srcXml)) {
 			ElzaXmlReader reader = ElzaXmlReader.read(is);
@@ -190,14 +232,14 @@ public class ImportArchDescCommand implements CommandProcessor {
 					.orElse(null);
 			if (section == null) {
 				log.error("xml {} doesn't contains section.", srcXml);
-				moveToError(path);
+				moveToError(commandFile);
 				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
 			}
 			var fundInfo = section.getFi();
 			var institution = fundInfo.getIc();
 			if (fundInfo.getNum()==null) {
 				log.error("xml {} doesn't contains fund num.", srcXml);
-				moveToError(path);
+				moveToError(commandFile);
 				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
 			}
 			var fundCode = fundInfo.getNum().toString();			
@@ -217,12 +259,16 @@ public class ImportArchDescCommand implements CommandProcessor {
 		}
 	}
 
-	private void moveToError(Path path) {
+	/**
+	 * Move command file to error directory
+	 * @param commadFile command file
+	 */
+	private void moveToError(Path commadFile) {
 		try {
-			storageService.moveToErrorDir(path);
-			log.info("Command {} moved to error directory", path);
+			storageService.moveToErrorDir(commadFile);
+			log.info("Command {} moved to error directory", commadFile);
 		} catch (IOException e) {
-			log.error("Fail to move to error directory {}", path);
+			log.error("Fail to move to error directory {}", commadFile);
 			throw new CommandProcessorException(e);
 		}
 	}
@@ -231,62 +277,190 @@ public class ImportArchDescCommand implements CommandProcessor {
 	public String getPrefix() {
 		return PREFIX_DASH;
 	}
+	
+	private static class ApiClientEx extends ApiClient {
 
-	private void login() throws ApiException {
-		var cookies = new HashMap<String, String>();
-		var formParams = new HashMap<String, Object>();
-		formParams.put("username", configElza.getUsername());
-		formParams.put("password", configElza.getPassword());
-		var headers = new HashMap<String, String>();
-		headers.put("Content-Type", "application/x-www-form-urlencoded");
-		List<MediaType> localVarAccept = new ArrayList<MediaType>();
-		localVarAccept.add(MediaType.TEXT_PLAIN);
-		var call = ioApi.getApiClient().buildCall(elzaUrl, "/login", "POST", Collections.emptyList(),
-				Collections.emptyList(), null, headers, cookies, formParams, new String[] {}, null);
-		var ret = ioApi.getApiClient().execute(call);
-		var retCookies = ret.getHeaders().get("Set-Cookie");
-		if (retCookies != null) {
-			String cookieStr = retCookies.stream().filter(c -> c.startsWith(COOKIE_NAME)).findFirst().orElse(null);
-			if (cookieStr != null) {
-				var parsedCookies = HttpCookie.parse(cookieStr);
-				var cookie = parsedCookies.get(0);
-				this.cookie = cookie.getValue();
-				ioApi.getApiClient().addDefaultCookie(COOKIE_NAME, this.cookie);
-				log.info("Logged in to elza");
+		private final CookieManager cookieManager = new CookieManager();
+		
+		private final String username;
+		
+		private final String password;
+		
+		private final URI loginUri;
+		
+		private HttpClient created = null;
+		
+		public ApiClientEx(String username, String password, String loginUri, String baseUri) {
+			super();
+			this.username = username;
+			this.password = password;
+			this.loginUri = URI.create(loginUri);
+			updateBaseUri(baseUri);
+			var builder = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).cookieHandler(cookieManager);			
+			setHttpClientBuilder(builder);
+		}		
+		
+		@Override
+		public HttpClient getHttpClient() {
+			if (created != null) {
+				return created;
+			}
+			return created = super.getHttpClient();			
+		}
+		
+		public void loginIfNeed() throws ApiException {			
+			if (!cookieManager.getCookieStore().getCookies().isEmpty()) {
 				return;
+			}			
+			login();			
+		}
+		
+		public void login() throws ApiException {
+			// Form parameters
+			Map<Object, Object> data = Map.of("username", username, "password", password);
+			boolean success = false;
+			try {
+				// Encode as application/x-www-form-urlencoded
+				String form = data.entrySet().stream()
+						.map(entry -> URLEncoder.encode(entry.getKey().toString(), StandardCharsets.UTF_8) + "="
+								+ URLEncoder.encode(entry.getValue().toString(), StandardCharsets.UTF_8))
+						.collect(Collectors.joining("&"));
+
+				var request = HttpRequest.newBuilder().uri(loginUri)
+						.setHeader("Content-Type", "application/x-www-form-urlencoded")
+						.POST(HttpRequest.BodyPublishers.ofString(form)).build();
+
+				try {
+					var response = created.send(request, HttpResponse.BodyHandlers.ofString());
+					if (response.statusCode() != 200) {
+						log.error("Fail to login to Elza, status code {}, response {}", response.statusCode(),
+								response.body());
+						throw new ApiException();
+					}
+					log.info("Login to Elza successful");
+					success = true;
+				} catch (IOException e) {
+					log.error("Fail to login to elza", e);
+					throw new ApiException();
+				} catch (InterruptedException e) {
+					log.error("Fail to login to elza", e);
+					throw new ApiException(e);
+				}
+			} finally {
+				if (!success) {
+					clearCookie();
+				}
 			}
 		}
-		this.cookie = null;
-		throw new RuntimeException();
+		
+		public void clearCookie() {
+			cookieManager.getCookieStore().removeAll();
+		}
+		
+		/**
+		 * Create request for getting export file
+		 * @param requestId id of request
+		 * @return {@code HttpRequest.Builder}
+		 * @throws ApiException
+		 * 
+		 * TODO: this method exist because of fail to generate from openapi
+		 */
+		private HttpRequest.Builder ioGetExportFileRequestBuilder(Integer requestId) throws ApiException {
+			// verify the required parameter 'requestId' is set
+			if (requestId == null) {
+				throw new ApiException(400, "Missing the required parameter 'requestId' when calling ioGetExportFile");
+			}
+
+			HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
+
+			String localVarPath = "/io/file/{requestId}".replace("{requestId}", ApiClient.urlEncode(requestId.toString()));
+
+			localVarRequestBuilder.uri(URI.create(getBaseUri() + localVarPath));
+
+			localVarRequestBuilder.header("Accept", "*/*");
+
+			localVarRequestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
+			if (getReadTimeout() != null) {
+				localVarRequestBuilder.timeout(getReadTimeout());
+			}
+			return localVarRequestBuilder;
+		}
+		
+		/**
+		 * Download export file from Elza
+		 * 
+		 * @param requestId id of requesy
+		 * @param path where to donload file
+		 * @return {@code ApiResponse<Path>}
+		 * @throws ApiException
+		 * 
+		 * TODO: this method exist because of fail to generate from openapi
+		 */
+		public ApiResponse<Path> ioGetExportFileWithHttpInfo(Integer requestId, Path path) throws ApiException {
+			HttpRequest.Builder localVarRequestBuilder = ioGetExportFileRequestBuilder(requestId);			
+			boolean deleteFile = true; // delete downloaded file when fail
+			try {
+				HttpResponse<InputStream> localVarResponse = created.send(localVarRequestBuilder.build(),
+						HttpResponse.BodyHandlers.ofInputStream());
+				try {
+					if (localVarResponse.statusCode() / 100 != 2) {
+						log.error("Fail to get export file, status code {}", localVarResponse.statusCode());
+						throw new ApiException(localVarResponse.statusCode(), "");						
+					}				
+					Files.copy(localVarResponse.body(), path, StandardCopyOption.REPLACE_EXISTING);
+					deleteFile = false;
+					return new ApiResponse<Path>(localVarResponse.statusCode(), localVarResponse.headers().map(),
+							path
+					);
+				} finally {
+					try {
+						localVarResponse.body().close();
+					} catch (IOException ioEx) {
+						log.warn("Fail to close response body", ioEx);
+					}
+				}
+			} catch (IOException e) {
+				throw new ApiException(e);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();				
+				throw new ApiException(e);
+			} finally {
+				if (deleteFile) {
+					try {
+						Files.deleteIfExists(path);
+					} catch (IOException e) {
+						// ignore
+					}
+				}
+			}
+		}
+
 	}
-
-	public static void main(String[] args) throws Exception {
-		var ioApi = new IoApi(new ApiClient());
-		var cookies = new HashMap<String, String>();
-		var formParams = new HashMap<String, Object>();
-		formParams.put("username", "lcadmin");
-		formParams.put("password", "visnova15");
-		var body = new HashMap<String, String>();
-		body.put("username", "user");
-		body.put("password", "password");
-		var headers = new HashMap<String, String>();
-		headers.put("Content-Type", "application/x-www-form-urlencoded");
-		List<MediaType> localVarAccept = new ArrayList<MediaType>();
-		localVarAccept.add(MediaType.TEXT_PLAIN);
-		var call = ioApi.getApiClient().buildCall("http://10.2.0.27:8084", "/login", "POST", Collections.emptyList(),
-				Collections.emptyList(), null /* body */, headers, cookies, formParams, new String[] {}, null);
-		var ret = ioApi.getApiClient().execute(call);
-		var retCookies = ret.getHeaders().get("Set-Cookie");
-		if (retCookies != null) {
-			String cookieStr = retCookies.stream().filter(c -> c.startsWith("JSESSIONID")).findFirst().orElse(null);
-			if (cookieStr != null) {
-				var parsedCookies = HttpCookie.parse(cookieStr);
-				var cookie = parsedCookies.get(0);
-				System.out.println(cookie);
+	
+	
+	public static void main(String[] args) throws Exception {		
+		var apiClient = new ApiClientEx(args[0],args[1],"http://10.2.0.27:8085/login","http://10.2.0.27:8085/api/v1");
+		var ioApi = new IoApi(apiClient);
+		apiClient.loginIfNeed();
+		
+		var exportParams = new ExportParams();
+		var fundSection = new FundSections();
+		fundSection.setFundVersionId(1);
+		exportParams.getFundsSections().add(fundSection);
+		exportParams.setExportFilterId(1);		
+		var requestId = ioApi.ioExportRequest(exportParams);
+		
+		while(true) {									
+			var resp2 = ioApi.ioGetExportStatusWithHttpInfo(requestId);
+			if (resp2.getData().getState().equals(RequestProcessState.FINISHED)) {
+				break;
 			}
-
 		}
-		System.out.println(retCookies);
+
+		var targetFile = Paths.get("archdesc.xml");								
+		var ret = apiClient.ioGetExportFileWithHttpInfo(requestId, targetFile); 			
+		
+		System.out.println("Downloaded "+ret);				
 	}
 
 }

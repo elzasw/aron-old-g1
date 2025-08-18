@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.apux.ApuValidator;
+import cz.aron.transfagent.config.ConfigPeva2;
+import cz.aron.transfagent.config.ConfigPeva2GeoProperties;
 import cz.aron.transfagent.config.ConfigurationLoader;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.elza.ApTypeService;
@@ -46,15 +48,21 @@ public class ImportPevaGeo implements GeoImporter {
 		
 	private final ArchivalEntityService archivalEntityService;
 	
+	private final boolean sendToAron;
+	
 	public ImportPevaGeo(ApTypeService apTypeService, Peva2CodeListProvider codeLists,
 			DatabaseDataProvider contextDataProvider, ConfigurationLoader configurationLoader,
-			StorageService storageService, ArchivalEntityService archivalEntityService) {
+			StorageService storageService, ArchivalEntityService archivalEntityService,
+			ConfigPeva2 config) {
 		this.apTypeService = apTypeService;
 		this.codeLists = codeLists;
 		this.contextDataProvider = contextDataProvider;
 		this.configurationLoader = configurationLoader;
 		this.storageService = storageService;
 		this.archivalEntityService = archivalEntityService;
+		ConfigPeva2GeoProperties originatorProperties = config.getGeoProperties(); 
+		sendToAron = originatorProperties!=null?!originatorProperties.isDontSend():true;		
+		log.info("PevaGeo sendToAron={}", sendToAron);
 	}
 
 	@Override
@@ -99,8 +107,9 @@ public class ImportPevaGeo implements GeoImporter {
 				apuSourceBuilder.build(os, new ApuValidator(configurationLoader.getConfig()));
 			}
 			var dataDir = storageService.moveToDataDir(dir);
+			boolean send = sendToAron;
 			archivalEntityService.createOrUpdateArchivalEntity(dataDir, dir,
-					UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), ENTITY_CLASS, true);
+					UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), ENTITY_CLASS, send);
 		} catch (Exception e) {
 			log.error("Fail to import originator", e);
 			throw new IllegalStateException(e);

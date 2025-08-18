@@ -35,6 +35,8 @@ public class ConfigPeva2 {
     
     private ConfigPeva2OriginatorProperties originatorProperties;
     
+    private ConfigPeva2GeoProperties geoProperties;
+    
     private List<ConfigPeva2InstitutionCredentials> institutions;
     
     public ConfigPeva2() {
@@ -155,5 +157,12 @@ public class ConfigPeva2 {
 		this.originatorProperties = originatorProperties;
 	}
 
+	public ConfigPeva2GeoProperties getGeoProperties() {
+		return geoProperties;
+	}
+
+	public void setGeoProperties(ConfigPeva2GeoProperties geoProperties) {
+		this.geoProperties = geoProperties;
+	}
 
 }
