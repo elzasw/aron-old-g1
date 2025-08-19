@@ -439,7 +439,7 @@ public class ImportArchDescCommand implements CommandProcessor {
 	
 	
 	public static void main(String[] args) throws Exception {		
-		var apiClient = new ApiClientEx(args[0],args[1],"http://10.2.0.27:8085/login","http://10.2.0.27:8085/api/v1");
+		var apiClient = new ApiClientEx(args[0],args[1],args[2],args[3]);
 		var ioApi = new IoApi(apiClient);
 		apiClient.loginIfNeed();
 		
