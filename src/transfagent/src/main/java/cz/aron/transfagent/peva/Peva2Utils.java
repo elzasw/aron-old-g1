@@ -93,6 +93,7 @@ public class Peva2Utils {
     }
 
     public static String getAsString(UniversalTimeRange timeRange) {    	
+    	var itemDateRange = createItemDateRange(timeRange);    	
     	StringJoiner sj = new StringJoiner(" ");    	    	
     	if (StringUtils.isNotBlank(timeRange.getPrior())) {
     		sj.add("("+timeRange.getPrior()+")");    		
@@ -101,7 +102,11 @@ public class Peva2Utils {
     	var timeRangeTo = timeRange.getTimeRangeTo();
     	if (timeRangeFrom!=null) {
     		if (timeRangeTo!=null&&!timeRangeFrom.equals(timeRangeTo)) {
-    			sj.add(timeRangeFrom+ " — " + timeRangeTo);
+    			if ("Y-Y".equals(itemDateRange.getFmt())) {
+    				sj.add(timeRangeFrom+ "–" + timeRangeTo);
+    			} else {
+    				sj.add(timeRangeFrom+ " – " + timeRangeTo);	
+    			}
     		} else {
     			sj.add(timeRangeFrom);
     		}

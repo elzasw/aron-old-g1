@@ -35,11 +35,33 @@ public class Peva2UtilsTest {
 		compareIdr(Peva2Utils.createItemDateRange(createUniversalTimeRange("10. st.","10. st.")),"0901-01-01T00:00:00","1000-12-31T23:59:59","C-C");		
 	}
 	
+	@Test
+	public void testAsString() {
+		assertEquals(Peva2Utils.getAsString(createUniversalTimeRange("1900",null)),"1900");
+		assertEquals(Peva2Utils.getAsString(createUniversalTimeRange("1900","1900")),"1900");
+		assertEquals(Peva2Utils.getAsString(createUniversalTimeRange("1900","1901")),"1900–1901");
+		assertEquals(Peva2Utils.getAsString(createUniversalTimeRange("26.4.1740",null)),"26.4.1740");
+		assertEquals(Peva2Utils.getAsString(createUniversalTimeRange("26.4.1740","26.4.1740")),"26.4.1740");
+		assertEquals(Peva2Utils.getAsString(createUniversalTimeRange("26.4.1740","27.4.1740")),"26.4.1740 – 27.4.1740");
+		
+		assertEquals(Peva2Utils.getAsString(createUniversalTimeRange("1740","27.4.1740")),"1740 – 27.4.1740");
+		
+		assertEquals(Peva2Utils.getAsString(createUniversalTimeRange("1900","1901","1800","2000")),"(1800) 1900–1901 (2000)");
+	}
 	
 	private UniversalTimeRange createUniversalTimeRange(String from, String to) {		
 		var utRange = new UniversalTimeRange();
 		utRange.setTimeRangeFrom(from);
 		utRange.setTimeRangeTo(to);
+		return utRange;				
+	}
+	
+	private UniversalTimeRange createUniversalTimeRange(String from, String to, String prior, String posterior) {		
+		var utRange = new UniversalTimeRange();
+		utRange.setTimeRangeFrom(from);
+		utRange.setTimeRangeTo(to);
+		utRange.setPrior(prior);
+		utRange.setPosterior(posterior);
 		return utRange;				
 	}
 	
