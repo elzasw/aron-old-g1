@@ -138,14 +138,39 @@ public class ElzaXmlReader {
                 }
             }
         }
-        return null;
-	    
+        return null;	    
 	}
 	
+	public static <T> List<T> getItems(Fragment frg, String itemType, Class<T> tc) {
+		List<T> result = null;
+        for (DescriptionItem item : frg.getDdOrDoOrDp()) {
+            if (item.getT().equals(itemType)) {
+                if(item instanceof DescriptionItemUndefined) {
+                    continue;
+                } else
+                if (tc.isAssignableFrom(item.getClass())) {
+                	if (result==null) {
+	                	result = new ArrayList<>();
+                	}
+                    result.add(tc.cast(item));
+                } else {
+                    throw new RuntimeException(
+                            "Failed to extract: " + itemType + 
+                            ", expected class: " + tc + ", real type is: " + item);
+                }
+            }
+        }
+        return result;		 
+	}
+
     public static DescriptionItemUriRef getLink(Fragment frg, String itemType) {
         return getItem(frg, itemType, DescriptionItemUriRef.class);
     }
-
+    
+    public static List<DescriptionItemUriRef> getLinks(Fragment frg, String itemType) {
+    	return getItems(frg, itemType, DescriptionItemUriRef.class);
+    }
+    
     public static DescriptionItemAPRef getApRef(Fragment frg, String itemType) {
         return getItem(frg, itemType, DescriptionItemAPRef.class);	    
 	}

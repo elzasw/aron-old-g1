@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -545,10 +546,10 @@ public class ImportAp implements EdxItemCovertContext {
 	}
 
 	private void addLinkIfExists(Fragment frg, String srcType, Part part, String trgType) {
-	    DescriptionItemUriRef item = ElzaXmlReader.getLink(frg, srcType);
-        if(item!=null) {
-            ApuSourceBuilder.addLink(part, trgType, item.getUri(), item.getLbl());
-        }        
+	    List<DescriptionItemUriRef> items = ElzaXmlReader.getLinks(frg, srcType);
+	    for(var item: items) {
+	    	ApuSourceBuilder.addLink(part, trgType, item.getUri(), item.getLbl());
+	    }
     }
 
     private void addStringIfExists(Fragment frg, String srcType, Part part, String trgType) {
