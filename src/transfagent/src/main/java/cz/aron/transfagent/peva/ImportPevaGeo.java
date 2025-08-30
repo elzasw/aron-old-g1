@@ -5,6 +5,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -71,6 +72,27 @@ public class ImportPevaGeo implements GeoImporter {
 			return ImportResult.UNSUPPORTED;
 		}
 		
+		var geoXml = getPevaGeoFile(path);
+		
+		if (geoXml.isEmpty()) {
+			log.warn("Directory not contail pevafund- file. Directory {}", path);
+            return ImportResult.FAIL;
+		}
+		
+		if (processGeo(path,geoXml.get())) {
+			return ImportResult.IMPORTED;
+		} else {
+			return ImportResult.UNSUPPORTED;	
+		}
+	}
+	
+	
+	/**
+	 * Najde v adresari soubor zacinajici pevageo- a koncici .xml
+	 * @param path cesta k adresari
+	 * @return POptional<Path>
+	 */
+	public static Optional<Path> getPevaGeoFile(Path path) {
 		List<Path> xmls;
 		try (var stream = Files.list(path)) {
             xmls = stream
@@ -81,21 +103,10 @@ public class ImportPevaGeo implements GeoImporter {
             throw new UncheckedIOException(ioEx);
         }
 		
-		var originatorXml = xmls.stream()
+		return xmls.stream()
                 .filter(p -> p.getFileName().toString().startsWith(PREFIX_DASH)
                         && p.getFileName().toString().endsWith(".xml"))
                 .findFirst();
-		
-		if (originatorXml.isEmpty()) {
-			log.warn("Directory not contail pevafund- file. Directory {}", path);
-            return ImportResult.FAIL;
-		}
-		
-		if (processGeo(path,originatorXml.get())) {
-			return ImportResult.IMPORTED;
-		} else {
-			return ImportResult.UNSUPPORTED;	
-		}
 	}
 	
 	private boolean processGeo(Path dir, Path originatorXml) {

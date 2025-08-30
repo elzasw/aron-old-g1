@@ -273,13 +273,18 @@ public class ImportPevaFund implements FundImporter, FundProvider {
             }
             var originatorUuids = ifi.getOriginatorIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
             archivalEntityService.registerAccessibleEntities(originatorUuids, ImportPevaOriginator.ENTITY_CLASS, fnd.getApuSource());
-            var geoUuids = ifi.getGeos().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
+            var geoUuids = ifi.getGeoIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
             archivalEntityService.registerAccessibleEntities(geoUuids, ImportPevaGeo.ENTITY_CLASS, fnd.getApuSource());
             if(!ifi.getCAMOriginatorIds().isEmpty()) {
 				var camUuids = ifi.getCAMOriginatorIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
 				archivalEntityService.registerAccessibleEntities(camUuids, null,
 						fnd.getApuSource());
 			}
+            if(!ifi.getCAMGeoIds().isEmpty()) {
+            	var camUuids = ifi.getCAMGeoIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
+				archivalEntityService.registerAccessibleEntities(camUuids, null,
+						fnd.getApuSource());
+            }
             attachmentService.updateAttachments(fnd.getApuSource(), apusrcBuilder, attachments);
             if (daoFileStore3Service!=null) {
                 daoImportService.updateDaos(fnd.getApuSource(), daos);
@@ -361,6 +366,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 				// reload
 				fundRepository.findById(fund.getId()).ifPresentOrElse(f -> {
 					fundService.updateFund(f, apuPath, apuPath, false);
+					
+					// referenced originators
 					var uuids = ifi.getOriginatorIds().stream().map(id -> UUID.fromString(id))
 							.collect(Collectors.toList());
 					archivalEntityService.registerAccessibleEntities(uuids, ImportPevaOriginator.ENTITY_CLASS,
@@ -369,7 +376,17 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 						var camUuids = ifi.getCAMOriginatorIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
 						archivalEntityService.registerAccessibleEntities(camUuids, null,
 								fund.getApuSource());
-					}					
+					}
+					
+					// referenced geo entities
+					uuids = ifi.getGeoIds().stream().map(id -> UUID.fromString(id)).collect(Collectors.toList());
+					archivalEntityService.registerAccessibleEntities(uuids, ImportPevaGeo.ENTITY_CLASS,
+							fund.getApuSource());
+					if(!ifi.getCAMGeoIds().isEmpty()) {
+						var camUuids = ifi.getCAMGeoIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
+						archivalEntityService.registerAccessibleEntities(camUuids, null,
+								fund.getApuSource());
+					}	
 					attachmentService.updateAttachments(apuSource, apuSourceBuilder, attachments);
 					if (daoFileStore3Service!=null) {
 					    daoImportService.updateDaos(apuSource,daos);

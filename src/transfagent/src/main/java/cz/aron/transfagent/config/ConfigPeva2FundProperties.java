@@ -99,6 +99,9 @@ public class ConfigPeva2FundProperties {
     // posle odkazy na puvodce z CAM
     private boolean camOriginators = false;
     
+    // posle odkazy na mista puvodu z CAM
+    private boolean camPlacesOfOrigin = false;
+    
     // vygeneruje nazev puvodce z PEvA pokud neni dostupny CAM originator
 	private boolean textOriginators = false;
     
@@ -349,7 +352,15 @@ public class ConfigPeva2FundProperties {
 	public void setCamOriginators(boolean camOriginators) {
 		this.camOriginators = camOriginators;
 	}	
-	
+
+	public boolean isCamPlacesOfOrigin() {
+		return camPlacesOfOrigin;
+	}
+
+	public void setCamPlacesOfOrigin(boolean camPlacesOfOrigin) {
+		this.camPlacesOfOrigin = camPlacesOfOrigin;
+	}
+
 	public boolean isTextOriginators() {
 		return textOriginators;
 	}

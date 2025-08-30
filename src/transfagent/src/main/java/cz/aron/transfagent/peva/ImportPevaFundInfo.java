@@ -99,6 +99,8 @@ public class ImportPevaFundInfo {
     
     private final List<String> geos = new ArrayList<>();
     
+    private final List<String> camGeos = new ArrayList<>();
+    
     private final StringJoiner nameSearchComponent = new StringJoiner(" ");
     
     private final Peva2FundResultBuilder resultBuilder;
@@ -973,17 +975,56 @@ public class ImportPevaFundInfo {
 		if (!fundProperties.isPlacesOfOrigin()) {
 			return;
 		}
-		//var places = new TreeSet<String>();
 		var placesOfOrigin = nadSheet.getPlacesOfOrigin();
-		for(var placeOfOrigin:placesOfOrigin.getPlaceOfOrigin()) {
-			var placeId = placeOfOrigin.getPlace();
-			//var geo = entityDownloader.getGeoObject(placeId);
-			//var name = geo.getPreferredName().getPrimaryPart();
-			//places.add(name);								
-			apusBuilder.addApuRef(partFundInfo, "ORIG_PLACES_REF", UUID.fromString(placeId));
-			geos.add(placeId);
+		if (fundProperties.isCamPlacesOfOrigin()) {
+			List<UUID> uuids = placesOfOrigin.getPlaceOfOrigin().stream()
+					.map(placeOfOrigin -> UUID.fromString(placeOfOrigin.getPlace())).collect(Collectors.toList());
+			var unusedUuids = placesOfOrigin.getPlaceOfOrigin().stream().map(placeOfOrigin -> placeOfOrigin.getPlace())
+					.collect(Collectors.toCollection(HashSet::new));
+			var archEntitySources = this.dataProvider.getArchEntityApuSources(uuids, ImportPevaGeo.ENTITY_CLASS);
+			for (var archEntitySource : archEntitySources) {
+				var entityUuid = archEntitySource.getUuid().toString();
+				unusedUuids.remove(entityUuid);
+				geos.add(entityUuid);
+				if ((archEntitySource.getStatus() != EntityStatus.ACCESSIBLE
+						&& archEntitySource.getStatus() != EntityStatus.AVAILABLE)) {
+					// entita neni dostupna nebo neni urcena k publikaci
+					continue;
+				}
+				var dataDir = storageService.getApuDataDir(archEntitySource.getDataDir());
+				var ipgi = readPevaGeo(dataDir);
+				if (ipgi.getCamUUID() != null) {
+					apusBuilder.addApuRef(partFundInfo, "ORIG_PLACES_REF", UUID.fromString(ipgi.getCamUUID()));
+					camGeos.add(ipgi.getCamUUID());
+				}
+			}			
+			geos.addAll(unusedUuids);
+		} else {
+			placesOfOrigin.getPlaceOfOrigin().forEach(po -> {
+				var placeId = po.getPlace();
+				apusBuilder.addApuRef(partFundInfo, "ORIG_PLACES_REF", UUID.fromString(placeId));
+				geos.add(placeId);
+			});
 		}
-		
+	}
+
+	private ImportPevaGeoInfo readPevaGeo(Path dataDir) {		
+		var ipgi = new ImportPevaGeoInfo(apTypeService, codeListProvider);		
+		var geoPath = ImportPevaGeo.getPevaGeoFile(dataDir);
+		if (geoPath.isEmpty()) {
+			log.error("Fail to read peva originator, not exist, path={}", dataDir);
+			throw new IllegalStateException();
+		}
+		try {
+			ipgi.importGeo(geoPath.get(), dataProvider);
+		} catch (IOException e) {
+			log.error("Fail to read peva originator", e);
+			throw new IllegalStateException();
+		} catch (JAXBException e) {
+			log.error("Fail to read peva originator", e);
+			throw new IllegalStateException();
+		}
+		return ipgi;
 	}
 	
 	private void processPreservationStatus(NadSheet nadSheet, Part partFundInfo) {
@@ -1167,9 +1208,13 @@ public class ImportPevaFundInfo {
 		return findingAids;
 	}	
 
-	public List<String> getGeos() {
+	public List<String> getGeoIds() {
 		return geos;
-	}	
+	}
+	
+	public List<String> getCAMGeoIds() {
+		return camGeos;
+	}
 
 	public interface FundProvider {		
 		NadPrimarySheet getFundByUUID(UUID uuid) throws IOException, JAXBException;		

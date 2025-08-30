@@ -28,6 +28,8 @@ public class ImportPevaGeoInfo {
 	private ApuSourceBuilder apusBuilder = new ApuSourceBuilder();
 
 	private String uuid;
+	
+	private String camUuid;
 
 	public ImportPevaGeoInfo(ApTypeService apTypeService, Peva2CodeListProvider codeLists) {
 		this.apTypeService = apTypeService;
@@ -44,6 +46,7 @@ public class ImportPevaGeoInfo {
 			throws IOException, JAXBException {
 		var geoObject = getGeoObjectResp.getGeoObject();
 		uuid = geoObject.getId();
+		camUuid = geoObject.getCamUuid();
 		var fullName = getFullName(geoObject.getPreferredName());
 		var apu = apusBuilder.createApu(fullName, ApuType.ENTITY, UUID.fromString(geoObject.getId()));
 		apu.setDesc(geoObject.getDescription());
@@ -87,5 +90,9 @@ public class ImportPevaGeoInfo {
 	public String getUuid() {
 		return uuid;
 	}
-	
+
+	public String getCamUUID() {
+		return camUuid;
+	}
+
 }

@@ -300,6 +300,7 @@ public class CoreQueueService implements SmartLifecycle {
     @Override
     public void start() {
         if (configAronCore.isDisabled()) {
+            log.info("Apu send service is disabled.");
             status = ThreadStatus.STOPPED;
             return;
         }

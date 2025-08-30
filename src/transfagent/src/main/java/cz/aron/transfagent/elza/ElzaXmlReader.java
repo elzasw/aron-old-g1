@@ -160,7 +160,11 @@ public class ElzaXmlReader {
                 }
             }
         }
-        return result;		 
+        if (result==null) {
+        	return Collections.emptyList();
+        } else {
+        	return result;
+        }
 	}
 
     public static DescriptionItemUriRef getLink(Fragment frg, String itemType) {
