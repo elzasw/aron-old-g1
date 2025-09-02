@@ -471,28 +471,14 @@ public class ImportPevaFundInfo {
 							.collect(Collectors.toList());
 					var archEntitySources = this.dataProvider.getArchEntityApuSources(uuids,
 							ImportPevaOriginator.ENTITY_CLASS);
-					for (var archEntitySource : archEntitySources) {
+					for (var archEntitySource : archEntitySources) {												
 						if (archEntitySource.getStatus() != EntityStatus.ACCESSIBLE
 								&& archEntitySource.getStatus() != EntityStatus.AVAILABLE) {
 							// entita neni dostupna nebo neni urcena k publikaci
 							continue;
-						}
-						var ipoi = new ImportPevaOriginatorInfo(apTypeService, codeListProvider);
+						}						
 						var dataDir = storageService.getApuDataDir(archEntitySource.getDataDir());
-						var originatorPath = ImportPevaOriginator.getPevaOriginatorFile(dataDir);
-						if (originatorPath.isEmpty()) {
-							log.error("Fail to read peva originator, not exist, path={}", dataDir);
-							throw new IllegalStateException();
-						}
-						try {
-							ipoi.importOriginator(originatorPath.get(), dataProvider);
-						} catch (IOException e) {
-							log.error("Fail to read peva originator", e);
-							throw new IllegalStateException();
-						} catch (JAXBException e) {
-							log.error("Fail to read peva originator", e);
-							throw new IllegalStateException();
-						}
+						var ipoi = readPevaOriginator(dataDir);						
 						if (ipoi.getCamUUID() != null) {
 							if (fundProperties.isTextOriginators()) {
 								var existingEntities = dataProvider
@@ -531,6 +517,25 @@ public class ImportPevaFundInfo {
 				}
 			}
 		}
+	}
+
+	private ImportPevaOriginatorInfo readPevaOriginator(Path dataDir) {
+		var ipoi = new ImportPevaOriginatorInfo(apTypeService, codeListProvider);
+		var originatorPath = ImportPevaOriginator.getPevaOriginatorFile(dataDir);
+		if (originatorPath.isEmpty()) {
+			log.error("Fail to read peva originator, not exist, path={}", dataDir);
+			throw new IllegalStateException();
+		}
+		try {
+			ipoi.importOriginator(originatorPath.get(), dataProvider);
+		} catch (IOException e) {
+			log.error("Fail to read peva originator", e);
+			throw new IllegalStateException();
+		} catch (JAXBException e) {
+			log.error("Fail to read peva originator", e);
+			throw new IllegalStateException();
+		}
+		return ipoi;
 	}
 	
 	private void fillTextOriginator(ImportPevaOriginatorInfo ipoi, Part partFundInfo) {
