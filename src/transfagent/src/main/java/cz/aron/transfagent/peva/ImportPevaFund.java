@@ -356,7 +356,15 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			byte [] newContent = baos.toByteArray();
 			if (StorageService.isContentEqual(apuSrcXmlPath, newContent)) {				
 				// zjistim jestli nebyla odeslana nejaka novejsi entita do aron core
-				if(ifi.getCAMOriginatorIds().isEmpty()||camEntitiesNotChanged(ifi.getCAMOriginatorIds(), apuSource.getLastSent())) {				
+				if (ifi.getCAMOriginatorIds().isEmpty()&&ifi.getCAMGeoIds().isEmpty()) {
+					// nema zadnou vazbu na entitu
+					return ReimportProcessor.Result.NOCHANGES;
+				}
+				var uuids = new ArrayList<String>();
+				uuids.addAll(ifi.getOriginatorIds());
+				uuids.addAll(ifi.getCAMOriginatorIds());
+				if (camEntitiesNotChanged(uuids, apuSource.getLastSent())) {
+					// zadna entita nebyla poslana pozdeji
 					return ReimportProcessor.Result.NOCHANGES;
 				}
 			}
