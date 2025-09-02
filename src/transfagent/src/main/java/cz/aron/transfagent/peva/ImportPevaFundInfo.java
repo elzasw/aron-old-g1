@@ -488,7 +488,9 @@ public class ImportPevaFundInfo {
 								for (var entity : existingEntities) {
 									if (entity.getEntityClass() != null
 											&& !ImportPevaOriginator.ENTITY_CLASS.equals(entity.getEntityClass())
-											&& entity.getStatus() == EntityStatus.AVAILABLE) {
+											&& (entity.getStatus() == EntityStatus.AVAILABLE
+													|| (entity.getStatus() == EntityStatus.NOT_ACCESSIBLE
+															&& entity.getApuSource() != null))) {
 										exist = true;
 										break;
 									}
@@ -1002,7 +1004,7 @@ public class ImportPevaFundInfo {
 					apusBuilder.addApuRef(partFundInfo, "ORIG_PLACES_REF", UUID.fromString(ipgi.getCamUUID()));
 					camGeos.add(ipgi.getCamUUID());
 				}
-			}			
+			}
 			geos.addAll(unusedUuids);
 		} else {
 			placesOfOrigin.getPlaceOfOrigin().forEach(po -> {

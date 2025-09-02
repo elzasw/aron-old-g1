@@ -162,7 +162,10 @@ public class ArchivalEntityService {
 					entitySource.setApuSource(apuSource);
 					entitySource.setArchivalEntity(x);
 					entitySourceRepository.save(entitySource);		
-				}				
+				}
+				if (x.getStatus()==EntityStatus.NOT_ACCESSIBLE&&x.getApuSource()!=null) {
+					x.setStatus(EntityStatus.AVAILABLE);
+				}
 			}, () -> {
 				// ArchivalEntity neexistuje, vytvorim novou
 				var newAE = new ArchivalEntity();
