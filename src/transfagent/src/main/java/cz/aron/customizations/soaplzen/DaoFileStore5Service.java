@@ -2,7 +2,6 @@ package cz.aron.customizations.soaplzen;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -111,12 +110,22 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource, Perm
 	public List<AttachmentDesc> getFindingAidAttachments(String archiveCode, String findingAidCode,
 			String findingAidPartNumber) throws IOException {
 		
-		InstitutionFindingAidKey ifKey = new InstitutionFindingAidKey(archiveCode, Integer.parseInt(findingAidCode), findingAidPartNumber);
+		var ifKey = new InstitutionFindingAidKey(archiveCode, Integer.parseInt(findingAidCode), findingAidPartNumber);
 		var attachments = getAttachments();						
 		var att = attachments.get(ifKey);
 		if (att == null) {
 			return Collections.emptyList();
 		} else {
+			if (findingAidPartNumber != null) {
+				// pridame prilohu celeho inventare
+				var ifRootKey = new InstitutionFindingAidKey(archiveCode, Integer.parseInt(findingAidCode), null);
+				var rootAtt = attachments.get(ifRootKey);
+				if (rootAtt != null) {
+					var tmp = new ArrayList<AttachmentDesc>(att);
+					tmp.addAll(rootAtt);
+					return tmp;
+				}
+			}						
 			return att;			
 		}				
 	}
