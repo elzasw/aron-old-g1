@@ -1014,8 +1014,12 @@ public class ImportArchDesc implements EdxItemCovertContext {
 					for(var convertor:convertors) {
 						convertor.convert();
 					}
+					return;
 				}
-				return;
+				if (!configArchDesc.isInheritAttributesRecursive()) {
+					// inherit only from parent level
+					return;
+				}
 			}
 			if (parentContext!=null) {
 				parentContext.inheritValue(type);

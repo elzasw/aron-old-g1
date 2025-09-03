@@ -42,6 +42,8 @@ public class ConfigElzaArchDesc {
     
     private boolean inheritAttributes;
     
+    private boolean inheritAttributesRecursive;
+    
     // pokud existuje atribut nastavi priznak digital
     private Set<String> digitalFlagWhen = new HashSet<>();
     
@@ -149,6 +151,14 @@ public class ConfigElzaArchDesc {
 			});
 			inherited.add(new ConfigElzaInheritedType(ElzaTypes.ZP2015_STORAGE_ID,null));
 		}
+	}		
+
+	public boolean isInheritAttributesRecursive() {
+		return inheritAttributesRecursive;
+	}
+
+	public void setInheritAttributesRecursive(boolean inheritAttributesRecursive) {
+		this.inheritAttributesRecursive = inheritAttributesRecursive;
 	}
 
 	public Set<String> getDigitalFlagWhen() {
