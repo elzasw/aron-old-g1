@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -42,6 +44,7 @@ import cz.aron.transfagent.peva.findingaid.Peva2FindingAidResultBuilder;
 import cz.aron.transfagent.repository.FindingAidRepository;
 import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
+import cz.aron.transfagent.service.AttachmentSource;
 import cz.aron.transfagent.service.DaoFileStore3Service;
 import cz.aron.transfagent.service.DaoImportService;
 import cz.aron.transfagent.service.DaoImportService.DaoSource;
@@ -95,6 +98,8 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 	
 	private final Peva2FindingAidResultBuilder resultBuilder;
 	
+	private final AttachmentSource attachmentSource;
+	
 	public ImportPevaFindingAid(StorageService storageService, FindingAidService findingAidService,
 			FindingAidRepository findingAidRepository, FundRepository fundRepository,
 			InstitutionRepository institutionRepository, DatabaseDataProvider databaseDataProvider,
@@ -102,7 +107,8 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			Peva2CodeListProvider codeListProvider, ConfigPeva2 configPeva2,DaoImportService daoImportService,
             @Nullable DaoFileStore3Service daoFileStore3Service,
             List<FindingAidDaoImporter> daoImporters,
-            @Nullable PermalinkGenerator permalinkGenerator, @Nullable Peva2FindingAidResultBuilder resultBuilder) {
+            @Nullable PermalinkGenerator permalinkGenerator, @Nullable Peva2FindingAidResultBuilder resultBuilder,
+            @Nullable AttachmentSource attachmentSource) {
 		this.storageService = storageService;
 		this.findingAidService = findingAidService;
 		this.findingAidRepository = findingAidRepository;
@@ -118,6 +124,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 		this.daoImporters = daoImporters;
 		this.permalinkGenerator = permalinkGenerator;
 		this.resultBuilder = resultBuilder;
+		this.attachmentSource = attachmentSource;
 	}
 
 	@Override
@@ -310,10 +317,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 
 		try (var stream = Files.list(dir)) {
 			stream.forEach(f -> {
-				if (Files.isRegularFile(f) && !f.getFileName().toString().startsWith(PEVA_FINDING_AID_DASH)
-						&& !"protokol.txt".equals(f.getFileName().toString())
-						&& !StorageService.APUSRC_XML.equals(f.getFileName().toString())) {
-
+				if (isAttachment(f)) {
 					String mimetype = null;
 					try {
 						mimetype = this.storageService.detectMimetype(f);
@@ -330,6 +334,98 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 		}
 		return attachments;
 	}
+	
+	/**
+	 * Update attachments from attachment source
+	 * 
+	 * - read attachment from attachment source
+	 * - compare with existing (updete modified, delete removed)
+	 * - fill attachments to apu source builder
+	 * - return list of Pat to attachment and modified flag
+	 * 
+	 * @param dir finding aid directory
+	 * @param builder apu source bulder
+	 * @param ipfi ImportPevaFindingAidInfo
+	 * @return {@code UpdateResult}
+	 */
+	private UpdateResult updateAttachments(Path dir, ApuSourceBuilder builder, ImportPevaFindingAidInfo ipfi) {
+		// read existing attachments
+		var existingAttachments = new ArrayList<Path>();
+		try (var stream = Files.list(dir)) {
+			stream.forEach(f -> {
+				if (isAttachment(f)) {
+					existingAttachments.add(f);
+				}
+			});
+		} catch (IOException e) {
+			log.error("Fail to read attachments from directory {}", dir);
+			throw new UncheckedIOException(e);
+		}
+
+		// compare existing and new and fill attachments to apuBuilder
+		try {
+			var modified = false;
+			var toDelete = new HashSet<Path>(existingAttachments);
+			var attachments = attachmentSource.getFindingAidAttachments(ipfi.getInstitutionCode(),
+					ipfi.getFindingAidCode(), ipfi.getFindingAidPartNumber());
+			var result = new ArrayList<Path>();
+			for (var attachment : attachments) {
+				var tmp = dir.resolve(attachment.getPath().getFileName());
+				if (!FileUtils.contentEquals(tmp.toFile(), attachment.getPath().toFile())) {
+					// file exist and is different or file not exist
+					Files.copy(attachment.getPath(), tmp, StandardCopyOption.REPLACE_EXISTING);
+					modified = true;
+				}
+				var mimetype = this.storageService.detectMimetype(tmp);
+				builder.addAttachment(builder.getMainApu(), tmp.getFileName().toString(), mimetype);
+				toDelete.remove(tmp);
+				result.add(tmp);
+			}
+
+			// delete abandoned
+			for (var pathToDelete : toDelete) {
+				Files.delete(pathToDelete);
+			}
+			return new UpdateResult(result, modified);
+		} catch (IOException e) {
+			log.error("Fail to update attachments from attachmentSource", e);
+			throw new UncheckedIOException(e);
+		}
+	}
+	
+	private static class UpdateResult {
+		private final List<Path> attachments;
+		private final boolean modified;
+
+		public UpdateResult(List<Path> attachments, boolean modified) {
+			this.attachments = attachments;
+			this.modified = modified;
+		}
+
+		public List<Path> getAttachments() {
+			return attachments;
+		}
+
+		public boolean isModified() {
+			return modified;
+		}
+	}
+	
+	/**
+	 * Check file is attachment
+	 * @param path to check
+	 * @return true - attachment, false - not 
+	 */
+	private boolean isAttachment(Path path) {
+		if (Files.isRegularFile(path) && !path.getFileName().toString().startsWith(PEVA_FINDING_AID_DASH)
+				&& !"protokol.txt".equals(path.getFileName().toString())
+				&& !StorageService.APUSRC_XML.equals(path.getFileName().toString())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 
 	private List<FindingAidCopy> readFindingAidCopies(String findingAidId) {
 		var ret = new ArrayList<FindingAidCopy>();
@@ -388,8 +484,16 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			builder = ifai.importFindingAidInfo(apuPath.resolve(fileName), databaseDataProvider);
 			processFindingAidCopies(builder, findingAid.getUuid());
 			processFindingAidAuthors(builder, ifai.getAuthorUUIDs());
-			List<Path> attachments = createRelativeAttachmentPaths(readAllAttachments(apuPath, builder),
-					relativeDataDir);
+			
+			List<Path> attachments;
+			boolean forceReimport = false;
+			if (attachmentSource != null) {
+				var ret = updateAttachments(apuPath, builder, ifai);
+				attachments = createRelativeAttachmentPaths(ret.getAttachments(), relativeDataDir);
+				forceReimport = forceReimport || ret.isModified();
+			} else {
+				attachments = createRelativeAttachmentPaths(readAllAttachments(apuPath, builder), relativeDataDir);
+			}						
 			Collection<DaoSource> daos = addDaos(builder,ifai.getInstitutionCode(),ifai.getFindingAidCode(),ifai.getFindingAidPartNumber());
 			addPermalink(builder, ifai.getInstitutionCode(), ifai.getFindingAidCode(), ifai.getFindingAidPartNumber());
 
@@ -398,7 +502,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			builder.build(baos, new ApuValidator(configurationLoader.getConfig()));
 			byte[] newContent = baos.toByteArray();
-			if (StorageService.isContentEqual(apuSrcXmlPath, newContent)) {
+			if (StorageService.isContentEqual(apuSrcXmlPath, newContent)&&!forceReimport) {
 				return ReimportProcessor.Result.NOCHANGES;
 			}
 			Files.write(apuSrcXmlPath, newContent);
