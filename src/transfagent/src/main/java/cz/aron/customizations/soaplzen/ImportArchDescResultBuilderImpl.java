@@ -59,7 +59,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 	private static final String ARCHIVALIE_LEVEL_JEDNOTLIVOST = "A_I";
 	private static final String ARCHIVALIE_LEVEL_JEDNOTLIVOST_MATRIKA = "A_IM";
 	private static final String ARCHIVALIE_LEVEL_JEDNOTLIVOST_KNIHA = "A_IB";
-	private static final String ARCHIVALIE_LEVEL_JEDNOTLIVOST_VYKRES = "A_D";
+	private static final String ARCHIVALIE_LEVEL_JEDNOTLIVOST_VYKRES_MAPA = "A_D";
 	private static final String ARCHIVALIE_LEVEL_JEDNOTLIVOST_CAST = "A_IP";
 	
 	private static Collator CZ_COLLATOR = Collator.getInstance(Locale.forLanguageTag("cs-CZ"));
@@ -401,7 +401,9 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			var unitType = valueCollector.getUnitType();
 			if (unitType != null) {
 				if ("ZP2015_UNIT_TYPE_TVY".equals(unitType.getS())) {
-					return ARCHIVALIE_LEVEL_JEDNOTLIVOST_VYKRES;
+					return ARCHIVALIE_LEVEL_JEDNOTLIVOST_VYKRES_MAPA;
+				} else if ("ZP2015_UNIT_TYPE_MAP".equals(unitType.getS())) {
+					return ARCHIVALIE_LEVEL_JEDNOTLIVOST_VYKRES_MAPA;
 				} else if ("ZP2015_UNIT_TYPE_UKN".equals(unitType.getS())) {
 					return ARCHIVALIE_LEVEL_JEDNOTLIVOST_KNIHA;
 				}
