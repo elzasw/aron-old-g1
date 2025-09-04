@@ -6,8 +6,8 @@ import { FormattedMessage } from 'react-intl';
 
 import { Tooltip } from '@eas/common-web';
 
-import { Search, useConfiguration } from '../../components';
-import { ModulePath, Message, ApiUrl, BASE_URL } from '../../enums';
+import { Search, useConfiguration, Icon } from '../../components';
+import { ModulePath, Message, ApiUrl } from '../../enums';
 import { useStyles } from './styles';
 import { useLayoutStyles, useSpacingStyles, useAppStyles } from '../../styles';
 import {
@@ -26,7 +26,8 @@ export const Body: React.FC = () => {
   const appClasses = useAppStyles();
   const layoutClasses = useLayoutStyles();
   const spacingClasses = useSpacingStyles();
-  const { otherSources, alternativeFavouritesStyle } = useConfiguration();
+  const { otherSources, otherSourcesIcon, alternativeFavouritesStyle } =
+    useConfiguration();
 
   const { formatMessage } = useIntl();
 
@@ -187,6 +188,16 @@ export const Body: React.FC = () => {
         {otherSources && otherSources.length > 0 && (
           <>
             <h3 className={spacingClasses.marginTopBig}>
+              <Icon
+                icon={otherSourcesIcon?.icon}
+                background={otherSourcesIcon?.background}
+                radius={otherSourcesIcon?.radius}
+                color={otherSourcesIcon?.color}
+                size={otherSourcesIcon?.size}
+                padding={otherSourcesIcon?.padding}
+                className={classes.otherSourcesIcon}
+              />
+              &nbsp;
               {formatMessage({ id: Message.OTHER_SOURCES })}
             </h3>
             <div
@@ -197,15 +208,7 @@ export const Body: React.FC = () => {
                 spacingClasses.paddingBottomBig
               )}
             >
-              {(otherSources || []).map(({ icon, label, url, tooltip, iconBackground, iconRadius }) => {
-                const isAbsoluteUrl = /(http|https):\/\//g.test(icon || '');
-                const isFileName = /.\.[\w\d,\-,_]+$/g.test(icon || '');
-                const iconUrl = isAbsoluteUrl
-                  ? icon
-                  : isFileName
-                    ? `${BASE_URL}/app/${icon}`
-                    : undefined;
-
+              {(otherSources || []).map(({ icon, label, url, tooltip }) => {
                 return (
                   <Tooltip key={label} title={tooltip}>
                     <a
@@ -220,27 +223,22 @@ export const Body: React.FC = () => {
                           : classes.mainFavouriteItem
                       )}
                     >
-                      {icon && (
-                        <span
-                          className={
-                            alternativeFavouritesStyle
-                              ? classes.mainFavouriteIconAlt
-                              : classes.mainFavouriteIcon
-                          }
-                        >
-                          {iconUrl ? (
-                            <img 
-                              src={iconUrl} 
-                              style={{ 
-                                height: '1em', 
-                                backgroundColor: iconBackground, 
-                                borderRadius: iconRadius ? `${iconRadius}px` : 0,
-                              }} />
-                          ) : (
-                            <span className={icon} />
-                          )}
-                        </span>
-                      )}
+                      <span
+                        className={
+                          alternativeFavouritesStyle
+                            ? classes.mainFavouriteIconAlt
+                            : classes.mainFavouriteIcon
+                        }
+                      >
+                        <Icon
+                          background={icon?.background}
+                          radius={icon?.radius}
+                          icon={icon?.icon}
+                          color={icon?.color}
+                          size={icon?.size}
+                          padding={icon?.padding}
+                        />
+                      </span>
                       {label}
                     </a>
                   </Tooltip>

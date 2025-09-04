@@ -27,12 +27,19 @@ interface DaoFooterLinkDef {
 }
 
 interface OtherSource {
-  icon?: string;
   url?: string;
   label?: string;
   tooltip?: string;
-  iconBackground?: string;
-  iconRadius?: number;
+  icon?: IconDef;
+}
+
+interface IconDef {
+  icon?: string;
+  background?: string;
+  radius?: number;
+  color?: string;
+  padding?: number;
+  size?: number;
 }
 
 export interface ConfigurationType {
@@ -63,6 +70,7 @@ export interface ConfigurationType {
   orderResultsByScore?: boolean;
   showIncrementalTree?: boolean;
   otherSources?: OtherSource[];
+  otherSourcesIcon?: IconDef;
   useStructuredResults?: boolean;
   alternativeFavouritesStyle?: boolean;
   attachmentsOnTop?: boolean;
@@ -158,14 +166,19 @@ const defaultConfiguration: ConfigurationType = {
   // helpUrl: 'https://www.google.cz',
   orderResultsByScore: true,
   otherSources: [
-    // {
-    //   icon: `charter.png`,
-    //   label: 'Porta fontium',
-    //   url: 'http://www.portafontium.eu',
-    //   tooltip: 'Porta fontium',
-    //   iconBackground: 'black',
-    //   iconRadius: 8,
-    // },
+    {
+      icon: {
+        icon: `charter.png`,
+        background: '#609ED8',
+        // radius: 8,
+        // color: 'white',
+        // padding: 5,
+        // size: 25,
+      },
+      label: 'Porta fontium',
+      url: 'http://www.portafontium.eu',
+      tooltip: 'Porta fontium',
+    },
     // {
     //   icon: `https://www.portafontium.eu/sites/default/files/logo.png`,
     //   label: 'Porta fontium',
@@ -179,6 +192,14 @@ const defaultConfiguration: ConfigurationType = {
     //   tooltip: 'Vyhledavac google',
     // },
   ],
+  otherSourcesIcon: {
+    icon: 'https://www.portafontium.eu/sites/default/files/logo.png',
+    background: '#609ed8',
+    radius: 8,
+    color: 'white',
+    padding: 5,
+    size: 20,
+  },
   useStructuredResults: false,
   alternativeFavouritesStyle: false,
   attachmentsOnTop: false,

@@ -79,6 +79,13 @@ export const useStyles = (configuration?: StyleConfiguration) =>
           background: theme.palette.primary.light,
         },
       },
+      otherSourcesIcon: {
+        fontSize: '1.4em',
+        lineHeight: '1em',
+        display: 'inline-block',
+        paddingRight: '4px',
+        marginRight: theme.spacing(1),
+      },
       mainFavouriteIcon: {
         color: theme.palette.primary.main,
         fontSize: '1.4em',
