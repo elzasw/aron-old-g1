@@ -485,7 +485,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 						unitDateText = ((DescriptionItemString) pp).getV();
 					} else if (ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT())) {
 						if (pp instanceof DescriptionItemUnitDate) {
-							unitDate = UnitDateConvertor.convertToString((DescriptionItemUnitDate) pp);
+							unitDate = UnitDateConvertor.convertToString2((DescriptionItemUnitDate) pp);
 						}
 					} else if (ElzaTypes.ZP2015_OTHER_ID.equals(pp.getT())) {
 						switch (pp.getS()) {

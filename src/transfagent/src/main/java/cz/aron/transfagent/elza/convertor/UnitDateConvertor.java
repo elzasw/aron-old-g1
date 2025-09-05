@@ -60,10 +60,25 @@ public class UnitDateConvertor {
     public static final String FORMAT_YEAR_MONTH = "M.u";
 
     /**
-     * Šablona pro interval
+     * Šablona pro interval rok-rok
      */
     public static final String DEFAULT_INTERVAL_DELIMITER_TEMPLATE = "%s-%s";
 
+    /**
+     * Šablona pro interval den - den
+     */
+    public static final String DEFAULT_INTERVAL_DAY_DELIMITER_TEMPLATE = "%s - %s";
+    	
+	/**
+	 * Šablona pro interval rok-rok
+	 */
+    public static final String INTERVAL_YEAR_YEAR_DELIMITER_TEMPLATE = "%s–%s";
+    
+	/**
+	 * Šablona pro ostatní interval
+	 */
+    public static final String INTERVAL_DEFAULT_DELIMITER_TEMPLATE = "%s – %s";
+        
     /**
      * Oddělovač pro interval, který vyjadřuje odhad
      */
@@ -131,7 +146,10 @@ public class UnitDateConvertor {
      * 
      * @param unitdate
      * @return String
+     * 
+     *  @deprecated use {@link #convertToString2(DescriptionItemUnitDate)} lepe fomatuje intervaly
      */
+    @Deprecated
     public static String convertToString(final DescriptionItemUnitDate unitDate) {
 
         String format = unitDate.getD().getFmt();
@@ -141,7 +159,7 @@ public class UnitDateConvertor {
         }
         return convertToken(format, unitDate.getD().getF(), unitDate.getD().isFe());
     }
-
+    
 	/**
 	 * Konverze intervalu.
 	 *
@@ -165,6 +183,54 @@ public class UnitDateConvertor {
 
         return String.format(template, dateFrom, dateTo);
     }
+
+
+    
+    /**
+     * Provede konverzi formátu do textové podoby.
+     * 
+     * @param unitdate
+     * @return String
+     */
+
+    public static String convertToString2(final DescriptionItemUnitDate unitDate) {
+    	String format = unitDate.getD().getFmt();
+
+        if (isInterval(format)) {
+            return convertInterval2(format, unitDate);
+        }
+        return convertToken(format, unitDate.getD().getF(), unitDate.getD().isFe());
+    }
+    
+	/**
+	 * Konverze intervalu.
+	 *
+	 * @param format   vstupní formát
+	 * @param unitdate doplňovaný objekt
+	 * @return výsledný řetězec
+	 */
+    private static String convertInterval2(final String format, final DescriptionItemUnitDate unitdate) {
+
+        String[] data = format.split(DEFAULT_INTERVAL_DELIMITER);
+
+        if (data.length != 2) {
+            throw new IllegalStateException("Neplatný interval: " + format);
+        }
+
+        String template;
+        boolean bothEstimate = BooleanUtils.isTrue(unitdate.getD().isFe() && BooleanUtils.isTrue(unitdate.getD().isToe()));
+        if (bothEstimate) {
+        	template = ESTIMATE_INTERVAL_DELIMITER_TEMPLATE;
+        } else if ("Y-Y".equals(unitdate.getD().getFmt())) {
+        	template = INTERVAL_YEAR_YEAR_DELIMITER_TEMPLATE;
+        } else {
+			template = INTERVAL_DEFAULT_DELIMITER_TEMPLATE;
+		}  
+        String dateFrom = convertToken(data[0], unitdate.getD().getF(), !bothEstimate && unitdate.getD().isToe());
+        String dateTo = convertToken(data[1], unitdate.getD().getTo(), !bothEstimate && unitdate.getD().isToe());
+        return String.format(template, dateFrom, dateTo);
+    }
+
 
     /**
      * Konverze tokenu - výrazu.
