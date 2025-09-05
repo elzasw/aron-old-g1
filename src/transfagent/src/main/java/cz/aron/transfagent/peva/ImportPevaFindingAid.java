@@ -44,6 +44,7 @@ import cz.aron.transfagent.peva.findingaid.Peva2FindingAidResultBuilder;
 import cz.aron.transfagent.repository.FindingAidRepository;
 import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
+import cz.aron.transfagent.service.AttachmentService;
 import cz.aron.transfagent.service.AttachmentSource;
 import cz.aron.transfagent.service.DaoFileStore3Service;
 import cz.aron.transfagent.service.DaoImportService;
@@ -100,6 +101,8 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 	
 	private final AttachmentSource attachmentSource;
 	
+	private final AttachmentService attachmentService;
+	
 	public ImportPevaFindingAid(StorageService storageService, FindingAidService findingAidService,
 			FindingAidRepository findingAidRepository, FundRepository fundRepository,
 			InstitutionRepository institutionRepository, DatabaseDataProvider databaseDataProvider,
@@ -108,7 +111,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
             @Nullable DaoFileStore3Service daoFileStore3Service,
             List<FindingAidDaoImporter> daoImporters,
             @Nullable PermalinkGenerator permalinkGenerator, @Nullable Peva2FindingAidResultBuilder resultBuilder,
-            @Nullable AttachmentSource attachmentSource) {
+            @Nullable AttachmentSource attachmentSource, AttachmentService attachmentService) {
 		this.storageService = storageService;
 		this.findingAidService = findingAidService;
 		this.findingAidRepository = findingAidRepository;
@@ -125,6 +128,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 		this.permalinkGenerator = permalinkGenerator;
 		this.resultBuilder = resultBuilder;
 		this.attachmentSource = attachmentSource;
+		this.attachmentService = attachmentService;
 	}
 
 	@Override
@@ -348,7 +352,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 	 * @param ipfi ImportPevaFindingAidInfo
 	 * @return {@code UpdateResult}
 	 */
-	private UpdateResult updateAttachments(Path dir, ApuSourceBuilder builder, ImportPevaFindingAidInfo ipfi) {
+	private UpdateResult updateAttachments(Path dir, ApuSourceBuilder builder, ImportPevaFindingAidInfo ipfi, ApuSource apuSource) {
 		// read existing attachments
 		var existingAttachments = new ArrayList<Path>();
 		try (var stream = Files.list(dir)) {
@@ -362,6 +366,8 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			throw new UncheckedIOException(e);
 		}
 
+		var nameToUuid = attachmentService.getNameUuids(apuSource);
+		
 		// compare existing and new and fill attachments to apuBuilder
 		try {
 			var modified = false;
@@ -369,6 +375,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			var attachments = attachmentSource.getFindingAidAttachments(ipfi.getInstitutionCode(),
 					ipfi.getFindingAidCode(), ipfi.getFindingAidPartNumber());
 			var result = new ArrayList<Path>();
+			int pos = 1;
 			for (var attachment : attachments) {
 				var tmp = dir.resolve(attachment.getPath().getFileName());
 				if (!FileUtils.contentEquals(tmp.toFile(), attachment.getPath().toFile())) {
@@ -377,9 +384,11 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 					modified = true;
 				}
 				var mimetype = this.storageService.detectMimetype(tmp);
-				builder.addAttachment(builder.getMainApu(), tmp.getFileName().toString(), mimetype);
+				var fileName = tmp.getFileName().toString();
+				builder.addAttachment(builder.getMainApu(), fileName, mimetype, pos, nameToUuid.get(fileName));
 				toDelete.remove(tmp);
 				result.add(tmp);
+				pos++;
 			}
 
 			// delete abandoned
@@ -482,13 +491,14 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			var ifai = new ImportPevaFindingAidInfo(codeListProvider.getCodeLists(),
 					configPeva2.getFindingAidProperties(), resultBuilder);
 			builder = ifai.importFindingAidInfo(apuPath.resolve(fileName), databaseDataProvider);
+			builder.setUuid(apuSource.getUuid());
 			processFindingAidCopies(builder, findingAid.getUuid());
 			processFindingAidAuthors(builder, ifai.getAuthorUUIDs());
 			
 			List<Path> attachments;
 			boolean forceReimport = false;
 			if (attachmentSource != null) {
-				var ret = updateAttachments(apuPath, builder, ifai);
+				var ret = updateAttachments(apuPath, builder, ifai, apuSource);
 				attachments = createRelativeAttachmentPaths(ret.getAttachments(), relativeDataDir);
 				forceReimport = forceReimport || ret.isModified();
 			} else {
@@ -505,12 +515,10 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			if (StorageService.isContentEqual(apuSrcXmlPath, newContent)&&!forceReimport) {
 				return ReimportProcessor.Result.NOCHANGES;
 			}
-			Files.write(apuSrcXmlPath, newContent);
-
-			boolean send = !configPeva2.getFindingAidProperties().isDontSend();
+			Files.write(apuSrcXmlPath, newContent);			
 			transactionTemplate.executeWithoutResult(c -> {
 				findingAidService.updateFindingAid(findingAid, relativeDataDir, apuPath, builder, attachments,
-						configPeva2.getFundProperties().isAggregateAttachments(), send);
+						configPeva2.getFundProperties().isAggregateAttachments(), false);
 				if (daoFileStore3Service != null||!daoImporters.isEmpty()) {
 				    this.daoImportService.updateDaos(apuSource, daos);
 				}
@@ -521,7 +529,12 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 		}
 
 		log.info("FindingAid id={}, uuid={} reimported", findingAid.getId(), findingAid.getUuid());
-		return ReimportProcessor.Result.REIMPORTED;
+		boolean send = !configPeva2.getFindingAidProperties().isDontSend();
+		if (send) {
+			return ReimportProcessor.Result.REIMPORTED;
+		} else {
+			return ReimportProcessor.Result.REIMPORTED_NO_SEND;
+		}
 	}
 
 	private void createFundCommands(PevaFundNotExist fne) {

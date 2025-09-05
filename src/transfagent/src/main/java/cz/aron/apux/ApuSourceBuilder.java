@@ -409,6 +409,16 @@ public class ApuSourceBuilder {
         att.setName(name);        
         att.setFile(daoFile);
         attList.add(att);
+        return att;
+    }
+    
+    public Attachment addAttachment(Apu apu, String name, String mimetype, int pos, String uuid) {
+    	DaoFile daoFile = DaoBuilder.createDaoFile(pos, mimetype, uuid);        
+        var attList = apu.getAttchs();
+        Attachment att = ApuxFactory.getObjFactory().createAttachment();
+        att.setName(name);        
+        att.setFile(daoFile);
+        attList.add(att);
         return att;    
     }
 }

@@ -64,9 +64,9 @@ public class ReimportService implements ImportProcessor {
 				Result result = null;
 				for (var proc : processors) {
 					result = proc.reimport(apuSource);
-					if (result == Result.REIMPORTED || result == Result.NOCHANGES) {
+					if (result == Result.REIMPORTED || result == Result.NOCHANGES || result == Result.REIMPORTED_NO_SEND) {
 						log.info("Reimported apuSource: id={}, uuid={}, status={}", apuSource.getId(), apuSource.getUuid(), result);
-						boolean send = result == Result.REIMPORTED; 
+						boolean send = result == Result.REIMPORTED;
 						transactionTemplate.executeWithoutResult(t->{
 							apuSource.setReimport(false);
 							apuSource.setForce(false);

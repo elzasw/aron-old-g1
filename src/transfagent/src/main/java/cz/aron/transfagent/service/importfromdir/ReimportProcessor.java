@@ -6,6 +6,7 @@ public interface ReimportProcessor {
     
     enum Result {
         REIMPORTED,
+        REIMPORTED_NO_SEND,
         NOCHANGES,
         UNSUPPORTED,
         FAILED,

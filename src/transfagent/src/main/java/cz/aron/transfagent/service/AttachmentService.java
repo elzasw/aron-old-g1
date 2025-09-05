@@ -6,7 +6,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -103,5 +105,21 @@ public class AttachmentService {
 		}
 		return ret;
 	}
+	
+	/**
+	 * Get mapping filename->uuid for given apuSource
+	 * @param apuSource to get mapping for
+	 * @return {@code Map<String, String>}
+	 */
+	@Transactional
+	public Map<String, String> getNameUuids(ApuSource apuSource) {
+		var dbAttachments = attachmentRepository.findByApuSource(apuSource);
+		var ret = new HashMap<String, String>();
+		for(var attachment:dbAttachments) {
+			ret.put(attachment.getFileName(), attachment.getUuid().toString());
+		}
+		return ret;
+	}
+	
 	
 }
