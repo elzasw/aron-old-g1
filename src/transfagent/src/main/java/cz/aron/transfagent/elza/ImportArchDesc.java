@@ -622,7 +622,11 @@ public class ImportArchDesc implements EdxItemCovertContext {
         stringTypeMap.put(ElzaTypes.ZP2015_MOVIE_LENGTH, new EdxTimeLenghtConvertor(CoreTypes.MOVIE_LENGTH));
         stringTypeMap.put(ElzaTypes.ZP2015_RECORD_LENGTH, new EdxTimeLenghtConvertor(CoreTypes.RECORD_LENGTH));
         stringTypeMap.put(ElzaTypes.ZP2015_WRITING, new EdxStringConvertor(CoreTypes.WRITING));
-        stringTypeMap.put(ElzaTypes.ZP2015_ITEM_LINK, new EdxLinkConvertor(CoreTypes.ARCH_DESC_REF, CoreTypes.SOURCE_LINK));
+        if (configArchDesc.isUseArchDescLink()) {
+        	stringTypeMap.put(ElzaTypes.ZP2015_ITEM_LINK, new EdxLinkConvertor(CoreTypes.ARCH_DESC_REF, CoreTypes.ARCH_DESC_LINK));
+        } else {
+        	stringTypeMap.put(ElzaTypes.ZP2015_ITEM_LINK, new EdxLinkConvertor(CoreTypes.ARCH_DESC_REF, CoreTypes.SOURCE_LINK));	
+        }
         stringTypeMap.put(ElzaTypes.ZP2015_DAO_LINK, new EdxLinkConvertor(CoreTypes.ARCH_DESC_REF, CoreTypes.DAO_LINK));
         stringTypeMap.put(ElzaTypes.ZP2015_RELATED_UNITS_LINK, new EdxLinkConvertor(CoreTypes.ARCH_DESC_REF, CoreTypes.RELATED_UNITS_LINK));
 

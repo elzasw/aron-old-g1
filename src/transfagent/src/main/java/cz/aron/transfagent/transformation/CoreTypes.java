@@ -83,6 +83,7 @@ public class CoreTypes {
     public static final String MOVIE_LENGTH = "MOVIE_LENGTH";
     public static final String RECORD_LENGTH = "RECORD_LENGTH";
     public static final String ARCH_DESC_REF = "ARCH_DESC_REF";
+    public static final String ARCH_DESC_LINK = "ARCH_DESC_LINK";
 
     // LINK
     public static final String SOURCE_LINK = "SOURCE_LINK";

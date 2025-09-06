@@ -50,6 +50,8 @@ public class ConfigElzaArchDesc {
     private boolean refreshEntities;
     
     private boolean fileType;
+    
+    private boolean useArchDescLink;
 
     public boolean isAddDateToName() {
         return addDateToName;
@@ -187,6 +189,14 @@ public class ConfigElzaArchDesc {
 
 	public void setFileType(boolean fileFlag) {
 		this.fileType = fileFlag;
+	}
+
+	public boolean isUseArchDescLink() {
+		return useArchDescLink;
+	}
+
+	public void setUseArchDescLink(boolean useArchDescLink) {
+		this.useArchDescLink = useArchDescLink;
 	}	
 
 }
