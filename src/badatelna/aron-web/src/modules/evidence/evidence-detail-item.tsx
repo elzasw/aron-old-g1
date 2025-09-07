@@ -67,9 +67,9 @@ export function EvidenceDetailItem({
     >
       {items
         .filter(({ type }) => type !== ApuPartItemDataType.APU_REF)
-        .map(({ value, type }, i) => (
+        .map(({ value, type, label }, i) => (
           <React.Fragment key={`${value}-${i}`}>
-            <EvidenceDetailItemValue {...{ value, type }} />{' '}
+            <EvidenceDetailItemValue {...{ value, type, label }} />{' '}
           </React.Fragment>
         ))}
     </div>

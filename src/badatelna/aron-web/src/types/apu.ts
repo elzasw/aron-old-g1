@@ -35,6 +35,7 @@ export interface ApuPartItem extends Entity {
   visible: boolean;
   href: string;
   type: string;
+  label: string;
 }
 
 export interface ApuAttachmentFileFile extends Entity {

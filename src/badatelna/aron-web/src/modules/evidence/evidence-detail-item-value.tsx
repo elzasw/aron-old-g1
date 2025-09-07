@@ -14,11 +14,13 @@ export function EvidenceDetailItemValue({
   type,
   href,
   apu,
+  label,
 }: {
   value: string;
   type: ApuPartItemDataType;
   href?: string;
   apu?: ApuEntitySimplified;
+  label?: string;
 }) {
   const classes = useStyles();
   const intl = useIntl();
@@ -36,9 +38,9 @@ export function EvidenceDetailItemValue({
             to={{ pathname: `${ModulePath.APU}/${value}` }}
             className={classes.link}
           >
-            {get(apu, 'name', 'Zobrazit APU')}
+            {label?label:get(apu, 'name', 'Zobrazit APU')}
           </Link>
-          {apu && get(apu, 'description') ? (
+          {apu && !label && get(apu, 'description') ? (
             <span>, {get(apu, 'description')}</span>
           ) : (
               <></>
