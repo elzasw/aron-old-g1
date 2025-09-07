@@ -1512,6 +1512,11 @@ itemTypes:
     name: Pevně spojeno s
     type: APU_REF
     indexed: true
+  # Odkaz z archivniho popisu na jiný archivní popis v jinem systemu (pevné spojení)
+  - code: ARCH_DESC_LINK
+    name: Pevně spojeno s
+    type: LINK
+    indexed: false
   # Odkaz z archivniho popisu na archivni soubor
   - code: FUND_REF
     name: Archivní soubor
