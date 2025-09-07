@@ -250,9 +250,13 @@ Rok má vždy minimálně 4 pozice. Je možné uvádět i roky před 1583.</xs:d
 		<xs:attributeGroup ref="s1:ItemAttrGroup"/>
 	</xs:complexType>
 	<xs:complexType name="ItemRef">
+		<xs:annotation>
+			<xs:documentation>Odkaz na APU. Name prenaseno atributem kvuli zpetne kompatibilite</xs:documentation>
+		</xs:annotation>
 		<xs:simpleContent>
 			<xs:extension base="s1:Uuid">
 				<xs:attributeGroup ref="s1:ItemAttrGroup"/>
+				<xs:attribute name="name" use="optional" type="s1:LongString"/>
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>

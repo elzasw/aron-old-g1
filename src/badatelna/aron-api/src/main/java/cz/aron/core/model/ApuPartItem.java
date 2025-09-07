@@ -25,6 +25,8 @@ public class ApuPartItem extends DomainObject<ApuPartItem> {
 
     private String type;
 
+    private String label;
+
     @ManyToOne
     @Fetch(FetchMode.SELECT)
     @JsonIgnore

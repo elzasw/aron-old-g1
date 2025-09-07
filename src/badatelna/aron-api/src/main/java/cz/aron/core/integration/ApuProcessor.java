@@ -286,6 +286,7 @@ public class ApuProcessor {
                 item.setType(itemRef.getType().replace("_", "~"));
                 item.setValue(itemRef.getValue());
                 item.setVisible(itemRef.isVisible() == null || itemRef.isVisible());
+                item.setLabel(itemRef.getName());
                 if (itemRef.getType().equals("ORIGINATOR_REF") || itemRef.getType().equals("AP_REF")) { //only archival entities
                     apuRequestQueue.add(itemRef.getValue(), apuPart.findRootApuEntity().getId());
                 }

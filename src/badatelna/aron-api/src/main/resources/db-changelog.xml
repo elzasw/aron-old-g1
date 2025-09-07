@@ -297,5 +297,10 @@
 	  <column name="license_code" type="nclob"/>
       </addColumn>
     </changeSet>
+    <changeSet id="aron:17" author="zacek@lightcomp.cz">
+      <addColumn tableName="apu_part_item">
+	  <column name="label" type="nclob"/>
+      </addColumn>
+    </changeSet>
 
 </databaseChangeLog>
