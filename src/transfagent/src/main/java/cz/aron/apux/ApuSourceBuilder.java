@@ -145,7 +145,12 @@ public class ApuSourceBuilder {
 	}
 
     public ItemRef addApuRef(Part part, String itemType, UUID value, Boolean visible) {
+    	return addApuRef(part, itemType, value, visible, null);
+    }
+
+    public ItemRef addApuRef(Part part, String itemType, UUID value, Boolean visible, String label) {
         ItemRef item = ApuxFactory.getObjFactory().createItemRef();
+        item.setName(label);
         item.setType(itemType);
         item.setValue(value.toString());
         item.setVisible(visible);
@@ -154,7 +159,7 @@ public class ApuSourceBuilder {
         
         referencedEntities.add(value);
         return item;
-    }
+    }    
 	
 	static public ItemLink addLink(Part part, String itemType, String url, String lbl) {
 	    ItemLink item = ApuxFactory.getObjFactory().createItemLink();
