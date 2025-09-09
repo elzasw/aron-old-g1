@@ -27,6 +27,8 @@ public class ConfigPeva2 {
     
     private boolean soapLogging;
     
+    private boolean newStatechecking;
+    
     private String attachmentDir;
     
     private ConfigPeva2FundProperties fundProperties;
@@ -165,4 +167,11 @@ public class ConfigPeva2 {
 		this.geoProperties = geoProperties;
 	}
 
+	public boolean isNewStatechecking() {
+		return newStatechecking;
+	}
+
+	public void setNewStatechecking(boolean newStatechecking) {
+		this.newStatechecking = newStatechecking;
+	}
 }

@@ -47,6 +47,7 @@ import cz.aron.peva2.wsdl.NadPrimarySheet;
 import cz.aron.peva2.wsdl.NadSheet;
 import cz.aron.peva2.wsdl.NadSubsheet;
 import cz.aron.peva2.wsdl.Quantity;
+import cz.aron.peva2.wsdl.State;
 import cz.aron.transfagent.config.ConfigPeva2FundProperties;
 import cz.aron.transfagent.domain.EntityStatus;
 import cz.aron.transfagent.elza.ApTypeService;
@@ -90,6 +91,10 @@ public class ImportPevaFundInfo {
     private String primarySheetNumber;
     
     private Integer subSheetNumber;
+    
+    private boolean valid;
+    
+    private State state;
     
     private final List<String> originators = new ArrayList<>();
     
@@ -149,22 +154,20 @@ public class ImportPevaFundInfo {
 		this.codeListProvider = codeListProvider;
 		this.archDescRoot = archDescRoot;
 		GetNadSheetResponse gnsr = Peva2XmlReader.unmarshalGetNadSheetResponse(inputFile);
-		
-		//TODO po uprave v PEvA II
-		/*
-		if (gnsr.getNadPrimarySheet()!=null&&gnsr.getNadPrimarySheet().getState()!=State.OK) {
-			throw new FundRemoved();
-		}*/
-		
+				
 		if (gnsr.getNadPrimarySheet() != null) {
+			valid = Boolean.TRUE.equals(gnsr.getNadPrimarySheet().isValid());
+			state = gnsr.getNadPrimarySheet().getState();
 			importPrimarySheet(gnsr.getNadPrimarySheet());
 		} else {
+			valid = Boolean.TRUE.equals(gnsr.getNadSubsheet().isValid());			
 			var parentUUID = gnsr.getNadSubsheet().getParent();
 			NadPrimarySheet primarySheet = fundProvider.getFundByUUID(UUID.fromString(parentUUID));
 			if (primarySheet == null) {
 				log.info("Fund ignored for now {}", inputFile.getFileName().toString());
 				throw new FundIgnored();
 			}
+			state = primarySheet.getState();
 			importNadSubsheet(gnsr.getNadSubsheet(), primarySheet);
 		}
 		return apusBuilder;
@@ -1231,11 +1234,6 @@ public class ImportPevaFundInfo {
 	public static class FundIgnored extends RuntimeException {
 		
 	}
-	
-	@SuppressWarnings("serial")
-	public static class FundRemoved extends RuntimeException {
-		
-	}
 
 	public String getPrimarySheetNumber() {
 		return primarySheetNumber;
@@ -1244,7 +1242,13 @@ public class ImportPevaFundInfo {
 	public Integer getSubSheetNumber() {
 		return subSheetNumber;
 	}
-	
-	
+
+	public boolean isValid() {
+		return valid;
+	}
+
+	public State getState() {
+		return state;
+	}	
 	
 }

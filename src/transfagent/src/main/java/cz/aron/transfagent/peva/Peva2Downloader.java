@@ -38,8 +38,6 @@ public abstract class Peva2Downloader {
 	private final boolean active;
 	
 	protected boolean storeState = true;
-	
-	private boolean store2 = false;
 
 	public Peva2Downloader(String agendaName, PEvA2Connection peva2, PropertyRepository propertyRepository, ConfigPeva2 config,
 			TransactionTemplate tt, StorageService storageService, boolean active) {
@@ -88,7 +86,7 @@ public abstract class Peva2Downloader {
 		if (storeState) {			
 			// clear update after
 			// store search after			
-			if (store2) {
+			if (config.isNewStatechecking()) {
 				tt.execute(t -> {
 					// preserve searchafter
 					// clear update after

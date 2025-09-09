@@ -31,16 +31,17 @@ import cz.aron.apux.ApuValidator;
 import cz.aron.apux._2020.ApuType;
 import cz.aron.peva2.wsdl.GetNadSheetResponse;
 import cz.aron.peva2.wsdl.NadPrimarySheet;
+import cz.aron.peva2.wsdl.State;
 import cz.aron.transfagent.config.ConfigPeva2;
 import cz.aron.transfagent.config.ConfigurationLoader;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.ArchDesc;
 import cz.aron.transfagent.domain.Fund;
+import cz.aron.transfagent.domain.Institution;
 import cz.aron.transfagent.elza.ApTypeService;
 import cz.aron.transfagent.elza.ImportArchDesc;
 import cz.aron.transfagent.peva.ImportPevaFundInfo.FundIgnored;
 import cz.aron.transfagent.peva.ImportPevaFundInfo.FundProvider;
-import cz.aron.transfagent.peva.ImportPevaFundInfo.FundRemoved;
 import cz.aron.transfagent.peva.fund.Peva2FundResultBuilder;
 import cz.aron.transfagent.repository.ArchDescRepository;
 import cz.aron.transfagent.repository.FundRepository;
@@ -198,16 +199,17 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			throw new IllegalStateException(e);
 		} catch (FundIgnored fu) {
 			return true;
-		} catch (FundRemoved fr) {
-			if (fund != null) {
-				tt.executeWithoutResult(t->{
-					var fund2 = fundRepository.findByCode(fundCode);
-					if (fund!=null) {
-						fund2.getApuSource().setDeleted(true);
-						log.info("Fund marked deleted {}", fundCode);
-					}
-				});
-			}
+		}
+		
+		var institutionCode = ifi.getInstitutionCode();
+        var institution = institutionRepository.findByCode(institutionCode);
+        if (institution == null) {
+			log.error("Fail to import fund, institution not exist, path={}, institution={}", fundXml, institutionCode);
+            throw new IllegalStateException("The entry Institution code={" + institutionCode + "} must exist.");
+        }
+		
+		if (ifi.getState()!=State.OK) {
+			processInvalidFund(fund, fundCode, apusrcBuilder, dir, fundXml, institution);
 			return true;
 		}
         
@@ -224,13 +226,6 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			});
 		}
 
-        var institutionCode = ifi.getInstitutionCode();
-        var institution = institutionRepository.findByCode(institutionCode);
-        if (institution == null) {
-			log.error("Fail to import fund, institution not exist, path={}, institution={}", fundXml, institutionCode);
-            throw new IllegalStateException("The entry Institution code={" + institutionCode + "} must exist.");
-        }
-        
         var daos = addDaos(apusrcBuilder, ifi.getInstitutionCode(), ifi.getNadNumber());
         addPermalink(apusrcBuilder, ifi.getInstitutionCode(), ifi.getPrimarySheetNumber(), ifi.getSubSheetNumber());
         
@@ -269,6 +264,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 						});
 					}
 				}
+				
 				fundService.updateFund(fnd, dataDir, dir, true);
             }
             var originatorUuids = ifi.getOriginatorIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
@@ -292,6 +288,63 @@ public class ImportPevaFund implements FundImporter, FundProvider {
         });
         return true;
     }
+	
+	
+	/**
+	 * Process invalid dir. Generate apusource.xml, move to data dir and update fund in databse when exist 
+	 * 
+	 * @param fund
+	 * @param fundCode
+	 * @param apusrcBuilder
+	 * @param dir
+	 * @param fundXml path source file
+	 */
+	private void processInvalidFund(Fund fund, String fundCode, ApuSourceBuilder apusrcBuilder, Path dir,
+			Path fundXml, Institution institution) {
+		// vygeneruji apusource.xml
+		try (var fos = Files.newOutputStream(dir.resolve(StorageService.APUSRC_XML))) {
+			apusrcBuilder.build(fos, new ApuValidator(configurationLoader.getConfig()));
+		} catch (IOException ioEx) {
+			log.error("Fail to import fund, path={}", fundXml, ioEx);
+			throw new UncheckedIOException(ioEx);
+		} catch (JAXBException e) {
+			log.error("Fail to import fund, path={}", fundXml, e);
+			throw new IllegalStateException(e);
+		}
+
+		// presunu vysledek do datoveho adresare
+		Path dataDir;
+		try {
+			dataDir = storageService.moveToDataDir(dir);
+		} catch (IOException e) {
+			log.error("Fail to import fund, fail to move to directory={}", dir, e);
+			throw new IllegalStateException(e);
+		}
+
+		if (fund != null) {
+			// nastavim apu_source priznak deleted
+			tt.executeWithoutResult(t -> {
+				var fund2 = fundRepository.findByCode(fundCode);
+				if (fund2 != null) {
+					fund2.getApuSource().setDeleted(true);
+					fundService.updateFund(fund2, dataDir, dir, true);
+					// delete attachments
+					attachmentService.updateAttachments(fund2.getApuSource(), apusrcBuilder, Collections.emptyList());
+					// delete daos
+					if (daoFileStore3Service!=null) {
+		                daoImportService.updateDaos(fund2.getApuSource(), Collections.emptyList());
+		            }
+					log.info("Fund marked deleted {}", fundCode);
+				} else {
+					log.info("Fund not inserted because is not valid, code={}", fundCode);
+				}
+			});
+		} else {
+			// vytvorim fond v databazi
+			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE);
+		}
+	}
+
 
 	public static NadPrimarySheet readPevaFundFromDir(Path directory) throws IOException, JAXBException {
 						
