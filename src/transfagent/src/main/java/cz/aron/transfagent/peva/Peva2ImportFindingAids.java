@@ -24,10 +24,15 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import cz.aron.peva2.wsdl.FieldSort;
 import cz.aron.peva2.wsdl.FindingAid;
 import cz.aron.peva2.wsdl.GetFindingAidRequest;
 import cz.aron.peva2.wsdl.GetFindingAidResponse;
+import cz.aron.peva2.wsdl.Include;
 import cz.aron.peva2.wsdl.ListFindingAidRequest;
+import cz.aron.peva2.wsdl.SortOrder;
+import cz.aron.peva2.wsdl.ListRequest.Includes;
+import cz.aron.peva2.wsdl.ListRequest.Sorts;
 import cz.aron.transfagent.config.ConfigPeva2;
 import cz.aron.transfagent.repository.PropertyRepository;
 import cz.aron.transfagent.service.AttachmentSource;
@@ -62,6 +67,21 @@ public class Peva2ImportFindingAids extends Peva2Downloader {
             lfar.setSize(config.getBatchSize());
             lfar.setUpdatedAfter(updateAfter);
             lfar.setSearchAfter(searchAfter);
+            
+            if (config.isNewStatechecking()) {
+                var includes = new Includes();
+    			includes.getInclude().add(Include.DELETED);
+    			includes.getInclude().add(Include.INVALID);
+    			lfar.setIncludes(includes);
+    			
+    			var sorts = new Sorts();
+    			var fieldSort = new FieldSort();
+    			fieldSort.setField("updated");
+    			fieldSort.setOrder(SortOrder.ASC);
+    			sorts.getSort().add(fieldSort);
+    			lfar.setSorts(sorts);            	
+            }
+            
             var lfaResp = peva2.getPeva().listFindingAid(lfar);            
             searchAfter = lfaResp.getSearchAfter();
             long count = lfaResp.getFindingAids().getFindingAid().size();
@@ -104,18 +124,25 @@ public class Peva2ImportFindingAids extends Peva2Downloader {
 			Map<String, List<Path>> attachments) {
 		var faInputDir = storageService.getInputPath().resolve("findingaids");
 		for (var findingAid : findingAids) {
+			
 			if (findingAid.getNadSheets() == null || findingAid.getNadSheets().getNadSheet() == null
 					|| findingAid.getNadSheets().getNadSheet().isEmpty()) {
 				log.warn("Finding aid without NadSheet institution:{}, finding aid:{}, id:{}",
 						findingAid.getInstitution().getExternalId(), findingAid.getEvidenceNumber(),
 						findingAid.getId());
+				
 				continue;
 			}
+			
 			var gfar = new GetFindingAidResponse();
 			gfar.setFindingAid(findingAid);
 			String id = findingAid.getInstitution().getExternalId() + "_" + findingAid.getId();
 			var faDir = faInputDir.resolve(PREFIX_DASH + id);
 			try {
+				if (Files.isDirectory(faDir)) {
+					// already exist add suffix
+					faDir = faDir.getParent().resolve(faDir.getFileName().toString()+System.nanoTime());
+				}				
 				Files.createDirectories(faDir);
 				var attachmentFiles = attachments.get(findingAid.getEvidenceNumber());
 				//TODO refactor as attachmentSource

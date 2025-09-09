@@ -38,6 +38,7 @@ import cz.aron.transfagent.config.ConfigurationLoader;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.FindingAid;
 import cz.aron.transfagent.domain.Fund;
+import cz.aron.transfagent.domain.Institution;
 import cz.aron.transfagent.peva.ImportPevaFindingAidInfo.PevaFundNotExist;
 import cz.aron.transfagent.peva.dao.FindingAidDaoImporter;
 import cz.aron.transfagent.peva.findingaid.Peva2FindingAidResultBuilder;
@@ -152,7 +153,7 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 				&& p.getFileName().toString().endsWith(".xml")).findFirst();
 
 		if (pevaFindingAidXml.isEmpty()) {
-			log.warn("Directory not contail pevafund-* file. Directory {}", path);
+			log.warn("Directory not contains pevafa-* file. Directory {}", path);
 			return ImportResult.FAIL;
 		}
 
@@ -215,6 +216,12 @@ public class ImportPevaFindingAid implements FindingAidImporter {
             findingaidUuid = ifai.getFindingAidUUID();
             apusourceUuid = UUID.randomUUID();
         }
+        
+		if (!ifai.isValid()) {
+			processInvalidFindingAid(dir, builder, findingAid, findingAidCode, institution, funds, apusourceUuid,
+					protocol);
+			return true;
+		}
 
         processFindingAidCopies(builder, findingaidUuid);
         processFindingAidAuthors(builder, ifai.getAuthorUUIDs());
@@ -259,10 +266,49 @@ public class ImportPevaFindingAid implements FindingAidImporter {
             if (daoFileStore3Service != null || !daoImporters.isEmpty()) {
                 daoImportService.updateDaos(fa.getApuSource(), daos);
             }
+            fa.getApuSource().setDeleted(false);
         });
     	return true;
 	}
 	
+	private void processInvalidFindingAid(Path dir, ApuSourceBuilder builder, FindingAid findingAid, String findingAidCode, Institution institution,
+			List<Fund> funds, UUID apusourceUuid, ImportProtocol protocol) {
+		try (var fos = Files.newOutputStream(dir.resolve("apusrc.xml"))) {
+            builder.setUuid(apusourceUuid);
+            builder.build(fos, new ApuValidator(configurationLoader.getConfig()));
+        } catch (IOException ioEx) {
+            protocol.add("Chyba " + ioEx.getMessage());
+            throw new UncheckedIOException(ioEx);
+        } catch (JAXBException e) {
+            protocol.add("Chyba " + e.getMessage());
+            throw new IllegalStateException(e);
+        }
+
+		Path dataDir;
+		try {
+			dataDir = storageService.moveToDataDir(dir);
+			protocol.setLogPath(storageService.getDataPath().resolve(dataDir));			
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+
+		boolean send = !configPeva2.getFindingAidProperties().isDontSend();
+		FindingAid fa;
+        if (findingAid == null) {
+            fa = findingAidService.createFindingAid(findingAidCode, funds, institution, dataDir, dir, builder,
+                                               Collections.emptyList(),
+                                               configPeva2.getFundProperties().isAggregateAttachments(), send);            
+        } else {
+            findingAidService.updateFindingAid(findingAid, dataDir, dir, builder, Collections.emptyList(),
+                                               true, send);
+            fa = findingAid;
+        }
+        fa.getApuSource().setDeleted(true);
+        if (daoFileStore3Service != null || !daoImporters.isEmpty()) {
+            daoImportService.updateDaos(fa.getApuSource(), Collections.emptyList());
+        }
+        
+	}
 	
 	private void addPermalink(ApuSourceBuilder apuSourceBuilder, String archiveCode, String findingAidCode,
 			String findingAidSubCode) {

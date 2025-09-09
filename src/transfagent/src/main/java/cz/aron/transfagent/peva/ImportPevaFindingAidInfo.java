@@ -46,6 +46,8 @@ public class ImportPevaFindingAidInfo {
 	private String findingAidCode;
 	
 	private String findingAidPartNumber;
+	
+	private boolean valid;
 
 	private List<UUID> fundUUIDs = new ArrayList<>();
 	
@@ -72,6 +74,8 @@ public class ImportPevaFindingAidInfo {
 	}
 
 	private void importFindingAidInfo(FindingAid findingAid) {
+		
+		valid = Boolean.TRUE.equals(findingAid.isValid());
 		
 		var instInfo = getInstitutionInfo(findingAid);
 		findingAidUUID = UUID.fromString(findingAid.getId());
@@ -318,6 +322,10 @@ public class ImportPevaFindingAidInfo {
 			return new FindingAidInfo(UUID.fromString(fa.getId()), fa.getName());
 		}
 		return null;
+	}
+
+	public boolean isValid() {
+		return valid;
 	}
 	
 }
