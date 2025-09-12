@@ -38,6 +38,7 @@ import cz.aron.transfagent.transformation.PropertiesDataProvider;
 import cz.tacr.elza.schema.v2.AccessPoint;
 import cz.tacr.elza.schema.v2.DescriptionItemAPRef;
 import cz.tacr.elza.schema.v2.DescriptionItemUriRef;
+import cz.tacr.elza.schema.v2.DescriptionItemUnitDate;
 import cz.tacr.elza.schema.v2.Fragment;
 import cz.tacr.elza.schema.v2.Fragments;
 import cz.tacr.elza.schema.v2.Level;
@@ -442,7 +443,20 @@ public class ImportAp implements EdxItemCovertContext {
             return;
         }
         var apUuids = archEntityInfo.stream().map(i -> i.getUuid()).collect(Collectors.toList());
-
+        
+        // get begin of relation
+        DescriptionItemUnitDate begin = ElzaXmlReader.getItem(frg, ElzaTypes.REL_BEGIN, DescriptionItemUnitDate.class);
+        if (begin!=null) {
+        	new EdxUnitDateConvertor("REL_BEGIN").convert(this, begin);
+        }
+    
+        
+        // get end of relation
+        DescriptionItemUnitDate end = ElzaXmlReader.getItem(frg, ElzaTypes.REL_END, DescriptionItemUnitDate.class);
+        if (end!=null) {
+        	new EdxUnitDateConvertor("REL_END").convert(this, begin);
+        }
+        
         // entity exists -> we can create link
         Part part = this.apusBuilder.addPart(apu, "PT_AE_REL");
         this.apusBuilder.addApuRefsFirstVisible(part, relType, apUuids);

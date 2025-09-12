@@ -51,6 +51,8 @@ public abstract class ElzaTypes {
     public static final String SOURCE_LINK = "SOURCE_LINK";
 
     public static final String REL_ENTITY = "REL_ENTITY";
+    public static final String REL_BEGIN = "REL_BEGIN";
+    public static final String REL_END = "REL_END";
 
     public static final String CRE_CLASS = "CRE_CLASS";
     public static final String CRE_DATE = "CRE_DATE";
