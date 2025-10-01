@@ -52,6 +52,8 @@ public class ConfigElzaArchDesc {
     private boolean fileType;
     
     private boolean useArchDescLink;
+    
+    private boolean levelType;
 
     public boolean isAddDateToName() {
         return addDateToName;
@@ -197,6 +199,14 @@ public class ConfigElzaArchDesc {
 
 	public void setUseArchDescLink(boolean useArchDescLink) {
 		this.useArchDescLink = useArchDescLink;
-	}	
+	}
 
+	public boolean isLevelType() {
+		return levelType;
+	}
+
+	public void setLevelType(boolean levelType) {
+		this.levelType = levelType;
+	}	
+	
 }

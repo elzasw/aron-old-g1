@@ -103,4 +103,7 @@ public class CoreTypes {
     
     public static final String SIZE = "SIZE";
 
+    public static final String LEVEL_TYPE = "LEVEL_TYPE";
+    public static final String LEVEL_TYPE_GROUP = "LEVEL_GROUP";
+
 }

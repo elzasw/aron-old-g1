@@ -603,6 +603,13 @@ itemTypes:
     name: partner
     type: APU_REF
     indexed: true
+  - code: REL_BEGIN
+    name: vznik
+    type: UNITDATE
+  - code: REL_END
+    name: zánik
+    type: UNITDATE
+
 
   #
   # Archivní soubory
@@ -1512,7 +1519,6 @@ itemTypes:
     name: Pevně spojeno s
     type: APU_REF
     indexed: true
-  # Odkaz z archivniho popisu na jiný archivní popis v jinem systemu (pevné spojení)
   - code: ARCH_DESC_LINK
     name: Pevně spojeno s
     type: LINK
@@ -1584,6 +1590,14 @@ itemTypes:
   - code: ENTITY_NOTE
     name: Poznámka
     type: STRING
+    indexed: true
+  - code: LEVEL_TYPE
+    name: Typ úrovně
+    type: ENUM
+    indexed: true
+  - code: LEVEL_GROUP
+    name: Sdružený typ úrovně
+    type: ENUM
     indexed: true
 
 itemGroups:

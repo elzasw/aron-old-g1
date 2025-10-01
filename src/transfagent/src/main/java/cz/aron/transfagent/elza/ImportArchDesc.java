@@ -45,6 +45,7 @@ import cz.aron.transfagent.elza.convertor.EdxEnumConvertor;
 import cz.aron.transfagent.elza.convertor.EdxIntConvertor;
 import cz.aron.transfagent.elza.convertor.EdxItemConvertor;
 import cz.aron.transfagent.elza.convertor.EdxItemCovertContext;
+import cz.aron.transfagent.elza.convertor.EdxLevelTypeConvertor;
 import cz.aron.transfagent.elza.convertor.EdxLinkConvertor;
 import cz.aron.transfagent.elza.convertor.EdxNullConvertor;
 import cz.aron.transfagent.elza.convertor.EdxSizeConvertor;
@@ -121,9 +122,9 @@ public class ImportArchDesc implements EdxItemCovertContext {
 	
 	private Level processedLevel;
 
-    static final String ignoredTypes[] = {"ZP2015_ARRANGEMENT_TYPE", "ZP2015_LEVEL_TYPE",
+    static final String ignoredTypes[] = {"ZP2015_ARRANGEMENT_TYPE",
             "ZP2015_SERIAL_NUMBER", "ZP2015_NAD", "ZP2015_ZNACKA_FONDU",
-            "ZP2015_LEVEL_TYPE", "ZP2015_ARRANGER",
+            "ZP2015_ARRANGER",
             "ZP2015_UNIT_DATE_BULK",/*"ZP2015_FOLDER_TYPE",*/
             "ZP2015_ITEM_ORDER", // processed with ZP2015_STORAGE_ID
             "ZP2015_UNIT_COUNT_ITEM",
@@ -571,6 +572,11 @@ public class ImportArchDesc implements EdxItemCovertContext {
 		} else {
 			stringTypeMap.put("ZP2015_UNIT_TYPE", new EdxEnumConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.unitTypeMap));
 			stringTypeMap.put("ZP2015_FOLDER_TYPE", new EdxNullConvertor());
+		}
+		if (configArchDesc.isLevelType()) {
+			stringTypeMap.put(ElzaTypes.ZP2015_LEVEL_TYPE, new EdxLevelTypeConvertor());
+		} else {
+			stringTypeMap.put(ElzaTypes.ZP2015_LEVEL_TYPE, new EdxNullConvertor());
 		}
         stringTypeMap.put(ElzaTypes.ZP2015_EXTRA_UNITS, new EdxEnumConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.extraUnitTypeMap));
         stringTypeMap.put(ElzaTypes.ZP2015_UNIT_SUBTYPE, new EdxEnumConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.subtypeMap));
