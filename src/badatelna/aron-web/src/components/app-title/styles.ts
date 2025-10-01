@@ -38,11 +38,14 @@ export const useStyles = (configuration?: StyleConfiguration ) => makeStyles((th
     filter: 'invert(1)',
   },
   appTitleLogo: {
-    maxHeight: appHeaderHeight,
-    maxWidth: '8em',
+    maxHeight: '100%',
+    maxWidth: '100%',
+    padding: theme.spacing(2),
+    paddingLeft: 0,
 
     [theme.breakpoints.up('sm')]: {
-      maxWidth: '12em',
+      padding: theme.spacing(3),
+      paddingLeft: 0,
     },
   },
   appTitleLogoClickable: {
