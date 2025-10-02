@@ -46,10 +46,10 @@ public class EdxLevelTypeConvertor implements EdxItemConvertor {
 			break;
 		}
 		if (levelType != null) {			
-			ApuSourceBuilder.addEnum(ctx.getActivePart(), CoreTypes.LEVEL_TYPE, levelType);
+			ApuSourceBuilder.addEnum(ctx.getActivePart(), CoreTypes.LEVEL_TYPE, levelType, false);
 		}
 		if (levelTypeGroup != null) {
-			ApuSourceBuilder.addEnum(ctx.getActivePart(), CoreTypes.LEVEL_TYPE_GROUP, levelTypeGroup);
+			ApuSourceBuilder.addEnum(ctx.getActivePart(), CoreTypes.LEVEL_TYPE_GROUP, levelTypeGroup, false);
 		}
 	}
 
