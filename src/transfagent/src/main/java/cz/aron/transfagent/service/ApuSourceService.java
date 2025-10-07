@@ -80,6 +80,24 @@ public class ApuSourceService {
 		});
 	}
 
+	@Transactional
+	public void deleteByUuid(String uuid) {
+		apuSourceRepository.findByUuid(UUID.fromString(uuid)).ifPresentOrElse(apuSource->{
+			if (!apuSource.isDeleted()) {
+				apuSource.setDeleted(true);
+				var coreQueue = new CoreQueue();
+				coreQueue.setApuSource(apuSource);
+				coreQueueRepository.save(coreQueue);
+				log.info("Apu source {} mark to be deleted.", uuid);
+			} else {
+				log.error("Apu source {} already marked to be deleted.", uuid);
+			}
+		}, ()->{
+			log.error("Apu source {} not found, cannot be mark to be deleted", uuid);
+		});
+	}
+	
+	
 	public ApuSource reimport(ApuSource apuSource) {
 		apuSource.setReimport(true);
 		return apuSourceRepository.save(apuSource);
