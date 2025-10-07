@@ -8,14 +8,14 @@ import cz.tacr.elza.schema.v2.DescriptionItemEnum;
 
 public class EdxLevelTypeConvertor implements EdxItemConvertor {
 
-	private static final String LEVEL_TYPE_GROUP_ARCHIVALIE = "Archiválie";
-	private static final String LEVEL_TYPE_GROUP_SERIE_ARCHIVALIE = "Série archiválií";
+	private static final String LEVEL_TYPE_GROUP_ARCHIVALIE = "archiválie";
+	private static final String LEVEL_TYPE_GROUP_SERIE_ARCHIVALIE = "série archiválií";
 
-	private static final String LEVEL_TYPE_ROOT = "Kořen archivního souboru";
-	private static final String LEVEL_TYPE_SERIES = "Série archiválií";
-	private static final String LEVEL_TYPE_FOLDER = "Složka";
-	private static final String LEVEL_TYPE_ITEM = "Jednotlivost";
-	private static final String LEVEL_TYPE_PART = "Část jednotlivosti";
+	private static final String LEVEL_TYPE_ROOT = "kořen archivního souboru";
+	private static final String LEVEL_TYPE_SERIES = "série archiválií";
+	private static final String LEVEL_TYPE_FOLDER = "složka";
+	private static final String LEVEL_TYPE_ITEM = "jednotlivost";
+	private static final String LEVEL_TYPE_PART = "části jednotlivosti";
 
 	@Override
 	public void convert(EdxItemCovertContext ctx, DescriptionItem item) {
