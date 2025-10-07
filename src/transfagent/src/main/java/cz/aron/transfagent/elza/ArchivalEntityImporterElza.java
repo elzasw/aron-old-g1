@@ -436,7 +436,7 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
 	            ent.setStatus(EntityStatus.NOT_ACCESSIBLE);
 	            this.archivalEntityRepository.save(ent);
 	        }
-	    }
+	    }	    	    	    	    
     }
 
     private ArchivalEntity addAccessibleByElzaId(Integer elzaId) {
@@ -488,6 +488,13 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
                 // entity in DB -> create only entity source
                 storedEntSources.add( createEntitySource(apuSource, ent) );
             }
+            
+            for(var id:batch) {
+            	if (!existingElzaIds.contains(id)) {
+            		newIds.add(id);
+            	}
+            }
+            
         } else {
             newIds = batch;
         }
