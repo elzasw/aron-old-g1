@@ -443,6 +443,9 @@ public class ImportAp implements EdxItemCovertContext {
             return;
         }
         var apUuids = archEntityInfo.stream().map(i -> i.getUuid()).collect(Collectors.toList());
+                
+        // entity exists -> we can create link
+        activePart = ApuSourceBuilder.addPart(apu, "PT_AE_REL");
         
         // get begin of relation
         DescriptionItemUnitDate begin = ElzaXmlReader.getItem(frg, ElzaTypes.REL_BEGIN, DescriptionItemUnitDate.class);
@@ -454,12 +457,12 @@ public class ImportAp implements EdxItemCovertContext {
         // get end of relation
         DescriptionItemUnitDate end = ElzaXmlReader.getItem(frg, ElzaTypes.REL_END, DescriptionItemUnitDate.class);
         if (end!=null) {
-        	new EdxUnitDateConvertor("REL_END").convert(this, begin);
+        	new EdxUnitDateConvertor("REL_END").convert(this, end);
         }
         
-        // entity exists -> we can create link
-        Part part = this.apusBuilder.addPart(apu, "PT_AE_REL");
-        this.apusBuilder.addApuRefsFirstVisible(part, relType, apUuids);
+        this.apusBuilder.addApuRefsFirstVisible(activePart, relType, apUuids);
+        
+        activePart = null;
     }
 
     private void importIdent(Apu apu, Fragment frg) {
