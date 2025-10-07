@@ -20,6 +20,8 @@ public class ConfigElza {
     private int maxChildElements = 0;
     
     private boolean archdescFlag = false;
+    
+    private boolean trustAll = false;
 
     public boolean isDisabled() {
         return disabled;
@@ -77,4 +79,11 @@ public class ConfigElza {
 		this.archdescFlag = archdescFlag;
 	}    
 
+	public boolean isTrustAll() {
+		return trustAll;
+	}
+	
+	public void setTrustAll(boolean trusAll) {
+		this.trustAll = trusAll;
+	}
 }

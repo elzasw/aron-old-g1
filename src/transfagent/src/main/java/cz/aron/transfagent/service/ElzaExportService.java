@@ -2,12 +2,14 @@ package cz.aron.transfagent.service;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.ext.logging.LoggingFeature;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
 import org.apache.cxf.staxutils.StaxUtils;
 import org.apache.cxf.transport.http.HTTPConduit;
+import org.apache.cxf.transport.https.InsecureTrustManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,18 @@ public class ElzaExportService {
             client.getEndpoint().put(StaxUtils.MAX_CHILD_ELEMENTS, config.getMaxChildElements());
             log.info("Elza maxChildElements set to {}", config.getMaxChildElements());
         }
+        
+        if (config.isTrustAll()) {
+        	TLSClientParameters params = http.getTlsClientParameters();
+    		if (params == null) {
+    			params = new TLSClientParameters();
+    			params.setDisableCNCheck(true);
+    			http.setTlsClientParameters(params);
+    		}
+        	params.setTrustManagers(InsecureTrustManager.getNoOpX509TrustManagers());
+        	log.info("Set to trust all server certificates when communicating with Elza !!!");
+		}
+
     }
 
     public ExportService get() {
