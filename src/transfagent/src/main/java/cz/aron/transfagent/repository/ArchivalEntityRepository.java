@@ -103,7 +103,7 @@ public interface ArchivalEntityRepository extends JpaRepository<ArchivalEntity, 
     @Query("SELECT new cz.aron.transfagent.transformation.ArchEntitySourceInfo(ae.uuid, apuS.dataDir, apuS.uuid, ae.status, apuS.lastSent) "
     		+ "FROM ArchivalEntity ae "
     		+ "JOIN ae.apuSource apuS "
-    		+ "WHERE ae.uuid in (:uuids) AND ae.entityClass=:entityClass AND ae.status in ('ACCESSIBLE', 'AVAILABLE')")
+    		+ "WHERE ae.uuid in (:uuids) AND ae.entityClass=:entityClass")
     List<ArchEntitySourceInfo> getArchEntityApuSources(@Param("uuids") List<UUID> uuids, @Param("entityClass") String entityClass);
 
     @Query("SELECT new cz.aron.transfagent.transformation.ArchEntitySourceInfo(ae.uuid, apuS.dataDir, apuS.uuid, ae.status, apuS.lastSent, max(cq.id)) "
