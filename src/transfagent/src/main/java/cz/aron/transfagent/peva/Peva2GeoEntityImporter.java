@@ -21,6 +21,7 @@ import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.apux.ApuValidator;
 import cz.aron.peva2.wsdl.GetGeoObjectRequest;
 import cz.aron.peva2.wsdl.GetGeoObjectResponse;
+import cz.aron.transfagent.config.ConfigPeva2;
 import cz.aron.transfagent.config.ConfigurationLoader;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.IdProjection;
@@ -53,11 +54,14 @@ public class Peva2GeoEntityImporter implements ArchivalEntityImporter {
 	private final ConfigurationLoader configurationLoader;
 	
 	private final DatabaseDataProvider databaseDataProvider;
+	
+	private final boolean insertToCoreQueue;
 
 	public Peva2GeoEntityImporter(PEvA2Connection peva2, StorageService storageService,
 			ArchivalEntityRepository archivalEntityRepository, ArchivalEntityService archivalEntityService,
 			Peva2CodeListProvider codeListProvider, ApTypeService apTypeService,
-			ConfigurationLoader configurationLoader, DatabaseDataProvider databaseDataProvider) {
+			ConfigurationLoader configurationLoader, DatabaseDataProvider databaseDataProvider,
+			ConfigPeva2 configPeva2) {
 		super();
 		this.peva2 = peva2;
 		this.storageService = storageService;
@@ -67,6 +71,11 @@ public class Peva2GeoEntityImporter implements ArchivalEntityImporter {
 		this.apTypeService = apTypeService;
 		this.configurationLoader = configurationLoader;
 		this.databaseDataProvider = databaseDataProvider;
+		if (configPeva2.getGeoProperties()!=null&&configPeva2.getGeoProperties().isDontSend()) {
+			insertToCoreQueue = false;
+		} else {
+			insertToCoreQueue = true;
+		}
 	}
 
 	@Override
@@ -102,7 +111,7 @@ public class Peva2GeoEntityImporter implements ArchivalEntityImporter {
 				}
 				var dataDir = storageService.moveToDataDir(tempDir);
 				archivalEntityService.createOrUpdateArchivalEntity(dataDir, tempDir,
-						UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), ImportPevaGeo.ENTITY_CLASS, true);
+						UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), ImportPevaGeo.ENTITY_CLASS, insertToCoreQueue);
 			} catch (SOAPFaultException sfEx) {
 				deleteTempDir(tempDir);
 				if (Peva2Constants.DELETED_OBJECT.equals(sfEx.getMessage())) {
