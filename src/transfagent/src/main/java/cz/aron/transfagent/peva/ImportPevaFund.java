@@ -208,7 +208,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
             throw new IllegalStateException("The entry Institution code={" + institutionCode + "} must exist.");
         }
 		
-		if (ifi.getState()!=State.OK) {
+		if (ifi.getState()==State.MOVED) {
 			processInvalidFund(fund, fundCode, apusrcBuilder, dir, fundXml, institution);
 			return true;
 		}
@@ -389,6 +389,26 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			apuSourceBuilder = ifi.importFundInfo(apuPath.resolve(fileName), fund.getUuid(), databaseDataProvider, this,
 					codeListProvider, entityDownloader, getArchDescUUID(fund));
 			apuSourceBuilder.setUuid(apuSource.getUuid());
+			
+			if (ifi.getState()==State.MOVED) {
+				if (apuSource.isDeleted()) {
+					// je ve stavu deleted neposilam do aron core
+					return ReimportProcessor.Result.NOCHANGES;
+				} else {
+					// neni ve stavu deleted, nastavim stav a poslu do aron core
+					tt.executeWithoutResult(t->{
+						fundRepository.findById(fund.getId()).ifPresentOrElse(f -> {
+							f.getApuSource().setDeleted(false);							
+						}, () -> {
+							log.error("Fund not exist id={}",fund.getId());
+							throw new IllegalStateException();
+						});
+					});
+					log.info("Fund id={}, uuid={} reimported, marked as deleted", fund.getId(), fund.getUuid());
+					return ReimportProcessor.Result.REIMPORTED;
+				}				
+			}
+					
 			var attachments = new ArrayList<Path>();
 			tt.executeWithoutResult(t -> {
 				fundRepository.findById(fund.getId()).ifPresentOrElse(f -> {
@@ -402,12 +422,14 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			var daos = addDaos(apuSourceBuilder, ifi.getInstitutionCode(), ifi.getNadNumber());
 			addPermalink(apuSourceBuilder, ifi.getInstitutionCode(), ifi.getPrimarySheetNumber(), ifi.getSubSheetNumber());
 			
+			boolean force = apuSource.isForce()||apuSource.isDeleted();
+			
 			// compare original apusrc.xml and newly generated
 			var apuSrcXmlPath = apuPath.resolve(StorageService.APUSRC_XML);			
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			apuSourceBuilder.build(baos, new ApuValidator(configurationLoader.getConfig()));
 			byte [] newContent = baos.toByteArray();
-			if (StorageService.isContentEqual(apuSrcXmlPath, newContent)) {				
+			if (!force && StorageService.isContentEqual(apuSrcXmlPath, newContent)) {				
 				// zjistim jestli nebyla odeslana nejaka novejsi entita do aron core
 				if (ifi.getCAMOriginatorIds().isEmpty()&&ifi.getCAMGeoIds().isEmpty()) {
 					// nema zadnou vazbu na entitu
@@ -427,6 +449,10 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 				// reload
 				fundRepository.findById(fund.getId()).ifPresentOrElse(f -> {
 					fundService.updateFund(f, apuPath, apuPath, false);
+					if (apuSource.isDeleted()||apuSource.isForce()) {
+						f.getApuSource().setDeleted(false);
+						f.getApuSource().setForce(false);
+					}
 					
 					// referenced originators
 					var uuids = ifi.getOriginatorIds().stream().map(id -> UUID.fromString(id))
@@ -615,23 +641,5 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		}
 		return null;
 	}
-
-	
-	private List<DaoSource> getDaoSources(ImportArchDesc iad) {
-        var daoSources = new ArrayList<DaoSource>();
-        iad.getDaoRefs().forEach((s, r) -> {
-            switch (s) {
-            case "dspace":
-            case "file":
-            case "file2":
-                daoSources.add(new DaoSource(s,
-                        r.stream().map(x -> new DaoSourceRef(x.getUuid(), x.getHandle())).collect(Collectors.toSet())));
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown dao source " + s);
-            }
-        });
-        return daoSources;
-    }
 	
 }
