@@ -396,16 +396,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 					return ReimportProcessor.Result.NOCHANGES;
 				} else {
 					// neni ve stavu deleted, nastavim stav a poslu do aron core
-					tt.executeWithoutResult(t->{
-						fundRepository.findById(fund.getId()).ifPresentOrElse(f -> {
-							f.getApuSource().setDeleted(false);							
-						}, () -> {
-							log.error("Fund not exist id={}",fund.getId());
-							throw new IllegalStateException();
-						});
-					});
 					log.info("Fund id={}, uuid={} reimported, marked as deleted", fund.getId(), fund.getUuid());
-					return ReimportProcessor.Result.REIMPORTED;
+					return ReimportProcessor.Result.DELETED;
 				}				
 			}
 					

@@ -67,17 +67,18 @@ public class ReimportService implements ImportProcessor {
 					if (result == Result.REIMPORTED || result == Result.NOCHANGES || result == Result.REIMPORTED_NO_SEND) {
 						log.info("Reimported apuSource: id={}, uuid={}, status={}", apuSource.getId(), apuSource.getUuid(), result);
 						boolean send = result == Result.REIMPORTED;
-						transactionTemplate.executeWithoutResult(t->{
-							apuSource.setReimport(false);
-							apuSource.setForce(false);
-							apuSource.setDateImported(ZonedDateTime.now());
-							apuSourceRepository.save(apuSource);
+						transactionTemplate.executeWithoutResult(t->{							
+							apuSourceRepository.findById(apuSource.getId()).ifPresent(as->{
+								as.setReimport(false);
+								as.setForce(false);
+								as.setDateImported(ZonedDateTime.now());
+							});						
 							if (send) {
 								// send to Core
 								CoreQueue cq = new CoreQueue();
 								cq.setApuSource(apuSource);
 								coreQueueRepository.save(cq);
-							}							
+							}						
 						});
 						continue apuSourceLabel;
 					} else if (result == Result.FAILED) {
