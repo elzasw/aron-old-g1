@@ -70,7 +70,6 @@ import cz.aron.transfagent.transformation.CoreTypes;
 import cz.aron.transfagent.transformation.InstitutionInfo;
 import cz.aron.transfagent.transformation.PropertiesDataProvider;
 import cz.tacr.elza.schema.v2.DescriptionItem;
-import cz.tacr.elza.schema.v2.DescriptionItemInteger;
 import cz.tacr.elza.schema.v2.DescriptionItemString;
 import cz.tacr.elza.schema.v2.DescriptionItemUndefined;
 import cz.tacr.elza.schema.v2.DescriptionItemUnitDate;
@@ -147,7 +146,6 @@ public class ImportArchDesc implements EdxItemCovertContext {
             ElzaTypes.ZP2015_APPLIED_RESTRICTION_CHANGE,
             "ZP2015_UNIT_INFO_RIGHTS",
             "ZP2015_ITEM_TITLE",
-            "ZP2015_ENTITY_ROLE_TEXT",
             "ZP2015_UNIT_DATE_PRE",
             "ZP2015_UNIT_DATE_POST",
             "ZP2015_UNIT_COPY_RIGHTS",
@@ -658,6 +656,12 @@ public class ImportArchDesc implements EdxItemCovertContext {
         }
         
         stringTypeMap.put(ElzaTypes.ZP2015_AMOUNT, new EdxAmountConvertor(ElzaTypes.AMOUNT_SUBTYPES));
+        
+        if (configArchDesc.isEntityRoleText()) {
+        	stringTypeMap.put(ElzaTypes.ZP2015_ENTITY_ROLE_TEXT, new EdxStringConvertor(CoreTypes.ENTITY_ROLE_TEXT));
+        } else {
+        	stringTypeMap.put(ElzaTypes.ZP2015_ENTITY_ROLE_TEXT, new EdxNullConvertor());
+        }
     }
 
 	private void addItem(Apu apu, DescriptionItem item, Set<EdxItemConvertor> usedMultiConvertors,

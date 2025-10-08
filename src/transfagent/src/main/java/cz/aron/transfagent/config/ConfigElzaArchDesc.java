@@ -54,6 +54,8 @@ public class ConfigElzaArchDesc {
     private boolean useArchDescLink;
     
     private boolean levelType;
+    
+    private boolean entityRoleText;
 
     public boolean isAddDateToName() {
         return addDateToName;
@@ -207,6 +209,14 @@ public class ConfigElzaArchDesc {
 
 	public void setLevelType(boolean levelType) {
 		this.levelType = levelType;
-	}	
-	
+	}
+
+	public boolean isEntityRoleText() {
+		return entityRoleText;
+	}
+
+	public void setEntityRoleText(boolean entityRoleText) {
+		this.entityRoleText = entityRoleText;
+	}
+
 }
