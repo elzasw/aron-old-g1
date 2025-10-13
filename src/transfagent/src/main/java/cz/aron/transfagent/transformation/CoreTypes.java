@@ -58,7 +58,7 @@ public class CoreTypes {
     public final static String PT_ARCH_DESC = "PT_ARCH_DESC";
     public final static String PT_ENTITY_ROLE = "PT_ENTITY_ROLE";
     public final static String PT_ARCH_DESC_FUND = "PT_ARCH_DESC_FUND";
-    public final static String ENTITY_ROLE_TEXT = "ENTITY_ROLE_TEXT";
+    
 
     public final static String UNIT_DATE = "UNIT_DATE";
     public static final String UNIT_TYPE = "UNIT_TYPE";
@@ -66,6 +66,7 @@ public class CoreTypes {
     public final static String ROLE = "ROLE";
     public final static String STORAGE_ID = "STORAGE_ID";
     public static final String STORAGE = "STORAGE";
+    public static final String ENTITY_ROLE_TEXT = "ENTITY_ROLE_TEXT";
     
     // ArchDescs
     public static final String UNIT_ID_INDEX = "UNIT_ID_INDEX";

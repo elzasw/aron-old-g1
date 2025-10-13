@@ -658,7 +658,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
         stringTypeMap.put(ElzaTypes.ZP2015_AMOUNT, new EdxAmountConvertor(ElzaTypes.AMOUNT_SUBTYPES));
         
         if (configArchDesc.isEntityRoleText()) {
-        	stringTypeMap.put(ElzaTypes.ZP2015_ENTITY_ROLE_TEXT, new EdxStringConvertor(CoreTypes.ENTITY_ROLE_TEXT));
+        	stringTypeMap.put(ElzaTypes.ZP2015_ENTITY_ROLE_TEXT, new EdxStringSpecConvertor(CoreTypes.PT_ENTITY_ROLE, ElzaTypes.roleSpecTextMap));
         } else {
         	stringTypeMap.put(ElzaTypes.ZP2015_ENTITY_ROLE_TEXT, new EdxNullConvertor());
         }
