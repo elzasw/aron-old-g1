@@ -15,7 +15,7 @@ public class EdxLevelTypeConvertor implements EdxItemConvertor {
 	private static final String LEVEL_TYPE_SERIES = "série archiválií";
 	private static final String LEVEL_TYPE_FOLDER = "složka";
 	private static final String LEVEL_TYPE_ITEM = "jednotlivost";
-	private static final String LEVEL_TYPE_PART = "části jednotlivosti";
+	private static final String LEVEL_TYPE_PART = "část jednotlivosti";
 
 	@Override
 	public void convert(EdxItemCovertContext ctx, DescriptionItem item) {
