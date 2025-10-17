@@ -100,7 +100,7 @@ export const useStyles = makeStyles((theme) => {
     },
     daoDialogSectionPartContent: {
       padding: '10px 25%',
-      overflow: 'auto',
+      overflow: 'hidden',
       height: '100%',
       [md]: {
         padding: '0px',
