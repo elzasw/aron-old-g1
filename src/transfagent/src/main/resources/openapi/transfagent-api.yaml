@@ -269,6 +269,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArchDescResponse'
+                
+  /archdescs/import/{fundVersionId}:
+    patch:
+      tags:
+        - Transfagent
+      operationId: importArchDesc
+      description: Import archdesc from Elza
+      parameters:
+        - name: fundVersionId
+          in: path
+          required: true
+          description: code of fund version
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: The request has succeeded.
 
   /users:
     get:

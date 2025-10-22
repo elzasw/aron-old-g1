@@ -262,6 +262,9 @@ export const UsersList = () => {
     };
 
     const handleCreateUserChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+        console.log("Field changed", event.target.name, event.target.value);
+
         setCreateFormData({
             ...createFormData,
             [event.target.name]: event.target.value,
@@ -272,7 +275,7 @@ export const UsersList = () => {
 
         const {username, hash} = createFormData;
 
-        setCreateFormData({username:"",hash:""});
+        setCreateFormData({username:username,hash:hash});
 
         e.preventDefault();
         e.stopPropagation();
@@ -360,6 +363,7 @@ export const UsersList = () => {
                             })}                            
                             size={40}
                             id="username"
+                            name="username"
                             onChange={handleCreateUserChange}
                         />
                     <StyledInput
@@ -369,6 +373,7 @@ export const UsersList = () => {
                             })}
                             size={40}
                             id="hash"
+                            name="hash"
                             onChange={handleCreateUserChange}
                         />
                         <Button

@@ -120,6 +120,10 @@ export default {
         "archdescColumn.uuid" : "APU",
         "archdescColumn.deleted" : "Smazáno",
         "archdescColumn.apusourceId" : "Apusrc id",
+        "archdesc.button.submit": "Importovat archiválie",
+        "archdesc.button.cancel": "Zrušit",
+        "archdesc.import": "Importovat archiválie z Elzy",
+        "archdesc.import.success": "Import archiválií naplánován",
 
         "institution.delete.confirm.title": "Smazat archivní soubor",
         "institution.delete.confirm.message": "Přejete si smazat archivní soubor s id: {id}?",

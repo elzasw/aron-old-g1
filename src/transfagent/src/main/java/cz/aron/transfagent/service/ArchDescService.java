@@ -1,5 +1,6 @@
 package cz.aron.transfagent.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -12,25 +13,35 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.io.Files;
 
 import cz.aron.api.rest.model.ArchDescDef;
 import cz.aron.api.rest.model.ArchDescResponse;
 import cz.aron.transfagent.controller.vo.ArchDescDefVO;
 import cz.aron.transfagent.domain.ArchDesc;
+import cz.aron.transfagent.elza.ImportArchDescCommand;
 import cz.aron.transfagent.repository.ArchDescRepository;
 
 @Service
 public class ArchDescService {
 	
+	private static final Logger log = LoggerFactory.getLogger(ArchDescService.class);
+	
 	private final ArchDescRepository archDescRepository;
 	
 	private final EntityManager em;
+	
+	private final StorageService storageService;
 
-	public ArchDescService(ArchDescRepository archDescRepository, EntityManager em) {
+	public ArchDescService(ArchDescRepository archDescRepository, EntityManager em, StorageService storageService) {
 		this.archDescRepository = archDescRepository;
 		this.em = em;
+		this.storageService = storageService;
 	}
 
 	
@@ -88,5 +99,14 @@ public class ArchDescService {
 		}		
     }
 
+	public void scheduleArchDescImport(long fundVersionId) {		
+		var cmdFile = storageService.getInputPath().resolve("commands").resolve(ImportArchDescCommand.createCommandFileName(fundVersionId)).toFile();
+		try {
+			Files.touch(cmdFile);
+			log.info("Import archdesc {} scheduled.", fundVersionId);
+		} catch (IOException e) {
+			log.error("Fail to write to file {}", cmdFile);	
+		}		
+	}
 
 }

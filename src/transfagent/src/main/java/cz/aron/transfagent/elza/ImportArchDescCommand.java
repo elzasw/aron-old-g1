@@ -437,6 +437,9 @@ public class ImportArchDescCommand implements CommandProcessor {
 
 	}
 	
+	public static String createCommandFileName(long fundVersionId) {
+		return PREFIX_DASH + fundVersionId;
+	}
 	
 	public static void main(String[] args) throws Exception {		
 		var apiClient = new ApiClientEx(args[0],args[1],args[2],args[3]);
@@ -462,5 +465,5 @@ public class ImportArchDescCommand implements CommandProcessor {
 		
 		System.out.println("Downloaded "+ret);				
 	}
-
+	
 }

@@ -222,6 +222,10 @@ public class TransformAgentController implements TransfagentApi {
 		return ResponseEntity.ok(userService.getUser());
 	}
 
-	
+	@Override
+	public ResponseEntity<Void> importArchDesc(Integer fundVersionId) {
+		archDescService.scheduleArchDescImport(fundVersionId);
+		return ResponseEntity.ok().build();
+	}
 	
 }
