@@ -92,6 +92,7 @@ export const ArchDescList = () => {
                 alter={!isEven}
                 highlighted={props.highlighted}
                 selected={false}
+                key={item.id}
             >
                 <TableCell>{getCellContent(item, propCode)}</TableCell>
             </ListItem>
@@ -200,11 +201,14 @@ export const ArchDescList = () => {
     //         }
     //     });
     // }
+    
 
     const handleImportArchDesc = () => {        
+
         open(({onClose}) => {
-            return <ArchDescImport onClose={onClose}/>
+            return <ArchDescImport onClose={onClose}/>;
         });
+
     }
 
     return (
