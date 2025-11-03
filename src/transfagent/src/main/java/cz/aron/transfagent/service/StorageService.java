@@ -72,6 +72,20 @@ public class StorageService {
 	public Path moveToErrorDir(Path sourceDir) throws IOException {
 		return moveToDir(errorPath, sourceDir);
 	}
+	
+	/**
+	 * Move to error directory and create error file with suffix .err 
+	 * @param sourceFile file to be moved to error directory
+	 * @param message error message
+	 * @return path relativized to error directory
+	 * @throws IOException
+	 */
+	public Path moveToErrorDirWithErrMessage(Path sourceFile, String message) throws IOException {
+		var movedFile = moveToDir(errorPath, sourceFile);
+		var messageFile = dataPath.resolve(movedFile.getParent().resolve(movedFile.getFileName().toString() + ".err"));
+		Files.writeString(messageFile, message);
+		return movedFile;
+	}
 
 	public Path moveToProcessed(Path sourceDir) throws IOException {
 		return moveToDir(inputPath.resolve("processed"), sourceDir);

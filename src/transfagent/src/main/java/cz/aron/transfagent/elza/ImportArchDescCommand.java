@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -158,7 +159,7 @@ public class ImportArchDescCommand implements CommandProcessor {
 		} catch (ApiException e) {
 			if (e.getCode() == 404) {
 				log.error("Fund id {} not exists", fundVersionId);
-				moveToError(commandFile);
+				moveToError(commandFile, "fundVersionId: "+fundVersionId+" not exists");
 				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
 			}
 			apiClient.clearCookie();
@@ -184,12 +185,9 @@ public class ImportArchDescCommand implements CommandProcessor {
 				return false;
 			}
 		} catch (ApiException e) {
-			if (e.getCode() == 404) {
-				log.error("Request to Elza id {} not exist", id);
-				moveToError(commandFile);
-				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
-			}
+			log.error("Fail to check export request state Elza id {}", id, e);
 			apiClient.clearCookie();
+			moveToError(commandFile, e);
 			throw new CommandProcessorException(e);
 		}
 	}
@@ -208,8 +206,8 @@ public class ImportArchDescCommand implements CommandProcessor {
 			return tmp;
 		} catch (ApiException e) {
 			if (e.getCode() == 404) {
-				log.error("Request to Elza id {} not exist", id);
-				moveToError(commandFile);
+				log.error("Request to Elza id {} not exist", id);				
+				moveToError(commandFile, "Request to Elza id "+id+" not exist");
 				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
 			}
 			log.error("Fail to download data for request id {} from Elza", id, e);
@@ -232,17 +230,17 @@ public class ImportArchDescCommand implements CommandProcessor {
 					.orElse(null);
 			if (section == null) {
 				log.error("xml {} doesn't contains section.", srcXml);
-				moveToError(commandFile);
+				moveToError(commandFile, "xml doesn't contains section");
 				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
 			}
 			var fundInfo = section.getFi();
 			var institution = fundInfo.getIc();
 			if (fundInfo.getNum()==null) {
 				log.error("xml {} doesn't contains fund num.", srcXml);
-				moveToError(commandFile);
+				moveToError(commandFile, "xml doesn't contains fund num");
 				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
 			}
-			var fundCode = fundInfo.getNum().toString();			
+			var fundCode = fundInfo.getNum().toString();
 			var name = "archdesc-" + institution + "-" + fundCode;
 			Files.createDirectory(archDescPath.resolve(name));
 			Files.move(srcXml, archDescPath.resolve(name).resolve(name + ".xml"));
@@ -260,19 +258,35 @@ public class ImportArchDescCommand implements CommandProcessor {
 	}
 
 	/**
-	 * Move command file to error directory
+	 * Move command file to error directory, store exception as error message
 	 * @param commadFile command file
+	 * @param ApiException exception
 	 */
-	private void moveToError(Path commadFile) {
-		try {
-			storageService.moveToErrorDir(commadFile);
+	private void moveToError(Path commadFile, ApiException exc) {
+		try {									
+			storageService.moveToErrorDirWithErrMessage(commadFile, exc.getResponseBody());
 			log.info("Command {} moved to error directory", commadFile);
 		} catch (IOException e) {
 			log.error("Fail to move to error directory {}", commadFile);
 			throw new CommandProcessorException(e);
 		}
 	}
-
+	
+	/**
+	 * Move command file to error directory, store error message
+	 * @param commadFile
+	 * @param message
+	 */
+	private void moveToError(Path commadFile, String message) {
+		try {
+			storageService.moveToErrorDirWithErrMessage(commadFile, message);
+			log.info("Command {} moved to error directory", commadFile);
+		} catch (IOException e) {
+			log.error("Fail to move to error directory {}", commadFile);
+			throw new CommandProcessorException(e);
+		}
+	}
+	
 	@Override
 	public String getPrefix() {
 		return PREFIX_DASH;
