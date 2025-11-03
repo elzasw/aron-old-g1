@@ -92,7 +92,7 @@ export const ArchDescList = () => {
                 alter={!isEven}
                 highlighted={props.highlighted}
                 selected={false}
-                key={item.id}
+                key={item.archDescId}
             >
                 <TableCell>{getCellContent(item, propCode)}</TableCell>
             </ListItem>
