@@ -1510,6 +1510,10 @@ itemTypes:
     name: obrazově a/nebo zvukově zachycená entita
     type: APU_REF
     indexed: true
+  - code: ENTITY_ROLE_TEXT
+    name: role entit textově
+    type: STRING
+    indexed: true        
   - code: ROLE
     name: Role
     type: ENUM
