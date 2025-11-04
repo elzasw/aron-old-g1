@@ -476,6 +476,7 @@ public abstract class ElzaTypes {
         dateOtherMap.put("ZP2015_DATE_AWARDING", "DATE_AWARDING");
         dateOtherMap.put("ZP2015_DATE_AWARD_CER", "DATE_AWARD_CER");
         dateOtherMap.put("ZP2015_DATE_WITHDRAWAL", "DATE_WITHDRAWAL");
+        dateOtherMap.put("ZP2015_DATE_DELIVERY", "DATE_DELIVERY");
     }
 
     /**
@@ -498,6 +499,7 @@ public abstract class ElzaTypes {
         dateOtherMapIndex.put("ZP2015_DATE_AWARDING", "DATE_OTHER");
         dateOtherMapIndex.put("ZP2015_DATE_AWARD_CER", "DATE_OTHER");
         dateOtherMapIndex.put("ZP2015_DATE_WITHDRAWAL", "DATE_OTHER");
+        dateOtherMapIndex.put("ZP2015_DATE_DELIVERY", "DATE_OTHER");
     }
 
     public static Map<String, String> languageTypeMap = new HashMap<>();
