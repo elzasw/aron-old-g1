@@ -9,7 +9,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>transfagent</artifactId>
-	<version>0.0.41</version>
+	<version>0.0.56</version>
 	<name>Transformation agent</name>
 	<description>Transformation agent for ArchivOnline</description>
 
@@ -530,9 +530,11 @@
 							<configOptions>
 								<sourceFolder>/</sourceFolder>
 								<interfaceOnly>true</interfaceOnly>
+				                                <library>native</library><!-- default: okhttp-gson -->
 								<!--  disables default interface methods for
 								testing  -->
 								<useTags>true</useTags>
+								<!-- <useAbstractionForFiles>true</useAbstractionForFiles> -->
 							</configOptions>
 						</configuration>
 					</execution>

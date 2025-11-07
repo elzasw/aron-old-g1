@@ -156,7 +156,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
             "ZP2015_UNIT_COUNT_SUM",
             "ZP2015_UNIT_COUNT_TABLE",
             ElzaTypes.CRE_DATE,
-            "ZP2015_WEIGHT"
+            "ZP2015_WEIGHT",
+            "ZP2015_ITEM_MAT_BAREVNOST"
     };
 
     /**
