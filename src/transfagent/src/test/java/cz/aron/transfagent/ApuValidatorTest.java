@@ -47,7 +47,7 @@ public class ApuValidatorTest {
         String tmp = INST_FILE.substring(INST_PREFIX.length());
         String instCode = tmp.substring(0, tmp.length() - XML_EXT.length());
 
-        ImportInstitution importInstitution = new ImportInstitution();
+        ImportInstitution importInstitution = new ImportInstitution(null);
         apusrcBuilder = importInstitution.importInstitution(Path.of(INST_DIR, INST_FILE), instCode, null);
     }
 

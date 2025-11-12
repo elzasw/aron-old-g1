@@ -33,8 +33,10 @@ public class ImportInstitution {
 	
 	private String shortName;
 	
-	public ImportInstitution() {
-		
+	private final ImportInstitutionResultBuilder resultBuilder;
+	
+	public ImportInstitution(ImportInstitutionResultBuilder resultBuilder) {
+		this.resultBuilder = resultBuilder;
 	}
 	
 	public UUID getApRefUuid() {
@@ -51,7 +53,7 @@ public class ImportInstitution {
 
 	public static void main(String[] args) {
         Path inputFile = Path.of(args[0]);
-		ImportInstitution ii = new ImportInstitution();
+		ImportInstitution ii = new ImportInstitution(null);
 		try {
 			ApuSourceBuilder apusrcBuilder = ii.importInstitution(inputFile, args[1], null);
 			Path ouputPath = Paths.get(args[2]);
@@ -137,6 +139,12 @@ public class ImportInstitution {
 			apusBuilder.addApuRef(infoPart, "AP_REF", apRefUuid);
 		}
 		
+		if (resultBuilder != null) {			
+			var result = resultBuilder.buildResult(ap, null);
+			if (result!=null) {
+				apu.setResult(result);
+			}
+		}
 		
 		return apusBuilder;
 	}

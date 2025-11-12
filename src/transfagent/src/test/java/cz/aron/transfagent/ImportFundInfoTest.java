@@ -42,7 +42,7 @@ public class ImportFundInfoTest {
     public void testImportFundInfo() throws IOException, JAXBException {
         Path inputFile = Path.of(FUND_DIR, FUND_FILE);
 
-        ImportFundInfo ifi = new ImportFundInfo();
+        ImportFundInfo ifi = new ImportFundInfo(null);
         ApuSourceBuilder builder = ifi.importFundInfo(inputFile, FUND_DIR + "/" + PROPERTIES_FILE);
 
         Path outputPath = Path.of(FUND_DIR, APUSRC_XML);

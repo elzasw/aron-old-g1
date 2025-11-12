@@ -12,6 +12,7 @@ import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import cz.aron.apux.ApuSourceBuilder;
@@ -52,10 +53,12 @@ public class ImportFundElza implements FundImporter {
     private final ConfigurationLoader configurationLoader;
     
     private final ConfigElza configElza;
+    
+    private final ImportFundResultBuilder resultBuilder;
 
 	public ImportFundElza(FundService fundService, FundRepository fundRepository, StorageService storageService,
 			InstitutionRepository institutionRepository, DatabaseDataProvider databaseDataProvider,
-			ConfigurationLoader configurationLoader, ConfigElza configElza) {
+			ConfigurationLoader configurationLoader, ConfigElza configElza, @Nullable ImportFundResultBuilder resultBuilder) {
 		this.fundService = fundService;
 		this.fundRepository = fundRepository;
 		this.storageService = storageService;
@@ -63,6 +66,7 @@ public class ImportFundElza implements FundImporter {
 		this.databaseDataProvider = databaseDataProvider;
 		this.configurationLoader = configurationLoader;
 		this.configElza = configElza;
+		this.resultBuilder = resultBuilder;
 	}
 
 	@Override
@@ -107,7 +111,7 @@ public class ImportFundElza implements FundImporter {
 		var fund = fundRepository.findByCode(fundCode);
 		UUID fundUuid = (fund != null) ? fund.getUuid() : null;
 
-		var ifi = new ImportFundInfo();
+		var ifi = new ImportFundInfo(resultBuilder);
 		ApuSourceBuilder apusrcBuilder;
 
 		try {
@@ -161,7 +165,7 @@ public class ImportFundElza implements FundImporter {
         var fileName = PREFIX + fund.getCode() + ".xml";
         var apuDir = storageService.getApuDataDir(apuSource.getDataDir());
         ApuSourceBuilder apuSourceBuilder;
-        var ifi = new ImportFundInfo();
+        var ifi = new ImportFundInfo(resultBuilder);
         try {
             apuSourceBuilder = ifi.importFundInfo(apuDir.resolve(fileName), fund.getUuid(), databaseDataProvider, configElza.isArchdescFlag());
             apuSourceBuilder.setUuid(apuSource.getUuid());

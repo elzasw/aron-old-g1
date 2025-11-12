@@ -39,6 +39,8 @@ import cz.tacr.elza.schema.v2.Section;
 import cz.tacr.elza.schema.v2.Sections;
 
 public class ImportFundInfo {
+	
+	private final ImportFundResultBuilder resultBuilder;
 
 	private ElzaXmlReader elzaXmlReader;
 
@@ -49,10 +51,14 @@ public class ImportFundInfo {
 	private String institutionCode;
 	
 	private boolean archdescFlag;
-	
+
+	public ImportFundInfo(ImportFundResultBuilder resultBuilder) {
+		this.resultBuilder = resultBuilder;
+	}
+
 	public static void main(String[] args) {
 		Path inputFile = Path.of(args[0]);
-		ImportFundInfo ifi = new ImportFundInfo();
+		ImportFundInfo ifi = new ImportFundInfo(null);
 		try {
 			ApuSourceBuilder apusrcBuilder = ifi.importFundInfo(inputFile, args[1]);
 			Path ouputPath = Paths.get(args[2]);
@@ -111,13 +117,13 @@ public class ImportFundInfo {
 		apusBuilder.addString(partName, CoreTypes.TITLE, fundName);
 
 		institutionCode = fi.getIc();
-		var instIndo = dataProvider.getInstitutionApu(institutionCode);
-		if(instIndo==null) {
+		var instInfo = dataProvider.getInstitutionApu(institutionCode);
+		if(instInfo==null) {
             throw new RuntimeException("Missing institution: " + institutionCode);
 		}
 
 		Part partFundInfo = apusBuilder.addPart(apu, CoreTypes.PT_FUND_INFO);
-		apusBuilder.addApuRef(partFundInfo, "INST_REF", instIndo.getUuid());
+		apusBuilder.addApuRef(partFundInfo, "INST_REF", instInfo.getUuid());
 		var rootLvlUuid = getRootLevelUuid(sect.getLvls());
 		if(rootLvlUuid!=null) {
 			apusBuilder.addApuRef(partFundInfo, "ARCHDESC_ROOT_REF", rootLvlUuid);
@@ -174,6 +180,13 @@ public class ImportFundInfo {
             }
         }
 
+        if (resultBuilder != null) {			
+			var result = resultBuilder.buildResult(fi, instInfo, apu.getUuid());
+			if (result!=null) {
+				apu.setResult(result);
+			}
+		}
+        
         return apusBuilder;
     }
 	

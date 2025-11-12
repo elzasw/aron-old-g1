@@ -63,7 +63,7 @@ public class DatabaseDataProvider implements ContextDataProvider {
             UUID uuid = institution.getUuid();
             ApuSource apuSrc = institution.getApuSource();
             Path fileXml = storageService.getDataPath().resolve(apuSrc.getDataDir()).resolve(apuSrc.getOrigDir() + ".xml");
-            ImportInstitution ii = new ImportInstitution();
+            ImportInstitution ii = new ImportInstitution(null);
             try {
                 ii.importInstitution(fileXml, instCode, uuid);
             } catch (IOException | JAXBException e) {

@@ -13,6 +13,7 @@ import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.FileSystemUtils;
@@ -26,6 +27,7 @@ import cz.aron.transfagent.domain.EntitySource;
 import cz.aron.transfagent.domain.Institution;
 import cz.aron.transfagent.domain.SourceType;
 import cz.aron.transfagent.elza.ImportInstitution;
+import cz.aron.transfagent.elza.ImportInstitutionResultBuilder;
 import cz.aron.transfagent.repository.ApuSourceRepository;
 import cz.aron.transfagent.repository.ArchivalEntityRepository;
 import cz.aron.transfagent.repository.CoreQueueRepository;
@@ -74,6 +76,8 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
     private final ArchivalEntityService archivalEntityService;
 
     private final String INSTITUTIONS_DIR = "institutions";
+    
+    private final ImportInstitutionResultBuilder resultBuilder;
 
     private ImportProtocol protocol;
 
@@ -83,7 +87,8 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
             CoreQueueRepository coreQueueRepository, DatabaseDataProvider databaseDataProvider, TransactionTemplate transactionTemplate,
             ConfigurationLoader configurationLoader,
             ArchivalEntityService archivalEntityService,
-            FileImportService fileImportService) {
+            FileImportService fileImportService,
+            @Nullable ImportInstitutionResultBuilder resultBuilder) {
         this.apuSourceService = apuSourceService;
         this.reimportService = reimportService;
         this.storageService = storageService;
@@ -97,6 +102,7 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
         this.configurationLoader = configurationLoader;
         this.archivalEntityService = archivalEntityService;
         this.fileImportService = fileImportService;
+        this.resultBuilder = resultBuilder;
     }
 
     @PostConstruct
@@ -182,7 +188,7 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
 	}
 	
 	private void importInstitution(Path dir, Path instFilePath, String code) {
-		var ii = new ImportInstitution();
+		var ii = new ImportInstitution(resultBuilder);
 		ApuSourceBuilder apusrcBuilder;
 
         try {
@@ -329,7 +335,7 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
         String fileName = "institution-"+institution.getCode()+".xml";
 
         ApuSourceBuilder apuSourceBuilder;
-        final var ii = new ImportInstitution();
+        var ii = new ImportInstitution(resultBuilder);
         try {
             apuSourceBuilder = ii.importInstitution(apuDir.resolve(fileName), institution.getCode(), institution.getUuid());
             apuSourceBuilder.setUuid(apuSource.getUuid());
