@@ -16,6 +16,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -63,12 +64,14 @@ public class ImportFindingAidElza implements FindingAidImporter {
 	private final TransactionTemplate transactionTemplate;
 	
 	private final AttachmentRepository attachmentRepository;
+	
+	private final ImportFindingAidResultBuilder resultBuilder;
 
 	public ImportFindingAidElza(FundRepository fundRepository, FindingAidRepository findingAidRepository,
 			InstitutionRepository institutionRepository, StorageService storageService,
 			FindingAidService findingAidService, DatabaseDataProvider databaseDataProvider,
 			ConfigurationLoader configurationLoader, TransactionTemplate transactionTemplate,
-			AttachmentRepository attachmentRepository) {
+			AttachmentRepository attachmentRepository, @Nullable ImportFindingAidResultBuilder resultBuilder) {
 		super();
 		this.fundRepository = fundRepository;
 		this.findingAidRepository = findingAidRepository;
@@ -79,6 +82,7 @@ public class ImportFindingAidElza implements FindingAidImporter {
 		this.configurationLoader = configurationLoader;
 		this.transactionTemplate = transactionTemplate;
 		this.attachmentRepository = attachmentRepository;
+		this.resultBuilder = resultBuilder;
 	}
 
 	@Override
@@ -136,7 +140,7 @@ public class ImportFindingAidElza implements FindingAidImporter {
 			apusourceUuid = UUID.randomUUID();
 		}
 
-		var ifai = new ImportFindingAidInfo(findingAidCode);
+		var ifai = new ImportFindingAidInfo(findingAidCode, resultBuilder);
 		ApuSourceBuilder builder;
 
 		try {
@@ -231,7 +235,7 @@ public class ImportFindingAidElza implements FindingAidImporter {
         String fileXml = FINDING_AID_DASH + findingAid.getCode() + ".xml";
 
         ApuSourceBuilder builder;
-        var ifai = new ImportFindingAidInfo(findingAid.getCode());
+        var ifai = new ImportFindingAidInfo(findingAid.getCode(), resultBuilder);
         try {
             builder = ifai.importFindingAidInfo(apuPath.resolve(fileXml), findingAid.getUuid(), databaseDataProvider);
             builder.setUuid(apuSource.getUuid());

@@ -44,7 +44,7 @@ public class ImportFindingAidInfoTest {
     public void testImportFundInfo() throws IOException, JAXBException {
         Path inputFile = Path.of(FINDING_AID_DIR, FINDING_AID_FILE);
 
-        var ifai = new ImportFindingAidInfo(FINDING_AID_CODE);
+        var ifai = new ImportFindingAidInfo(FINDING_AID_CODE, null);
         ApuSourceBuilder builder = ifai.importFindingAidInfo(inputFile, FINDING_AID_DIR + "/" + PROPERTIES_FILE);
 
         Path outputPath = Path.of(FINDING_AID_DIR, APUSRC_XML);

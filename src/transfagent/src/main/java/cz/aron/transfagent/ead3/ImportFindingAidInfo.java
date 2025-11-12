@@ -16,6 +16,7 @@ import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.apux._2020.Apu;
 import cz.aron.apux._2020.ApuType;
 import cz.aron.apux._2020.Part;
+import cz.aron.transfagent.elza.ImportFindingAidResultBuilder;
 import cz.aron.transfagent.transformation.ContextDataProvider;
 import cz.aron.transfagent.transformation.CoreTypes;
 import cz.aron.transfagent.transformation.PropertiesDataProvider;
@@ -31,9 +32,12 @@ public class ImportFindingAidInfo {
     private String institutionCode;
 
     private String fundCode;
+    
+    private final ImportFindingAidResultBuilder resultBuilder;
 
-    public ImportFindingAidInfo(String fundCode) {
+    public ImportFindingAidInfo(String fundCode, ImportFindingAidResultBuilder resultBuilder) {
         this.fundCode = fundCode;
+        this.resultBuilder = resultBuilder;
     }
 
     public ApuSourceBuilder importFindingAidInfo(Path inputFile, String propFile) throws IOException, JAXBException {
@@ -100,6 +104,13 @@ public class ImportFindingAidInfo {
         builder.addApuRef(partRef, "FUND_REF", fundApuUuid);
         builder.addApuRef(partRef, "FUND_INST_REF", instInfo.getUuid());
 
+        if (resultBuilder!=null) {
+        	var result = resultBuilder.buildResult(ead3XmlReader, instInfo, apu.getUuid());
+			if (result!=null) {
+				apu.setResult(result);
+			}        	
+        }
+        
         return builder;
     }
 
