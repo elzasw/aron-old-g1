@@ -68,9 +68,9 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 
 	private final ArchivalEntityRepository aeRepository;
 	
-	private final ThumbnailFileStore thumbnailFileStore;
+	private final ThumbnailFileStoreI thumbnailFileStore;
 
-	public ImportArchDescResultBuilderImpl(ObjectMapper objectMapper, ArchivalEntityRepository aeRepository, ThumbnailFileStore thumbnailFileStore) {
+	public ImportArchDescResultBuilderImpl(ObjectMapper objectMapper, ArchivalEntityRepository aeRepository, ThumbnailFileStoreI thumbnailFileStore) {
 		this.objectMapper = objectMapper;
 		this.aeRepository = aeRepository;
 		this.thumbnailFileStore = thumbnailFileStore;
@@ -681,4 +681,8 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 	}
 
+	public interface ThumbnailFileStoreI {
+		void fillThumbnailLink(String daoLink, Result result);	
+	}
+	
 }

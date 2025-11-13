@@ -2,7 +2,6 @@ package cz.aron.customizations.soaplzen;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -24,11 +23,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import cz.aron.core.api.rest.model.Result;
+import cz.aron.customizations.soaplzen.ImportArchDescResultBuilderImpl.ThumbnailFileStoreI;
 import cz.aron.transfagent.common.MonitoredFileResource;
 
 @Service
 @ConditionalOnProperty(value = "filestore5.path")
-public class ThumbnailFileStore {
+public class ThumbnailFileStore implements ThumbnailFileStoreI{
 	
 	private static final Logger log = LoggerFactory.getLogger(ThumbnailFileStore.class);
 	
