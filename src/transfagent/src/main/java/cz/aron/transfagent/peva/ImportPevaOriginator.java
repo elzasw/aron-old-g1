@@ -139,6 +139,7 @@ public class ImportPevaOriginator implements OriginatorImporter {
 		var apuDir = storageService.getApuDataDir(apuSource.getDataDir());
 		ApuSourceBuilder apuSourceBuilder;
 		var ipoi = new ImportPevaOriginatorInfo(apTypeService, codeLists);
+		var send = sendToAron;
 		try {			
 			apuSourceBuilder = ipoi.importOriginator(apuPath.resolve(fileName), contextDataProvider);
 			
@@ -151,7 +152,6 @@ public class ImportPevaOriginator implements OriginatorImporter {
 				return ReimportProcessor.Result.NOCHANGES;
 			}
 			Files.write(apuSrcXmlPath, newContent);			
-			boolean send = sendToAron;
 			archivalEntityService.createOrUpdateArchivalEntity(apuPath, apuPath,
 					UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), ENTITY_CLASS, send);
 		} catch (Exception e) {
@@ -159,7 +159,11 @@ public class ImportPevaOriginator implements OriginatorImporter {
 			return ReimportProcessor.Result.FAILED;
 		}
 		log.info("Originator id={}, uuid={} reimported", archivalEntity.getId(), archivalEntity.getUuid());
-		return ReimportProcessor.Result.REIMPORTED;
+		if (send) {
+			return ReimportProcessor.Result.REIMPORTED;
+		} else {
+			return ReimportProcessor.Result.REIMPORTED_NO_SEND;
+		}
 	}
 
 }
