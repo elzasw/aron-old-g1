@@ -35,6 +35,9 @@ public class Institution {
 
     @Column(nullable = false)
     private String source;
+    
+    @Column(name = "name")
+    private String name;
 
     public Integer getId() {
         return id;
@@ -75,5 +78,13 @@ public class Institution {
     public void setSource(String source) {
         this.source = source;
     }
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 
 }

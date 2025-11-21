@@ -11,6 +11,7 @@ public class InstitutionDefVO extends InstitutionDef {
 		setCode(inst.getCode());
 		setDeleted(inst.getApuSource().isDeleted());
 		setUuid(inst.getUuid().toString());
+		setName(inst.getName());
 	}
 	
 }

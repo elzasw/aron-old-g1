@@ -5,6 +5,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -250,6 +251,7 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
 			newInstitution.setCode(institutionCode);
 			newInstitution.setSource("source");
 			newInstitution.setUuid(institutionUuid);
+			newInstitution.setName(ii.getShortName());
 			newInstitution = institutionRepository.save(newInstitution);
 
 			if (ii.getApRefUuid() != null) {
@@ -278,6 +280,9 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
 			if (ii.getApRefUuid() != null) {
 				var apUuid = ii.getApRefUuid();
 				createArchivalEntityIfNotExist(apUuid, apuSource, institutionCode, true);
+			}
+			if (!Objects.equals(institution.getName(), ii.getShortName())) {
+				institution.setName(ii.getShortName());
 			}
 
 			var coreQueue = new CoreQueue();
@@ -332,8 +337,7 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
             protocol.add("Missing institution: " + apuSource.getId());
             return Result.UNSUPPORTED;
         }
-        String fileName = "institution-"+institution.getCode()+".xml";
-
+        String fileName = "institution-"+institution.getCode()+".xml";        
         ApuSourceBuilder apuSourceBuilder;
         var ii = new ImportInstitution(resultBuilder);
         try {
@@ -342,6 +346,12 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
             try (var os = Files.newOutputStream(apuDir.resolve("apusrc.xml"))) {
                 apuSourceBuilder.build(os, new ApuValidator(configurationLoader.getConfig()));
             }
+            if (!Objects.equals(institution.getName(), ii.getShortName())) {
+				institution.setName(ii.getShortName());
+				transactionTemplate.executeWithoutResult(t->{
+					institutionRepository.save(institution);	
+				});				
+			}
         } catch (Exception e) {
             log.error("Fail to process downloaded {}, dir={}", fileName, apuDir, e);
             protocol.add("Chyba " + e.getMessage());

@@ -534,5 +534,16 @@
     <addNotNullConstraint tableName="apu_source"
       columnDataType="boolean" columnName="force" />
  </changeSet>
+ 
+ <changeSet author="karel.zacek@lightcomp.cz" id="13">
+ 	<addColumn tableName="institution">
+      <column name="name" type="varchar(128)" />
+    </addColumn>
+    <addColumn tableName="fund">
+      <column name="name" type="text" />
+      <column name="nad" type="int" />
+      <column name="sub_nad" type="int" />
+    </addColumn>
+ </changeSet>
 
 </databaseChangeLog>

@@ -209,7 +209,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
         }
 		
 		if (ifi.getState()==State.MOVED) {
-			processInvalidFund(fund, fundCode, apusrcBuilder, dir, fundXml, institution);
+			processInvalidFund(fund, fundCode, apusrcBuilder, dir, fundXml, institution, ifi.getFundName(), ifi.getPrimarySheetNumberInt(), ifi.getSubSheetNumber());
 			return true;
 		}
         
@@ -251,20 +251,26 @@ public class ImportPevaFund implements FundImporter, FundProvider {
         tt.executeWithoutResult(t->{        	        	        	
         	var fnd = fund;        	
         	if (fnd == null) {
-                fnd = fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE);            
+				fnd = fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE,
+						ifi.getFundName(), ifi.getPrimarySheetNumberInt(), ifi.getSubSheetNumber());            
             } else {
             	// aktualizace uuid fondu, doporuceno pro vyvojovou instanci
 				if (configPeva2.getFundProperties() != null && configPeva2.getFundProperties().isUpdateUUID()) {
 					var fundUUIDStr = apusrcBuilder.getMainApu().getUuid();
-					if (StringUtils.isNotBlank(fundUUIDStr)
-							&& !Objects.equals(fund.getUuid(), UUID.fromString(fundUUIDStr))) {
+					if ( (StringUtils.isNotBlank(fundUUIDStr)
+							&& !Objects.equals(fund.getUuid(), UUID.fromString(fundUUIDStr))) ||
+							!Objects.equals(fund.getName(), ifi.getFundName()) ||
+							!Objects.equals(fund.getNad(), ifi.getPrimarySheetNumberInt()) ||
+							!Objects.equals(fund.getSubNad(), ifi.getSubSheetNumber()) ) {
 						log.info("Fund {} uuid updated {}->{}", fund.getCode(), fund.getUuid(), fundUUIDStr);
 						fundRepository.findById(fund.getId()).ifPresent(f -> {
 							f.setUuid(UUID.fromString(fundUUIDStr));
+							f.setName(ifi.getFundName());
+							f.setNad(ifi.getPrimarySheetNumberInt());
+							f.setSubNad(ifi.getSubSheetNumber());
 						});
 					}
-				}
-				
+				}				
 				fundService.updateFund(fnd, dataDir, dir, true);
             }
             var originatorUuids = ifi.getOriginatorIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
@@ -300,7 +306,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 	 * @param fundXml path source file
 	 */
 	private void processInvalidFund(Fund fund, String fundCode, ApuSourceBuilder apusrcBuilder, Path dir,
-			Path fundXml, Institution institution) {
+			Path fundXml, Institution institution, String name, Integer nad, Integer subNad) {
 		// vygeneruji apusource.xml
 		try (var fos = Files.newOutputStream(dir.resolve(StorageService.APUSRC_XML))) {
 			apusrcBuilder.build(fos, new ApuValidator(configurationLoader.getConfig()));
@@ -341,7 +347,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			});
 		} else {
 			// vytvorim fond v databazi
-			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE);
+			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE, name, nad, subNad);
 		}
 	}
 
@@ -444,6 +450,16 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 					if (apuSource.isDeleted()||apuSource.isForce()) {
 						f.getApuSource().setDeleted(false);
 						f.getApuSource().setForce(false);
+					}
+					
+					if (!Objects.equals(f.getName(),ifi.getFundName())) {
+						f.setName(ifi.getFundName());
+					}
+					if (!Objects.equals(f.getNad(),ifi.getPrimarySheetNumberInt())) {
+						f.setNad(ifi.getPrimarySheetNumberInt());
+					}
+					if (!Objects.equals(f.getSubNad(), ifi.getSubSheetNumber())) {
+						f.setSubNad(ifi.getSubSheetNumber());
 					}
 					
 					// referenced originators

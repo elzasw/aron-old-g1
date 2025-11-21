@@ -73,6 +73,8 @@ export default {
         "fundColumn.source" : "Zdroj dat",
         "fundColumn.apusourceId" : "Apusrc id",
         "fundColumn.institutionId" : "Číslo archivu",
+        "fundColumn.nad" : "Číslo NAD",
+        "fundColumn.name" : "Název fondu",        
 
         "entity.delete.confirm.title": "Smazat archivní entitu",
         "entity.delete.confirm.message": "Přejete si smazat archivní entitu s id: {id}?",
@@ -137,6 +139,7 @@ export default {
         "institutionColumn.code" : "Číslo archivu",
         "institutionColumn.apusourceId" : "Apusrc id",
         "institutionColumn.institutionId" : "Id",
+        "institutionColumn.name" : "Název archivu",
 
         "userColumn.actions" : " ",
         "userColumn.username" : "Uživatelské jméno",

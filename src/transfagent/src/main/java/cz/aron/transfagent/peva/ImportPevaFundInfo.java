@@ -90,11 +90,15 @@ public class ImportPevaFundInfo {
     
     private String primarySheetNumber;
     
+    private Integer primarySheetNumberInt;
+    
     private Integer subSheetNumber;
     
     private boolean valid;
     
     private State state;
+    
+    private String fundName;
     
     private final List<String> originators = new ArrayList<>();
     
@@ -234,7 +238,8 @@ public class ImportPevaFundInfo {
 		return instInfo;
 	}
     
-	private String createFundName(InstitutionInfo institutionInfo, NadSheet nadSheet) {		
+	private String createFundName(InstitutionInfo institutionInfo, NadSheet nadSheet) {
+		fundName = nadSheet.getHeader().getName();
 		if (fundProperties.isNameSearch("name")) {
 			nameSearchComponent.add(nadSheet.getHeader().getName());
 		}		
@@ -287,6 +292,13 @@ public class ImportPevaFundInfo {
 	private void processEvidenceNumber(NadPrimarySheet primarySheet, NadSubsheet subsheet, Part partFundInfo) {
 		if (StringUtils.isNotBlank(primarySheet.getEvidenceNumber())) {
 			primarySheetNumber = primarySheet.getEvidenceNumber();
+			if (primarySheetNumber!=null) {
+				try {
+					primarySheetNumberInt = Integer.parseInt(primarySheetNumber);
+				} catch (NumberFormatException e) {
+					// ignore
+				}
+			}						
 			if (subsheet != null && subsheet.getNumber() != null) {
 				subSheetNumber = subsheet.getNumber();
 				ApuSourceBuilder.addString(partFundInfo, "CISLO_NAD",
@@ -1239,6 +1251,10 @@ public class ImportPevaFundInfo {
 		return primarySheetNumber;
 	}
 
+	public Integer getPrimarySheetNumberInt() {
+		return primarySheetNumberInt;
+	}
+
 	public Integer getSubSheetNumber() {
 		return subSheetNumber;
 	}
@@ -1250,5 +1266,9 @@ public class ImportPevaFundInfo {
 	public State getState() {
 		return state;
 	}	
-	
+
+	public String getFundName() {
+		return fundName;
+	}
+
 }

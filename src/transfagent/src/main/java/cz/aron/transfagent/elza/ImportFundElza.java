@@ -21,13 +21,11 @@ import cz.aron.transfagent.config.ConfigElza;
 import cz.aron.transfagent.config.ConfigurationLoader;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.Fund;
-import cz.aron.transfagent.domain.SourceType;
 import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
 import cz.aron.transfagent.service.FundService;
 import cz.aron.transfagent.service.StorageService;
 import cz.aron.transfagent.service.importfromdir.ImportFundService.FundImporter;
-import cz.aron.transfagent.service.importfromdir.ReimportProcessor;
 import cz.aron.transfagent.service.importfromdir.ReimportProcessor.Result;
 import cz.aron.transfagent.transformation.DatabaseDataProvider;
 
@@ -148,7 +146,7 @@ public class ImportFundElza implements FundImporter {
 		}
 
 		if (fund == null) {
-			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE);
+			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE, null, null, null);
 		} else {
 			fundService.updateFund(fund, dataDir, dir, true);
 		}

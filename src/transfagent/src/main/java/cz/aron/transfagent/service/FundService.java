@@ -72,7 +72,7 @@ public class FundService {
 	 */
 	@Transactional
 	public Fund createFund(Institution institution, Path dataDir, Path origDir, ApuSourceBuilder apusrcBuilder,
-			String fundCode, String source) {
+			String fundCode, String source, String name, Integer nad, Integer subNad) {
 
 		var fundUuid = apusrcBuilder.getMainApu().getUuid();
 		Validate.notNull(fundUuid, "Fund UUID is null");
@@ -89,6 +89,9 @@ public class FundService {
 		fund.setCode(fundCode);
 		fund.setSource(source);
 		fund.setUuid(UUID.fromString(fundUuid));
+		fund.setName(name);
+		fund.setNad(nad);
+		fund.setSubNad(subNad);
 		fund = fundRepository.save(fund);
 
 		var coreQueue = new CoreQueue();

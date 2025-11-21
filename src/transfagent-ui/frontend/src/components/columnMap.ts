@@ -105,6 +105,14 @@ export const cInfoFunds: ColumnInfo<FundDef>[] = [
         width: 300,
     },
     {
+        code: "nad",
+        width: 100,
+    },
+    {
+        code: "name",
+        width: 300,
+    },
+    {
         code: "source",
         width: 170,
     },
@@ -238,12 +246,16 @@ export const institutionColumnInfo: ColumnInfo<InstitutionDef>[] = [
     },
     {
         code: "code",
-        width: 300,
+        width: 150,
     },
     {
         code: "apusourceId",
         width: 170,
     },
+    {
+        code: "name",
+        width: 300,
+    }
 ]
 
 export const userColumnInfo: ColumnInfo<UserDef>[] = [

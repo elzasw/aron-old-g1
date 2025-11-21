@@ -48,6 +48,15 @@ public class Fund {
 
     @Column(nullable = false)
     private String source;
+    
+    @Column(name = "name")
+    private String name;
+    
+	@Column(name = "nad")
+    private Integer nad;
+    
+	
+    private Integer subNad;
 
     public Integer getId() {
         return id;
@@ -103,6 +112,30 @@ public class Fund {
 
 	public void setFindingAids(Set<FindingAid> findingAids) {
 		this.findingAids = findingAids;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Integer getNad() {
+		return nad;
+	}
+
+	public void setNad(Integer nad) {
+		this.nad = nad;
+	}
+
+	public Integer getSubNad() {
+		return subNad;
+	}
+
+	public void setSubNad(Integer subNad) {
+		this.subNad = subNad;
 	}
 
 	@Override
