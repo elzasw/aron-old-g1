@@ -629,7 +629,12 @@ components:
           type: integer
           format: int64
         deleted:
-          type: boolean          
+          type: boolean
+        name:
+          type: string
+        nad:
+          type: string
+          format: int32
       description: Fund definition
     FundsResponse:
       type: object
@@ -702,7 +707,9 @@ components:
           type: integer
           format: int64
         deleted:
-          type: boolean          
+          type: boolean
+        name:
+          type: string
       description: Fund definition
     InstitutionResponse:
       type: object
