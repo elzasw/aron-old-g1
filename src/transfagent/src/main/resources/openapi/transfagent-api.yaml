@@ -569,6 +569,8 @@ components:
         - fundId
         - institutionId
         - deleted
+        - numAttachments
+        - numDaos        
       properties:
         findingAidId:
           type: integer
@@ -587,7 +589,15 @@ components:
           type: integer
           format: int64
         deleted:
-          type: boolean          
+          type: boolean
+        evidenceNumber:
+          type: string
+        numAttachments:
+          type: integer
+          format: int32
+        numDaos:
+          type: integer
+          format: int32          
       description: Fnding aid definition
     FindingAidsResponse:
       type: object
@@ -612,6 +622,8 @@ components:
         - apusourceId
         - institutionId
         - deleted
+        - numAttachments
+        - numDaos
       properties:
         fundId:
           type: integer
@@ -635,6 +647,12 @@ components:
         nad:
           type: string
           format: int32
+        numAttachments:
+          type: integer
+          format: int32
+        numDaos:
+          type: integer
+          format: int32        
       description: Fund definition
     FundsResponse:
       type: object

@@ -146,9 +146,9 @@ public class ImportFundElza implements FundImporter {
 		}
 
 		if (fund == null) {
-			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE, null, null, null);
+			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE, null, null, null, 0, 0);
 		} else {
-			fundService.updateFund(fund, dataDir, dir, true);
+			fundService.updateFund(fund, dataDir, dir, true, 0, 0);
 		}
 		return true;
 	}

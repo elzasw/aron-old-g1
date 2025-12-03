@@ -129,7 +129,7 @@ export const AidsList = () => {
         } else if (propCode === "institutionId") {
             const institutionId = item[propCode];
             const institution = institutions.itemsMap[institutionId];
-            return <Link to={getInstitutionsPath(institutionId)}>{institution?.code || institutionId}</Link>
+            return <Link to={getInstitutionsPath(institutionId)}>{institution?.name|| institutionId}</Link>
         }
         return item[propCode];
     };

@@ -544,6 +544,24 @@
       <column name="nad" type="int" />
       <column name="sub_nad" type="int" />
     </addColumn>
+ </changeSet> 
+ <changeSet author="karel.zacek@lightcomp.cz" id="14">
+  	<addColumn tableName="finding_aid">
+      <column name="evidence_number" type="int" />
+      <column name="part_number" type="int" />
+    </addColumn>
  </changeSet>
-
+ <changeSet author="karel.zacek@lightcomp.cz" id="15">
+  	<addColumn tableName="apu_source">
+      <column name="num_attachments" type="int" />
+      <column name="num_daos" type="int" />
+    </addColumn>
+        <sql>
+      update apu_source set num_attachments=0, num_daos=0;
+    </sql>
+    <addNotNullConstraint tableName="apu_source"
+      columnDataType="boolean" columnName="num_attachments" />
+    <addNotNullConstraint tableName="apu_source"
+      columnDataType="boolean" columnName="num_daos" />    
+ </changeSet>
 </databaseChangeLog>

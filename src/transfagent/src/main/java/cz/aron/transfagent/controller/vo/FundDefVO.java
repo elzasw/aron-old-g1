@@ -14,6 +14,8 @@ public class FundDefVO extends FundDef {
         setUuid(fund.getUuid().toString());
         setDeleted(fund.getApuSource().isDeleted());
         setName(fund.getName());
+        setNumAttachments(fund.getApuSource().getNumAttachments());
+        setNumDaos(fund.getApuSource().getNumDaos());
         if (fund.getNad() != null) {
         	if (fund.getSubNad()!=null) {
         		setNad(fund.getNad().toString() + "/" + fund.getSubNad().toString());		

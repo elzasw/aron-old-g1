@@ -88,7 +88,7 @@ public class ArchivalEntityService {
 	 */
 	private void createArchivalEntity(Path dataDir, Path origDir, UUID apuSourceUuid, String entityClass, boolean insertToCoreQueue) {		
 		var apuSource = apuSourceService.createApuSource(apuSourceUuid, SourceType.ARCH_ENTITY, dataDir,
-				origDir.getFileName().toString());
+				origDir.getFileName().toString(), 0, 0);
 		
 		var archivalEntity = new ArchivalEntity();
 		archivalEntity.setApuSource(apuSource);
@@ -121,7 +121,7 @@ public class ArchivalEntityService {
 			apuSource.setOrigDir(origDir.getFileName().toString());
 		} else {
 			apuSource = apuSourceService.createApuSource(apuSourceUuid, SourceType.ARCH_ENTITY, dataDir,
-					origDir.getFileName().toString());
+					origDir.getFileName().toString(), 0, 0);
 			archivalEntity.setApuSource(apuSource);
 		}
 		archivalEntity.setStatus(EntityStatus.AVAILABLE);

@@ -188,9 +188,9 @@ public class ImportFindingAidElza implements FindingAidImporter {
 
 		if (findingAid == null) {
 			findingAidService.createFindingAid(findingAidCode, Collections.singletonList(fund), institution, dataDir,
-					dir, builder, attachments, false, true);
+					dir, builder, attachments, false, true, null, null, 0, 0);
 		} else {
-			findingAidService.updateFindingAid(findingAid, dataDir, dir, builder, attachments, false, true);
+			findingAidService.updateFindingAid(findingAid, dataDir, dir, builder, attachments, false, true, null, null, 0, 0);
 		}
 		return true;
 	}

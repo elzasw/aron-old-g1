@@ -317,7 +317,7 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         var apuSourceUuid = apuSourceUuidStr == null? UUID.randomUUID() : UUID.fromString(apuSourceUuidStr); 
 
         var apuSource = apuSourceService.createApuSource(apuSourceUuid, SourceType.ARCH_DESCS, 
-            		dataDir, origDir.getFileName().toString());
+            		dataDir, origDir.getFileName().toString(), 0, 0);
 
         var archDesc = new ArchDesc();
         archDesc.setApuSource(apuSource);

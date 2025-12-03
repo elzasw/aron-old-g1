@@ -339,7 +339,7 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
 	                           Set<Integer> requiredEntities, 
 	                           Set<UUID> referencedEntities) {
 		UUID apusrcUuid = UUID.fromString(apuSourceBuilder.getApusrc().getUuid());
-		var apuSource = apuSourceService.createApuSource(apusrcUuid, SourceType.ARCH_ENTITY, dataDir, "");
+		var apuSource = apuSourceService.createApuSource(apusrcUuid, SourceType.ARCH_ENTITY, dataDir, "", 0, 0);
 
 		ae.setStatus(EntityStatus.AVAILABLE);
 		ae.setApuSource(apuSource);

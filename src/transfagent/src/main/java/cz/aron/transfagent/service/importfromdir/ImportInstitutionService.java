@@ -244,7 +244,7 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
 			UUID apusrcUuid = UUID.fromString(apusrcBuilder.getApusrc().getUuid());
 			// instituce neexistuje, vytvorim novou			
 			var apuSource = apuSourceService.createApuSource(apusrcUuid, SourceType.INSTITUTION, 
-					dataDir, origDir.getFileName().toString());
+					dataDir, origDir.getFileName().toString(),0,0);
 
 			var newInstitution = new Institution();
 			newInstitution.setApuSource(apuSource);

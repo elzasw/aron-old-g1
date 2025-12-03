@@ -46,6 +46,12 @@ public class ApuSource {
     @Column(nullable=false)
     private boolean force;
 
+    @Column(name="num_attachments", nullable=false)
+    private int numAttachments;
+
+    @Column(name="num_daos", nullable=false)
+    private int numDaos;
+    
     @JoinColumn(name = "date_imported", nullable = true)
     private ZonedDateTime dateImported;
     
@@ -130,6 +136,22 @@ public class ApuSource {
 
 	public void setLastSent(Long lastSent) {
 		this.lastSent = lastSent;
+	}
+
+	public int getNumAttachments() {
+		return numAttachments;
+	}
+
+	public void setNumAttachments(int numAttachments) {
+		this.numAttachments = numAttachments;
+	}
+
+	public int getNumDaos() {
+		return numDaos;
+	}
+
+	public void setNumDaos(int numDaos) {
+		this.numDaos = numDaos;
 	}
 
 }

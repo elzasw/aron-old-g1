@@ -72,7 +72,7 @@ public class FundService {
 	 */
 	@Transactional
 	public Fund createFund(Institution institution, Path dataDir, Path origDir, ApuSourceBuilder apusrcBuilder,
-			String fundCode, String source, String name, Integer nad, Integer subNad) {
+			String fundCode, String source, String name, Integer nad, Integer subNad, int numAttachments, int numDaos) {
 
 		var fundUuid = apusrcBuilder.getMainApu().getUuid();
 		Validate.notNull(fundUuid, "Fund UUID is null");
@@ -81,7 +81,7 @@ public class FundService {
 		var apuSourceUuid = apuSourceUuidStr == null ? UUID.randomUUID() : UUID.fromString(apuSourceUuidStr);
 
 		var apuSource = apuSourceService.createApuSource(apuSourceUuid, SourceType.FUND, dataDir,
-				origDir.getFileName().toString());
+				origDir.getFileName().toString(), numAttachments, numDaos);
 
 		var fund = new Fund();
 		fund.setApuSource(apuSource);
@@ -113,11 +113,13 @@ public class FundService {
 	 * @param insertToCoreQueue pokud je true vlozi udalost do CoreQueue
 	 */
 	@Transactional
-	public void updateFund(Fund fund, Path dataDir, Path origDir, boolean insertToCoreQueue) {
+	public void updateFund(Fund fund, Path dataDir, Path origDir, boolean insertToCoreQueue, int numAttachments, int numDaos) {
 		var oldDir = fund.getApuSource().getDataDir();
 		var apuSource = fund.getApuSource();
 		apuSource.setDataDir(dataDir.toString());
 		apuSource.setOrigDir(origDir.getFileName().toString());
+		apuSource.setNumAttachments(numAttachments);
+		apuSource.setNumDaos(numDaos);
 		apuSourceRepository.save(apuSource);
 		if (insertToCoreQueue) {
 			var coreQueue = new CoreQueue();
@@ -128,7 +130,7 @@ public class FundService {
 	}
 	
 	
-	@Transactional
+	@Transactional(readOnly = true)
     public FundsResponse getFunds(String code, String uuid, int page, int pageSize) {
 	    CriteriaBuilder cbCount = em.getCriteriaBuilder();
         CriteriaQuery<Long> cqCount = cbCount.createQuery(Long.class);
@@ -162,19 +164,20 @@ public class FundService {
             // no filter
             return;
         }
-        Predicate p = cb.conjunction();
+        Predicate p = cb.disjunction();
         if (code!=null) {
         	boolean predicateCreated = false;
         	try {
         		var tmpUUID = UUID.fromString(code);
-        		p = cb.and(p, cb.equal(root.get("uuid"), tmpUUID));
+        		p = cb.or(p, cb.equal(root.get("uuid"), tmpUUID));
         		predicateCreated = true;
         	} catch (IllegalArgumentException e) {
         		// ignore
         	}
         	try {
         		var id = Integer.parseInt(code);
-        		p = cb.and(p, cb.equal(root.get("id"), id));
+        		p = cb.or(p, cb.equal(root.get("id"), id));
+				p = cb.or(p, cb.equal(root.get("nad"), id));
         		predicateCreated = true;
         	} catch (NumberFormatException e) {
         		// ignore

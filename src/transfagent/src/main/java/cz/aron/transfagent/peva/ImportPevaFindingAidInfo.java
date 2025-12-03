@@ -45,7 +45,11 @@ public class ImportPevaFindingAidInfo {
 	
 	private String findingAidCode;
 	
+	private Integer findingAidCodeInt;
+	
 	private String findingAidPartNumber;
+	
+	private Integer findingAidPartNumberInt;
 	
 	private boolean valid;
 
@@ -113,7 +117,23 @@ public class ImportPevaFindingAidInfo {
 		// add info part
 		Part partInfo = ApuSourceBuilder.addPart(apu, CoreTypes.PT_FINDINGAID_INFO);
 		findingAidCode = findingAid.getEvidenceNumber();
+		if (findingAidCode != null) {
+			try {
+				findingAidCodeInt = Integer.parseInt(findingAidCode);
+			} catch (NumberFormatException e) {
+				// ignore
+			}
+		}
+		
 		findingAidPartNumber = findingAid.getPartNumber();
+		if (findingAidPartNumber != null) {
+			try {
+				findingAidPartNumberInt = Integer.parseInt(findingAidPartNumber);
+			} catch (NumberFormatException e) {
+				// ignore
+			}
+		}
+		
 		ApuSourceBuilder.addString(partInfo, CoreTypes.FINDINGAID_ID, findingAidCode);
 		if (StringUtils.isNoneBlank(findingAidPartNumber)) {
 			ApuSourceBuilder.addString(partInfo, CoreTypes.FINDINGAID_PART_ID, findingAidPartNumber);
@@ -275,6 +295,14 @@ public class ImportPevaFindingAidInfo {
 	
 	public String getFindingAidPartNumber() {
 		return findingAidPartNumber;
+	}
+
+	public Integer getFindingAidCodeInt() {
+		return findingAidCodeInt;
+	}
+
+	public Integer getFindingAidPartNumberInt() {
+		return findingAidPartNumberInt;
 	}
 
 	public List<UUID> getFundUUIDs() {

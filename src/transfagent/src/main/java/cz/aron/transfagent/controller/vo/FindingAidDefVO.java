@@ -12,6 +12,15 @@ public class FindingAidDefVO extends FindingAidDef {
         setInstitutionId(findingAid.getInstitution().getId().longValue());
         setUuid(findingAid.getUuid().toString());
         setDeleted(findingAid.getApuSource().isDeleted());
+        setNumAttachments(findingAid.getApuSource().getNumAttachments());
+        setNumDaos(findingAid.getApuSource().getNumDaos());
+        if (findingAid.getEvidenceNumber()!=null) {
+	        if (findingAid.getPartNumber()!=null) {
+		        setEvidenceNumber(""+findingAid.getEvidenceNumber()+"/"+findingAid.getPartNumber());
+	        } else {
+	        	setEvidenceNumber(""+findingAid.getEvidenceNumber());
+	        }
+        }
     }
 
 }

@@ -47,7 +47,7 @@ public class ApuSourceService {
 	}
 
 	@Transactional
-	public ApuSource createApuSource(UUID apusrcUuid, SourceType sourceType, Path dataDir, String origDir) {
+	public ApuSource createApuSource(UUID apusrcUuid, SourceType sourceType, Path dataDir, String origDir, int numAttachments, int numDaos) {
 
 		var apuSource = new cz.aron.transfagent.domain.ApuSource();
 		apuSource.setDataDir(dataDir.toString());
@@ -57,6 +57,8 @@ public class ApuSourceService {
 		apuSource.setDeleted(false);
 		apuSource.setReimport(false);
 		apuSource.setDateImported(ZonedDateTime.now());
+		apuSource.setNumAttachments(numAttachments);
+		apuSource.setNumDaos(numDaos);
 		apuSource = apuSourceRepository.save(apuSource);
 		
 		apuSourceRepository.flush();
@@ -123,7 +125,7 @@ public class ApuSourceService {
 		log.info("Reimport all apu sources of type {}", sourceType);
 	}
 
-	@Transactional
+	@Transactional(readOnly = true)
     public ApuSourceResponse getApuSources(String datadir, String uuid, int page, int pageSize) {
         CriteriaBuilder cbCount = em.getCriteriaBuilder();
         CriteriaQuery<Long> cqCount = cbCount.createQuery(Long.class);

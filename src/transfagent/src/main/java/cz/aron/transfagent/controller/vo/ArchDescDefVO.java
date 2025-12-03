@@ -9,9 +9,9 @@ public class ArchDescDefVO extends ArchDescDef {
 		setApusourceId(archDesc.getApuSource().getId().longValue());
 		setArchDescId(archDesc.getId().longValue());
 		setFundId(archDesc.getFund().getId().longValue());
-if (archDesc.getRootUuid()!=null) {
-		setUuid(archDesc.getRootUuid().toString());
-}
+		if (archDesc.getRootUuid()!=null) {
+			setUuid(archDesc.getRootUuid().toString());
+		}
 		setDeleted(archDesc.getApuSource().isDeleted());
 	}
 	

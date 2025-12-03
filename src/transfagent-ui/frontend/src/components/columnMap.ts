@@ -102,10 +102,18 @@ export const cInfoFunds: ColumnInfo<FundDef>[] = [
     },
     {
         code: "code",
-        width: 300,
+        width: 200,
     },
     {
         code: "nad",
+        width: 100,
+    },
+    {
+        code: "numAttachments",
+        width: 100,
+    },
+    {
+        code: "numDaos",
         width: 100,
     },
     {
@@ -185,9 +193,17 @@ export const cInfoAids: ColumnInfo<FindingAidDef>[] = [
         width: 150,
     },
     {
-        code: "code",
-        width: 300,
-    },
+        code: "evidenceNumber",
+        width: 120,
+    },    
+    {
+        code: "numAttachments",
+        width: 120,
+    },    
+    {
+        code: "numDaos",
+        width: 120,
+    },    
     {
         code: "apusourceId",
         width: 170,
@@ -195,6 +211,10 @@ export const cInfoAids: ColumnInfo<FindingAidDef>[] = [
     {
         code: "institutionId",
         width: 170,
+    },
+        {
+        code: "code",
+        width: 300,
     },
 ]
 

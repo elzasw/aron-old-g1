@@ -21,6 +21,9 @@ import javax.persistence.Table;
 public class FindingAid {
 	
 	public static final String JPA_APUSOURCE = "apuSource";
+	public static final String JPA_UUID = "uuid";
+	public static final String JPA_ID = "id";
+	public static final String JPA_EVIDENCE_NUMBER= "evidenceNumber";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,6 +35,10 @@ public class FindingAid {
 
     @Column(length = 50, nullable = false)
     private String code;
+    
+    private Integer evidenceNumber;
+    
+    private Integer partNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "apusource_id", nullable = false)
@@ -68,7 +75,23 @@ public class FindingAid {
         this.code = code;
     }
 
-    public ApuSource getApuSource() {
+    public Integer getEvidenceNumber() {
+		return evidenceNumber;
+	}
+
+	public void setEvidenceNumber(Integer evidenceNumber) {
+		this.evidenceNumber = evidenceNumber;
+	}
+
+	public Integer getPartNumber() {
+		return partNumber;
+	}
+
+	public void setPartNumber(Integer partNumber) {
+		this.partNumber = partNumber;
+	}
+
+	public ApuSource getApuSource() {
         return apuSource;
     }
 

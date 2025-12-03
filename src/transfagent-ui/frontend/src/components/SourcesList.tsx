@@ -126,6 +126,13 @@ export const SourcesList = () => {
 
     const getCellContent = (item: any, propCode: string) => {
         if (propCode === "imported") {
+            const d = item.imported;
+            /*
+            const iso =
+                `${d.year}-${String(d.monthValue).padStart(2, "0")}-${String(d.dayOfMonth).padStart(2, "0")}T` +
+                `${String(d.hour).padStart(2, "0")}:${String(d.minute).padStart(2, "0")}:${String(d.second).padStart(2, "0")}` +
+                d.offset.id;*/
+            
             return (
                 item.imported && new Date(item.imported).toLocaleString("cs-CZ")
             );

@@ -248,11 +248,13 @@ public class ImportPevaFund implements FundImporter, FundProvider {
             throw new IllegalStateException(e);
         }                
         
+        int numAttachments = attachments.size();
+        int numDaos = daos.size();
         tt.executeWithoutResult(t->{        	        	        	
         	var fnd = fund;        	
         	if (fnd == null) {
 				fnd = fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE,
-						ifi.getFundName(), ifi.getPrimarySheetNumberInt(), ifi.getSubSheetNumber());            
+						ifi.getFundName(), ifi.getPrimarySheetNumberInt(), ifi.getSubSheetNumber(), numAttachments, numDaos);            
             } else {
             	// aktualizace uuid fondu, doporuceno pro vyvojovou instanci
 				if (configPeva2.getFundProperties() != null && configPeva2.getFundProperties().isUpdateUUID()) {
@@ -271,7 +273,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 						});
 					}
 				}				
-				fundService.updateFund(fnd, dataDir, dir, true);
+				fundService.updateFund(fnd, dataDir, dir, true, numAttachments, numDaos);
             }
             var originatorUuids = ifi.getOriginatorIds().stream().map(id->UUID.fromString(id)).collect(Collectors.toList());
             archivalEntityService.registerAccessibleEntities(originatorUuids, ImportPevaOriginator.ENTITY_CLASS, fnd.getApuSource());
@@ -333,7 +335,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 				var fund2 = fundRepository.findByCode(fundCode);
 				if (fund2 != null) {
 					fund2.getApuSource().setDeleted(true);
-					fundService.updateFund(fund2, dataDir, dir, true);
+					fundService.updateFund(fund2, dataDir, dir, true, 0, 0);
 					// delete attachments
 					attachmentService.updateAttachments(fund2.getApuSource(), apusrcBuilder, Collections.emptyList());
 					// delete daos
@@ -347,7 +349,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			});
 		} else {
 			// vytvorim fond v databazi
-			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE, name, nad, subNad);
+			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE, name, nad, subNad, 0, 0);
 		}
 	}
 
@@ -443,10 +445,12 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			}
 			Files.write(apuSrcXmlPath, newContent);
 			
+			int numAttachments = attachments.size();
+			int numDaos = daos.size();
 			tt.executeWithoutResult(t -> {
 				// reload
 				fundRepository.findById(fund.getId()).ifPresentOrElse(f -> {
-					fundService.updateFund(f, apuPath, apuPath, false);
+					fundService.updateFund(f, apuPath, apuPath, false, numAttachments, numDaos);
 					if (apuSource.isDeleted()||apuSource.isForce()) {
 						f.getApuSource().setDeleted(false);
 						f.getApuSource().setForce(false);
