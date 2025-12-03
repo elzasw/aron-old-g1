@@ -56,6 +56,8 @@ public class ConfigElzaArchDesc {
     private boolean levelType;
     
     private boolean entityRoleText;
+    
+    private Integer extportFilterId;
 
     public boolean isAddDateToName() {
         return addDateToName;
@@ -219,4 +221,12 @@ public class ConfigElzaArchDesc {
 		this.entityRoleText = entityRoleText;
 	}
 
+	public Integer getExtportFilterId() {
+		return extportFilterId;
+	}
+
+	public void setExtportFilterId(Integer extportFilterId) {
+		this.extportFilterId = extportFilterId;
+	}
+	
 }

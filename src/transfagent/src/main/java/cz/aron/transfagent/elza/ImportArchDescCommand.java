@@ -18,12 +18,12 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import cz.aron.transfagent.config.ConfigElza;
+import cz.aron.transfagent.config.ConfigElzaArchDesc;
 import cz.aron.transfagent.service.CommandProcessor;
 import cz.aron.transfagent.service.CommandProcessorContext;
 import cz.aron.transfagent.service.CommandProcessorException;
@@ -56,12 +56,15 @@ public class ImportArchDescCommand implements CommandProcessor {
 	private final ApiClientEx apiClient;
 
 	private final IoApi ioApi;
+	
+	private final Integer exportFilterId;
 
-	public ImportArchDescCommand(StorageService storageService, ConfigElza configElza) {
+	public ImportArchDescCommand(StorageService storageService, ConfigElza configElza, ConfigElzaArchDesc configElzaArchDesc) {
 		var elzaUrl = configElza.getUrl().substring(0, configElza.getUrl().indexOf("/services/ExportService"));		
 		this.storageService = storageService;		
 		this.apiClient = new ApiClientEx(configElza.getUsername(), configElza.getPassword(),elzaUrl+"/login",elzaUrl+"/api/v1");
 		this.ioApi = new IoApi(apiClient);
+		this.exportFilterId = configElzaArchDesc.getExtportFilterId();
 	}
 
 	@Override
@@ -144,7 +147,9 @@ public class ImportArchDescCommand implements CommandProcessor {
 		var fundSection = new FundSections();
 		fundSection.setFundVersionId(Integer.parseInt(fundVersionId));
 		exportParams.getFundsSections().add(fundSection);
-		exportParams.setExportFilterId(1);
+		if (exportFilterId != null) {
+			exportParams.setExportFilterId(exportFilterId);	
+		}
 		try {
 			Integer requestId = ioApi.ioExportRequest(exportParams);
 			log.info("Created request to Elza to export fund {}, request id {}", fundVersionId, requestId);
