@@ -112,6 +112,7 @@ export default {
         "aidColumn.apusourceId" : "Apusrc id",
         "aidColumn.institutionId" : "Instituce",
         "aidColumn.evidenceNumber" : "Číslo pomůcky",
+        "aidColumn.nad" : "NAD",
         "aidColumn.numAttachments" : "Přílohy",
         "aidColumn.numDaos" : "Digitalizáty",
 

@@ -21,6 +21,16 @@ public class FindingAidDefVO extends FindingAidDef {
 	        	setEvidenceNumber(""+findingAid.getEvidenceNumber());
 	        }
         }
+        if (!findingAid.getFunds().isEmpty()) {
+        	var fund = findingAid.getFunds().iterator().next();
+        	if (fund.getNad() != null) {
+            	if (fund.getSubNad()!=null) {
+            		setNad(fund.getNad().toString() + "/" + fund.getSubNad().toString());		
+            	} else {
+            		setNad(fund.getNad().toString());
+            	}
+            }
+        }
     }
 
 }

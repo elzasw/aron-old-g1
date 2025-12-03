@@ -164,6 +164,7 @@ public class FindingAidService {
 		CriteriaBuilder cbCount = em.getCriteriaBuilder();
 		CriteriaQuery<Long> cqCount = cbCount.createQuery(Long.class);
 		Root<FindingAid> rootCount = cqCount.from(FindingAid.class);
+		rootCount.join(FindingAid.JPA_FUNDS, JoinType.INNER);
 		cqCount.select(cbCount.count(rootCount));
 		addFindingAidPredicate(cqCount, cbCount, rootCount, code, uuid);
 		Long totalItems = 0l;
@@ -177,6 +178,7 @@ public class FindingAidService {
 			CriteriaBuilder cb = em.getCriteriaBuilder();
 			CriteriaQuery<FindingAid> cq = cb.createQuery(FindingAid.class);
 			Root<FindingAid> root = cq.from(FindingAid.class);
+			root.join(FindingAid.JPA_FUNDS, JoinType.INNER);
 			root.fetch(FindingAid.JPA_APUSOURCE, JoinType.INNER);
 			addFindingAidPredicate(cq, cb, root, code, uuid);
 			List<FindingAid> rows = em.createQuery(cq).setFirstResult(page * pageSize).setMaxResults(pageSize)

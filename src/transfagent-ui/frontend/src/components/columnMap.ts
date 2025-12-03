@@ -197,6 +197,10 @@ export const cInfoAids: ColumnInfo<FindingAidDef>[] = [
         width: 120,
     },    
     {
+        code: "nad",
+        width: 120,
+    },    
+    {
         code: "numAttachments",
         width: 120,
     },    
