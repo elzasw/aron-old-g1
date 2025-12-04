@@ -143,4 +143,5 @@ export const favouriteQueries: FavouriteQuery[] = [
   { icon: 'fas fa-users', label: 'Sčítání lidu' },
   { icon: 'fas fa-map', label: 'Technické výkresy staveb' },
   { icon: 'fas fa-folder-open', label: 'Spis evidující nemovistosti' },
+  { icon: 'fas fa-earth-americas', label: 'Mapy' },
 ];
