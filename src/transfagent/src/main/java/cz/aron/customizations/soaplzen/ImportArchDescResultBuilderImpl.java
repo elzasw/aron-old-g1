@@ -557,6 +557,8 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 						if (refOzn == null && invCislo == null) {
 							invCislo = ((DescriptionItemString) pp).getV();
 						}
+					} else if (title == null && "ZP2015_TITLE".equals(pp.getT())) {
+						title = ((DescriptionItemString) pp).getV();
 					} else if (parentTitle == null && "ZP2015_TITLE".equals(pp.getT())) {
 						parentTitle = ((DescriptionItemString) pp).getV();
 					} else if (unitDateText == null && unitDate == null) {
@@ -564,9 +566,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 							unitDateText = ((DescriptionItemString) pp).getV();
 						} else if (ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT())) {
 							unitDate = UnitDateConvertor.convertToString((DescriptionItemUnitDate) pp);
-						}
-					} else if (title == null && "ZP2015_TITLE".equals(pp.getT())) {
-						title = ((DescriptionItemString) pp).getV();
+						}					
 					} else if (ukladaciCislo == null && "ZP2015_PACKET_NUMBER".equals(pp.getT())
 							&& (pp instanceof DescriptionItemString)) {
 						DescriptionItemString uklC = (DescriptionItemString) pp;
