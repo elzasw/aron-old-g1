@@ -22,8 +22,7 @@ public interface ApuSourceRepository extends JpaRepository<ApuSource, Integer> {
 
     @Modifying
     @Query(nativeQuery = true, value = "UPDATE apu_source AS a "
-            + "SET reimport = true FROM archival_entity ae "
-            + "WHERE ae.apusource_id = a.apusource_id AND ae.entity_id in :ids")
+            + "SET reimport = true WHERE a.apusource_id in :ids")
     void setReimportTrueByIds(@Param("ids") List<Integer> ids);
     
     @Modifying

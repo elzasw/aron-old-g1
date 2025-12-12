@@ -30,6 +30,9 @@ public class Attachment {
 
     @Column(length = 250, nullable = false)
     private String fileName;
+    
+    @Column
+    private long lastModified;
 
     public Integer getId() {
         return id;
@@ -62,5 +65,13 @@ public class Attachment {
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
+
+	public long getLastModified() {
+		return lastModified;
+	}
+
+	public void setLastModified(long lastModified) {
+		this.lastModified = lastModified;
+	}
 
 }

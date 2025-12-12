@@ -71,6 +71,7 @@ public class ReimportService implements ImportProcessor {
 							apuSourceRepository.findById(apuSource.getId()).ifPresent(as->{
 								as.setReimport(false);
 								as.setForce(false);
+								as.setDisableSend(false);
 								as.setDateImported(ZonedDateTime.now());
 							});						
 							if (send) {
@@ -92,6 +93,7 @@ public class ReimportService implements ImportProcessor {
 							boolean send = !apuSource.isDeleted();							
 							apuSource.setReimport(false);
 							apuSource.setForce(false);
+							apuSource.setDisableSend(false);
 							apuSource.setDeleted(true);
 							apuSource.setDateImported(ZonedDateTime.now());
 							apuSourceRepository.save(apuSource);							

@@ -48,6 +48,7 @@ import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
 import cz.aron.transfagent.service.ArchivalEntityService;
 import cz.aron.transfagent.service.AttachmentService;
+import cz.aron.transfagent.service.AttachmentSource.AttachmentDesc;
 import cz.aron.transfagent.service.DaoFileStore3Service;
 import cz.aron.transfagent.service.DaoImportService;
 import cz.aron.transfagent.service.DaoImportService.DaoSource;
@@ -213,7 +214,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			return true;
 		}
         
-		var attachments = new ArrayList<Path>();
+		var attachments = new ArrayList<AttachmentDesc>();
 		if (fund != null) {
 			apusrcBuilder.setUuid(fund.getApuSource().getUuid());
 			tt.executeWithoutResult(t -> {
@@ -409,7 +410,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 				}				
 			}
 					
-			var attachments = new ArrayList<Path>();
+			var attachments = new ArrayList<AttachmentDesc>();
 			tt.executeWithoutResult(t -> {
 				fundRepository.findById(fund.getId()).ifPresentOrElse(f -> {
 					attachments.addAll(readAllAttachments(apuSource, f, apuSourceBuilder));
@@ -500,7 +501,11 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			return ReimportProcessor.Result.FAILED;
 		}
 		log.info("Fund id={}, uuid={} reimported", fund.getId(), fund.getUuid());
-		return ReimportProcessor.Result.REIMPORTED;
+		if (apuSource.isDisableSend()) {
+			return ReimportProcessor.Result.REIMPORTED_NO_SEND;
+		} else {
+			return ReimportProcessor.Result.REIMPORTED;
+		}
 	}
 	
 	
@@ -524,8 +529,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 	}
 	
 	
-	private List<Path> readAllAttachments(ApuSource apuSource, Fund fund, ApuSourceBuilder apuSourceBuilder) {
-		var ret = new ArrayList<Path>();
+	private List<AttachmentDesc> readAllAttachments(ApuSource apuSource, Fund fund, ApuSourceBuilder apuSourceBuilder) {
+		var ret = new ArrayList<AttachmentDesc>();
 		var fundProp = configPeva2.getFundProperties();
 		if (fundProp != null && fundProp.isAggregateAttachments()&&fund!=null) {
 			// copy attachments
@@ -535,11 +540,11 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 				for(var attachment:attachments) {
 					String mimetype = null;
 					try {
-						mimetype = this.storageService.detectMimetype(attachment);
+						mimetype = this.storageService.detectMimetype(attachment.getPath());
 					} catch (IOException e) {
 						throw new UncheckedIOException(e);
 					}
-					apuSourceBuilder.addAttachment(apuSourceBuilder.getMainApu(), attachment.getFileName().toString(), mimetype);
+					apuSourceBuilder.addAttachment(apuSourceBuilder.getMainApu(), attachment.getName(), mimetype);
 					ret.add(attachment);
 				}				
 			} catch (IOException e) {
@@ -551,8 +556,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 	}
 	
 	
-	private List<Path> readAllAttachments(Path targetDir, Fund fund, ApuSourceBuilder apuSourceBuilder) {
-		var ret = new ArrayList<Path>();
+	private List<AttachmentDesc> readAllAttachments(Path targetDir, Fund fund, ApuSourceBuilder apuSourceBuilder) {
+		var ret = new ArrayList<AttachmentDesc>();
 		var fundProp = configPeva2.getFundProperties();
 		if (fundProp != null && fundProp.isAggregateAttachments() && fund != null) {
 			// copy attachments
@@ -562,11 +567,11 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 				for (var attachment : attachments) {
 					String mimetype = null;
 					try {
-						mimetype = this.storageService.detectMimetype(attachment);
+						mimetype = this.storageService.detectMimetype(attachment.getPath());
 					} catch (IOException e) {
 						throw new UncheckedIOException(e);
 					}
-					apuSourceBuilder.addAttachment(apuSourceBuilder.getMainApu(), attachment.getFileName().toString(),
+					apuSourceBuilder.addAttachment(apuSourceBuilder.getMainApu(), attachment.getName(),
 							mimetype);
 					ret.add(attachment);
 				}
@@ -592,7 +597,11 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 	                        throw new UncheckedIOException(e);
 	                    }
 	                    apuSourceBuilder.addAttachment(apu, f.getFileName().toString(), mimetype);
-	                    ret.add(f);
+	                    try {
+							ret.add(new AttachmentDesc(f,f.getFileName().toString(), Files.getLastModifiedTime(f).toMillis()));
+						} catch (IOException e) {
+							throw new UncheckedIOException(e);
+						}
 	                }
 	            });
 	        } catch (IOException e) {

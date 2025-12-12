@@ -556,12 +556,40 @@
       <column name="num_attachments" type="int" />
       <column name="num_daos" type="int" />
     </addColumn>
-        <sql>
+    <sql>
       update apu_source set num_attachments=0, num_daos=0;
     </sql>
     <addNotNullConstraint tableName="apu_source"
       columnDataType="boolean" columnName="num_attachments" />
     <addNotNullConstraint tableName="apu_source"
       columnDataType="boolean" columnName="num_daos" />    
+ </changeSet>
+ <changeSet author="karel.zacek@lightcomp.cz" id="16">
+ 	<addColumn tableName="attachment">
+ 		<column name="last_modified" type="bigint" />
+ 	</addColumn>
+ 	<sql>
+      update attachment set last_modified=0;
+    </sql>
+    <addNotNullConstraint tableName="attachment"
+      columnDataType="boolean" columnName="last_modified" />
+    <createIndex indexName="idx_finding_aid_evidence" tableName="finding_aid">
+      <column name="evidence_number" />
+      <column name="part_number" />
+    </createIndex>
+    <createIndex indexName="idx_fund_nad" tableName="fund">
+      <column name="nad" />
+      <column name="sub_nad" />
+    </createIndex>
+ </changeSet>
+ <changeSet author="karel.zacek@lightcomp.cz" id="17">
+     <addColumn tableName="apu_source">
+      <column name="disable_send" type="boolean" />
+    </addColumn>
+    <sql>
+      update apu_source set disable_send=false;
+    </sql>
+    <addNotNullConstraint tableName="apu_source"
+      columnDataType="boolean" columnName="disable_send" />
  </changeSet>
 </databaseChangeLog>

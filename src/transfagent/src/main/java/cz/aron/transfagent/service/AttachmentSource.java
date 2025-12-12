@@ -3,6 +3,7 @@ package cz.aron.transfagent.service;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
 public interface AttachmentSource {
     
@@ -15,11 +16,13 @@ public interface AttachmentSource {
         private final Path path;
 
         private final String name;
+        
+        private final long lastModified;
 
-        public AttachmentDesc(Path path, String name) {
-            super();
+        public AttachmentDesc(Path path, String name, long lastModified) {
             this.path = path;
             this.name = name;
+            this.lastModified = lastModified;
         }
 
         public Path getPath() {
@@ -30,6 +33,28 @@ public interface AttachmentSource {
             return name;
         }
 
+		public long getLastModified() {
+			return lastModified;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(lastModified, name, path);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			AttachmentDesc other = (AttachmentDesc) obj;
+			return lastModified == other.lastModified && Objects.equals(name, other.name)
+					&& Objects.equals(path, other.path);
+		}        
+		
     }
 
 }

@@ -597,7 +597,10 @@ components:
           format: int32
         numDaos:
           type: integer
-          format: int32          
+          format: int32
+        nad:
+          type: string
+          format: int32                    
       description: Fnding aid definition
     FindingAidsResponse:
       type: object

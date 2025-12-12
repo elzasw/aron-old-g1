@@ -1,7 +1,10 @@
 package cz.aron.transfagent.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import javax.persistence.EntityManager;
@@ -19,18 +22,22 @@ import cz.aron.api.rest.model.InstitutionDef;
 import cz.aron.api.rest.model.InstitutionResponse;
 import cz.aron.transfagent.controller.vo.InstitutionDefVO;
 import cz.aron.transfagent.domain.Institution;
+import cz.aron.transfagent.repository.InstitutionRepository;
 
 
 @Service
 public class InstitutionsService {
 
 	private final EntityManager em;
+	
+	private final InstitutionRepository institutionRepository;
 
-	public InstitutionsService(EntityManager em) {
+	public InstitutionsService(EntityManager em, InstitutionRepository institutionRepository) {
 		this.em = em;
+		this.institutionRepository = institutionRepository;
 	}
 
-	@Transactional
+	@Transactional(readOnly=true)
     public InstitutionResponse getInstitutions(String query, int page, int pageSize) {
 	    CriteriaBuilder cbCount = em.getCriteriaBuilder();
         CriteriaQuery<Long> cqCount = cbCount.createQuery(Long.class);
@@ -82,5 +89,16 @@ public class InstitutionsService {
 			// ignore
 		}		
     }
+
+	public List<Institution> getInstitutionsByCodes(Collection<String> codes) {		
+		var ret = new ArrayList<Institution>();
+		var set = new HashSet<String>(codes);				
+		for(var institution:institutionRepository.findAll()) {
+			if (set.contains(institution.getCode())) {
+				ret.add(institution);
+			}
+		}		
+		return ret;
+	}
 
 }

@@ -2,16 +2,13 @@ package cz.aron.transfagent;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Date;
-import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.FileSystemUtils;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import cz.aron.transfagent.repository.ApuSourceRepository;
 import cz.aron.transfagent.repository.ArchDescRepository;
@@ -23,8 +20,6 @@ import cz.aron.transfagent.repository.EntitySourceRepository;
 import cz.aron.transfagent.repository.FindingAidRepository;
 import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
-import cz.aron.transfagent.service.FileImportService;
-import cz.aron.transfagent.service.StorageService;
 import cz.aron.transfagent.service.importfromdir.ImportArchDescService;
 import cz.aron.transfagent.service.importfromdir.ImportDirectService;
 import cz.aron.transfagent.service.importfromdir.ImportFindingAidService;
@@ -119,10 +114,10 @@ public abstract class AbstractCommonTest {
     FindingAidRepository findingAidRepository;
 
     @Autowired
-    AttachmentRepository attachmentRepository;
+    public AttachmentRepository attachmentRepository;
 
     @Autowired
-    ApuSourceRepository apuSourceRepository;
+    public ApuSourceRepository apuSourceRepository;
 
     @Autowired
     CoreQueueRepository coreQueueRepository;
@@ -135,9 +130,13 @@ public abstract class AbstractCommonTest {
 
     @Autowired
     DaoRepository daoRepository;
+    
+    @Autowired
+    public TransactionTemplate tt;
 
     @BeforeEach
     protected void deleteAll() {
+    	attachmentRepository.deleteAll();
         entitySourceRepository.deleteAll();
         archivalEntityRepository.deleteAll();
         daoRepository.deleteAll();

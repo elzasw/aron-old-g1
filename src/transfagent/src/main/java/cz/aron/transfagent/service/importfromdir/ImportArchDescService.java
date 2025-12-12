@@ -283,8 +283,7 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         Set<UUID> uuids = iad.getApRefs();
         archivalEntityService.updateSourceEntityLinks(archDesc.getApuSource(), uuids, null);
         daoImportService.updateDaos(archDesc.getApuSource(), getDaoSources(iad));
-        var attachmentPaths = iad.getAttachments().stream().map(a -> a.getPath()).collect(Collectors.toList());
-        attachmentService.updateAttachments(archDesc.getApuSource(), apusrcBuilder, attachmentPaths);
+        attachmentService.updateAttachments(archDesc.getApuSource(), apusrcBuilder, iad.getAttachments());
 
         if (configArchDesc.isRefreshEntities()) {
         	refreshEntitiesCommand.scheduleRefresh(archDesc.getId());	
@@ -415,8 +414,7 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
             Set<UUID> uuids = iad.getApRefs();        
             archivalEntityService.updateSourceEntityLinks(archDesc.getApuSource(), uuids, null);
             daoImportService.updateDaos(archDesc.getApuSource(), getDaoSources(iad));            
-            var attachmentPaths = iad.getAttachments().stream().map(a->a.getPath()).collect(Collectors.toList());            
-            attachmentService.updateAttachments(apuSource, apuSourceBuilder, attachmentPaths);
+            attachmentService.updateAttachments(apuSource, apuSourceBuilder, iad.getAttachments());
         } catch (Exception e) {
             log.error("Fail to process, file: {}", inputFile, e);
             return Result.FAILED;

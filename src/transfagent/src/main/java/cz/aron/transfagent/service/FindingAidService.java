@@ -2,6 +2,7 @@ package cz.aron.transfagent.service;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -26,6 +27,7 @@ import cz.aron.api.rest.model.FindingAidDef;
 import cz.aron.api.rest.model.FindingAidsResponse;
 import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.transfagent.controller.vo.FindingAidDefVO;
+import cz.aron.transfagent.domain.Attachment;
 import cz.aron.transfagent.domain.CoreQueue;
 import cz.aron.transfagent.domain.FindingAid;
 import cz.aron.transfagent.domain.Fund;
@@ -36,6 +38,8 @@ import cz.aron.transfagent.repository.AttachmentRepository;
 import cz.aron.transfagent.repository.CoreQueueRepository;
 import cz.aron.transfagent.repository.FindingAidRepository;
 import cz.aron.transfagent.repository.FundRepository;
+import cz.aron.transfagent.service.AttachmentSource.AttachmentDesc;
+
 
 @Service
 public class FindingAidService {
@@ -52,32 +56,32 @@ public class FindingAidService {
 
 	private final CoreQueueRepository coreQueueRepository;
 
-	private final AttachmentRepository attachmentRepository;
-
 	private final AttachmentService attachmentService;
 
+	private final AttachmentRepository attachmentRepository;
+	
 	// private final FundRepository fundRepository;
 
 	private final EntityManager em;
 
 	public FindingAidService(ApuSourceService apuSourceService, ApuSourceRepository apuSourceRepository,
 			FindingAidRepository findingAidRepository, FundRepository fundRepository,
-			CoreQueueRepository coreQueueRepository, AttachmentRepository attachmentRepository,
-			AttachmentService attachmentService, EntityManager em) {
+			CoreQueueRepository coreQueueRepository, AttachmentService attachmentService, 
+			AttachmentRepository attachmentRepository, EntityManager em) {
 		super();
 		this.apuSourceService = apuSourceService;
 		this.apuSourceRepository = apuSourceRepository;
 		this.findingAidRepository = findingAidRepository;
 		this.fundRepository = fundRepository;
 		this.coreQueueRepository = coreQueueRepository;
-		this.attachmentRepository = attachmentRepository;
 		this.attachmentService = attachmentService;
+		this.attachmentRepository = attachmentRepository;
 		this.em = em;
 	}
 
 	@Transactional
 	public FindingAid createFindingAid(String findingaidCode, List<Fund> relatedFunds, Institution institution,
-			Path dataDir, Path origDir, ApuSourceBuilder builder, List<Path> attachments, boolean reimportFund,
+			Path dataDir, Path origDir, ApuSourceBuilder builder, List<AttachmentDesc> attachments, boolean reimportFund,
 			boolean send, Integer evidenceNumber, Integer partNumber, int numAttachments, int numDaos) {
 
 		// reload funds from db
@@ -121,7 +125,7 @@ public class FindingAidService {
 
 	@Transactional
 	public void updateFindingAid(FindingAid findingAidSrc, Path dataDir, Path origDir, ApuSourceBuilder builder,
-			List<Path> attachments, boolean reimportFund, boolean send, Integer evidenceNumber, Integer partNumber,
+			List<AttachmentDesc> attachments, boolean reimportFund, boolean send, Integer evidenceNumber, Integer partNumber,
 			int numAttachments, int numDaos) {
 
 		FindingAid findingAid = findingAidRepository.findById(findingAidSrc.getId())
@@ -158,8 +162,55 @@ public class FindingAidService {
 		log.info("FindingAid updated code={}, uuid={}, data dir: {}", findingAid.getCode(), findingAid.getUuid(),
 				dataDir.toString());
 	}
+	
+	/**
+	 * Get finding aid and attachments
+	 * @param institutionId id of institution
+	 * @param findingAidCode finding aid code
+	 * @param findingAidPartNumber finding aid part number
+	 * @return {@code FindingAidAttachments} findingAid part is null when finding aid was not found
+	 */
+	@Transactional(readOnly = true)
+	public FindingAidAttachments getFindingAidAttachments(Integer institutionId, int findingAidCode,
+			Integer findingAidPartNumber) {
+		FindingAid findingAid = null;
+		if (findingAidPartNumber == null) {
+			findingAid = findingAidRepository.findByInstitutionIdAndEvidenceNumberAndPartNumberIsNull(institutionId, findingAidCode);
+		} else {
+			findingAid = findingAidRepository.findByInstitutionIdAndEvidenceNumberAndPartNumber(institutionId,
+					findingAidCode, findingAidPartNumber);
+		}
+		if (findingAid == null) {
+			return new FindingAidAttachments(null, Collections.emptyList());
+		} else {
+			return new FindingAidAttachments(findingAid, attachmentRepository.findByApuSource(findingAid.getApuSource()));
+		}
+	}
+	
+	
+	public static class FindingAidAttachments {
+		
+		private final FindingAid findingAid;
+		
+		private final List<Attachment> attachments;
 
-	@Transactional
+		public FindingAidAttachments(FindingAid findingAid, List<Attachment> attachments) {
+			super();
+			this.findingAid = findingAid;
+			this.attachments = attachments;
+		}
+
+		public FindingAid getFindingAid() {
+			return findingAid;
+		}
+
+		public List<Attachment> getAttachments() {
+			return attachments;
+		}
+		
+	}
+
+	@Transactional(readOnly=true)
 	public FindingAidsResponse getFindingAids(String code, String uuid, int page, int pageSize) {
 		CriteriaBuilder cbCount = em.getCriteriaBuilder();
 		CriteriaQuery<Long> cqCount = cbCount.createQuery(Long.class);

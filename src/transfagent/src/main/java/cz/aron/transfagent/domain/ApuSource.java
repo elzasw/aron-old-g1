@@ -45,6 +45,9 @@ public class ApuSource {
     
     @Column(nullable=false)
     private boolean force;
+    
+    @Column(nullable=false)
+    private boolean disableSend;
 
     @Column(name="num_attachments", nullable=false)
     private int numAttachments;
@@ -152,6 +155,14 @@ public class ApuSource {
 
 	public void setNumDaos(int numDaos) {
 		this.numDaos = numDaos;
+	}
+
+	public boolean isDisableSend() {
+		return disableSend;
+	}
+
+	public void setDisableSend(boolean disableSend) {
+		this.disableSend = disableSend;
 	}
 
 }

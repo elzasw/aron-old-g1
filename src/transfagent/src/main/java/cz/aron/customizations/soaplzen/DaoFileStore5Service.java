@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -39,8 +40,7 @@ import cz.aron.transfagent.service.importfromdir.TransformService.TileThumbnailU
 public class DaoFileStore5Service implements DaoImporter, AttachmentSource, PermalinkGenerator {
 
 	private static final Logger log = LoggerFactory.getLogger(DaoFileStore5Service.class);
-
-	@SuppressWarnings("serial")
+	
 	private final Map<InstitutionFindingAidKey, FindingAidDaoLinks> links = new LinkedHashMap<>(16, (float) 0.75,
 			true) {
 
@@ -111,7 +111,7 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource, Perm
 			String findingAidPartNumber) throws IOException {
 		
 		var ifKey = new InstitutionFindingAidKey(archiveCode, Integer.parseInt(findingAidCode), findingAidPartNumber);
-		var attachments = getAttachments();						
+		var attachments = getAttachments(false);						
 		var att = attachments.get(ifKey);
 		if (att == null) {
 			return Collections.emptyList();
@@ -130,46 +130,51 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource, Perm
 		}				
 	}
 
-	private synchronized Map<InstitutionFindingAidKey, List<AttachmentDesc>> getAttachments() {		
+	protected synchronized Map<InstitutionFindingAidKey, List<AttachmentDesc>> getAttachments(boolean forceReload) {		
 		var currentTime = System.currentTimeMillis();		
-		if ( currentTime - lastAttachmentReload > 5*60*1000) { // znovu nactu po peti minutach
+		if ( currentTime - lastAttachmentReload > 5*60*1000 || forceReload) { // znovu nactu po peti minutach
 			try {
 				attachments = readAttachments();
 				lastAttachmentReload = currentTime;
 			} catch (IOException e) {
 				log.error("Fail to read attachments", e);
-			}
+			}			
 		}
 		return attachments;				
 	}
 
 	private Map<InstitutionFindingAidKey, List<AttachmentDesc>> readAttachments() throws IOException {
-		var attPath = path.resolve("ap").resolve("pdf");
+		var attPath = path.resolve("ap").resolve("pdf");		
+		// check existency of directory
+		if (!Files.isDirectory(attPath)) {
+			log.error("Directory not exist {}", attPath);
+			throw new IOException("Directory not exist " + attPath);
+		}
+		
 		Map<InstitutionFindingAidKey, List<AttachmentDesc>> tmpAttachments = new HashMap<>();
 		read(attPath, tmpAttachments);
+		log.info("Attachments metadata reloaded from path {}", attPath);
 		return tmpAttachments;
 	}
-	
-	private void read(Path path, Map<InstitutionFindingAidKey, List<AttachmentDesc>> tmpAttachments) throws IOException {
-		if (Files.isRegularFile(path)) {
-			var key = fromFile(path);
-			if (key != null) {
-				tmpAttachments.compute(key, (k, v) -> {
-					if (v == null) {
-						v = new ArrayList<AttachmentDesc>();
-					}
-					v.add(new AttachmentDesc(path, path.getFileName().toString()));
-					return v;
-				});
+
+	private void read(Path path, Map<InstitutionFindingAidKey, List<AttachmentDesc>> tmpAttachments)
+			throws IOException {
+		try (var stream = Files.find(path, Integer.MAX_VALUE, (p, a) -> {
+			if (Files.isRegularFile(p)) {
+				var key = fromFile(p);
+				if (key != null) {
+					tmpAttachments.compute(key, (k, v) -> {
+						if (v == null) {
+							v = new ArrayList<AttachmentDesc>();
+						}
+						v.add(new AttachmentDesc(p, p.getFileName().toString(), a.lastModifiedTime().toMillis()));
+						return v;
+					});
+				}
 			}
-		} else if (Files.isDirectory(path)) {
-			try (var stream = Files.list(path)) {
-				var itDir = stream.iterator();
-				while(itDir.hasNext()) {
-					Path dir = itDir.next();
-					read(dir, tmpAttachments);
-				}				
-			}
+			return false;
+		}, FileVisitOption.FOLLOW_LINKS)) {
+			stream.count();
 		}
 	}
 
@@ -255,7 +260,7 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource, Perm
 		return handle.toString();
 	}
 
-	private static class InstitutionFindingAidKey {
+	public static class InstitutionFindingAidKey {
 
 		private final String institutionCode;
 

@@ -92,7 +92,7 @@ public abstract class Peva2Downloader {
 					// clear update after
 					var ua = propertyRepository.findByName(updateAfterPropertyName);
 					if (ua != null) {						
-						ua.setName("");
+						ua.setValue("");
 						propertyRepository.save(ua);
 					}					
 					return null;

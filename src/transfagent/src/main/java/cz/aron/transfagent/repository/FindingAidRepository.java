@@ -23,4 +23,10 @@ public interface FindingAidRepository extends JpaRepository<FindingAid, Integer>
 	@Query("SELECT fa.uuid FROM FindingAid fa INNER JOIN fa.funds f WHERE f.uuid = :fundUuid AND fa.apuSource.deleted = false")
 	List<UUID> findValidByFundUuid(UUID fundUuid);
 	
+	@EntityGraph(attributePaths = { "apuSource" })
+	FindingAid findByInstitutionIdAndEvidenceNumberAndPartNumberIsNull(int institutionId, int evidenceNumber);
+	
+	@EntityGraph(attributePaths = { "apuSource" })
+	FindingAid findByInstitutionIdAndEvidenceNumberAndPartNumber(int institutionId, int evidenceNumber, int partNumber);
+
 }

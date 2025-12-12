@@ -49,7 +49,7 @@ public class AttachmentFileStoreService implements AttachmentSource {
                                                                                                                         p -> new AttachmentDesc(
                                                                                                                                 p,
                                                                                                                                 p.getFileName()
-                                                                                                                                        .toString()))
+                                                                                                                                        .toString(),0))
                     .collect(Collectors.toList());
         }
     }

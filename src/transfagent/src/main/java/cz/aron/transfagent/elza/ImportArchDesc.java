@@ -1,5 +1,6 @@
 package cz.aron.transfagent.elza;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,6 +25,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.tika.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -62,6 +64,7 @@ import cz.aron.transfagent.elza.datace.ItemDateRangeAppender;
 import cz.aron.transfagent.peva.ArchiveFundId;
 import cz.aron.transfagent.peva.ImportPevaGeo;
 import cz.aron.transfagent.peva.ImportPevaOriginator;
+import cz.aron.transfagent.service.AttachmentSource.AttachmentDesc;
 import cz.aron.transfagent.service.DaoFileStoreService;
 import cz.aron.transfagent.service.LevelEnrichmentService;
 import cz.aron.transfagent.transformation.ArchEntityInfo;
@@ -179,7 +182,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
     
     private final List<String> attachmentIds = new ArrayList<>();
     
-    private final List<ArchDescAttachment> attachments = new ArrayList<>();
+    private final List<AttachmentDesc> attachments = new ArrayList<>();
     
     private final TypesConfiguration typesConfig;
     
@@ -222,7 +225,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
     	return daoRefs;
     }
     
-    public List<ArchDescAttachment> getAttachments() {
+    public List<AttachmentDesc> getAttachments() {
         return attachments;
     }
 
@@ -322,13 +325,25 @@ public class ImportArchDesc implements EdxItemCovertContext {
                 for (File f : sect.getFs().getF()) {
                     if (attachmentIds.contains(f.getId())) {
                         var file = dir.resolve(f.getFn());
+                        long lastModified;
                         try {
-                            Files.write(file, f.getD());
+							if (!Files.isRegularFile(file)) {
+								// file not exist
+								Files.write(file, f.getD());
+							} else {
+								try (InputStream is = Files.newInputStream(file)) {
+									if (!IOUtils.contentEquals(is, new ByteArrayInputStream(f.getD()))) {
+										// file exist but content is different
+										Files.write(file, f.getD());
+									}
+								}
+							}
+                            lastModified = Files.getLastModifiedTime(file).toMillis();
                         } catch (IOException e) {
                             throw new UncheckedIOException(e);
                         }
                         apusBuilder.addAttachment(apusBuilder.getMainApu(), f.getN(), f.getMt(), pos++);
-                        attachments.add(new ArchDescAttachment(file));
+                        attachments.add(new AttachmentDesc(file, file.getFileName().toString(),lastModified));
                     }
                 }
             }
@@ -388,19 +403,6 @@ public class ImportArchDesc implements EdxItemCovertContext {
 		return ret;
 	}
     
-    public static class ArchDescAttachment {
-        
-        private final Path path;
-        
-        public ArchDescAttachment(Path path) {
-            this.path = path;
-        }
-        
-        public Path getPath() {
-            return path;
-        }
-    }
-
     private void processLevel(Section sect, Level lvl, Map<String,Set<String>> duplicities) {
         log.debug("Importing level, id: {}, u2uid: {}", lvl.getId(), lvl.getUuid());
         apLevelRefs.clear();

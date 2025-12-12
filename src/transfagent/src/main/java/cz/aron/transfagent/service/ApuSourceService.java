@@ -56,6 +56,8 @@ public class ApuSourceService {
 		apuSource.setUuid(apusrcUuid);
 		apuSource.setDeleted(false);
 		apuSource.setReimport(false);
+		apuSource.setForce(false);
+		apuSource.setDisableSend(false);
 		apuSource.setDateImported(ZonedDateTime.now());
 		apuSource.setNumAttachments(numAttachments);
 		apuSource.setNumDaos(numDaos);
