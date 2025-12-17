@@ -9,8 +9,9 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "jareco": "^0.4.10",
+        "jareco": "^0.4.11",
         "mime-types": "^2.1.35",
+        "npm-watch": "^0.13.0",
         "rc-upload": "^4.3.4",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

@@ -17,6 +17,7 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,13 +212,13 @@ public class FindingAidService {
 	}
 
 	@Transactional(readOnly=true)
-	public FindingAidsResponse getFindingAids(String code, String uuid, int page, int pageSize) {
+	public FindingAidsResponse getFindingAids(String code, Integer instId, String uuid, int page, int pageSize) {
 		CriteriaBuilder cbCount = em.getCriteriaBuilder();
 		CriteriaQuery<Long> cqCount = cbCount.createQuery(Long.class);
 		Root<FindingAid> rootCount = cqCount.from(FindingAid.class);
 		rootCount.join(FindingAid.JPA_FUNDS, JoinType.INNER);
 		cqCount.select(cbCount.count(rootCount));
-		addFindingAidPredicate(cqCount, cbCount, rootCount, code, uuid);
+		addFindingAidPredicate(cqCount, cbCount, rootCount, code, instId, uuid);
 		Long totalItems = 0l;
 		try {
 			totalItems = em.createQuery(cqCount).getSingleResult();
@@ -231,7 +232,7 @@ public class FindingAidService {
 			Root<FindingAid> root = cq.from(FindingAid.class);
 			root.join(FindingAid.JPA_FUNDS, JoinType.INNER);
 			root.fetch(FindingAid.JPA_APUSOURCE, JoinType.INNER);
-			addFindingAidPredicate(cq, cb, root, code, uuid);
+			addFindingAidPredicate(cq, cb, root, code, instId, uuid);
 			List<FindingAid> rows = em.createQuery(cq).setFirstResult(page * pageSize).setMaxResults(pageSize)
 					.getResultList();
 			rows.stream().forEach(apu -> {
@@ -242,34 +243,58 @@ public class FindingAidService {
 	}
 
 	private <T> void addFindingAidPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<FindingAid> root, String code,
-			String uuid) {
-		if (code == null && uuid == null) {
+			Integer instId, String uuid) {
+		if (code == null && uuid == null && instId == null) {
 			// no filter
 			return;
 		}
-		Predicate p = cb.disjunction();
-		if (code != null) {
-			boolean predicateCreated = false;
-        	try {
-        		var tmpUUID = UUID.fromString(code);
-        		p = cb.or(p, cb.equal(root.get(FindingAid.JPA_UUID), tmpUUID));
-        		predicateCreated = true;
-        	} catch (IllegalArgumentException e) {
-        		// ignore
-        	}
-        	try {
-        		var id = Integer.parseInt(code);
-        		p = cb.or(p, cb.equal(root.get(FindingAid.JPA_ID), id));
-				p = cb.or(p, cb.equal(root.get(FindingAid.JPA_EVIDENCE_NUMBER), id));
-        		predicateCreated = true;
-        	} catch (NumberFormatException e) {
-        		// ignore
-        	}        	
-        	if (!predicateCreated) {
-        		p = cb.and(p, cb.like(root.get("code"), "%"+code+"%"));
-        	}
-		}		
-		cq.where(p);
+		
+		List<Predicate> andPredicates = new ArrayList<>();
+        
+        // instId is always AND-ed
+        if (instId != null && instId > 0) {
+            andPredicates.add(cb.equal(root.get("institution").get("id"), instId));
+        }
+		
+        // code
+        List<Predicate> orPredicates = new ArrayList<>();
+        
+        if (StringUtils.isNotBlank(code)) {
+        	boolean predicateCreated = false;
+            // try UUID
+            try {
+                UUID parsedUuid = UUID.fromString(code);
+                orPredicates.add(cb.equal(root.get("uuid"), parsedUuid));
+                predicateCreated = true;
+            } catch (IllegalArgumentException ignored) {
+            }
+
+            // try integer
+            try {
+                Integer id = Integer.valueOf(code);
+                orPredicates.add(cb.equal(root.get("id"), id));
+                orPredicates.add(cb.equal(root.get("evidenceNumber"), id));
+                predicateCreated = true;
+            } catch (NumberFormatException ignored) {
+            }
+
+            if (!predicateCreated) {
+                // fallback to LIKE
+                orPredicates.add(cb.like(
+                        cb.lower(root.get("code")),
+                        "%" + code.toLowerCase() + "%"
+                ));	            
+            }
+        }
+        
+        if (!orPredicates.isEmpty()) {
+            andPredicates.add(cb.or(orPredicates.toArray(Predicate[]::new)));
+        }
+
+        if (!andPredicates.isEmpty()) {
+            cq.where(cb.and(andPredicates.toArray(Predicate[]::new)));
+        }        
+
 	}
 
 }

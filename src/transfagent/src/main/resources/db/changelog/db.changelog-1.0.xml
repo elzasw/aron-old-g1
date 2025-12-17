@@ -592,4 +592,9 @@
     <addNotNullConstraint tableName="apu_source"
       columnDataType="boolean" columnName="disable_send" />
  </changeSet>
+ <changeSet author="karel.zacek@lightcomp.cz" id="18">
+ 	<addColumn tableName="finding_aid">
+      <column name="name" type="text" />
+     </addColumn>
+ </changeSet>
 </databaseChangeLog>

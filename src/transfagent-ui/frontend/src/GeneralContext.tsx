@@ -10,7 +10,9 @@ interface ItemStore<T> {
 
 interface GeneralContextValue {
   institutions: ItemStore<InstitutionDef>;
+  institutionId?: number;
   userStatus: UserStatus;
+  setInstitutionId:(institutionId: number)=>void;
 }
 
 const initialInstitutions: ItemStore<InstitutionDef> = {
@@ -27,7 +29,8 @@ const initialUserStatus : UserStatus = {
 
 const initialContextValue: GeneralContextValue = {
   institutions: initialInstitutions,
-  userStatus: initialUserStatus
+  userStatus: initialUserStatus,
+  setInstitutionId:()=>{}
 }
 
 export const GeneralContext = createContext<GeneralContextValue>(initialContextValue);
@@ -35,11 +38,21 @@ export const GeneralContext = createContext<GeneralContextValue>(initialContextV
 export function GeneralContextProvider({ children }: PropsWithChildren<{}>) {
   const [institutions, setInstitutions] = useState<ItemStore<InstitutionDef>>(initialInstitutions);
   const [userStatus, setUserStatus] = useState<UserStatus>(initialUserStatus);
+  const [institutionId, setInstitutionId] = useState<number>(-1);
 
   useEffect(() => {
     (async () => {
       setInstitutions({ ...institutions, isFetching: true })
       const { items } = await Api.transfagent.getInstitutions({ pageSize: 1000 });
+      items.sort((i1,i2)=> {
+        if (i1.name && i2.name) { 
+          const n1 = i1.name?.toLocaleLowerCase();
+          const n2 = i2.name?.toLocaleLowerCase()
+          return n1.localeCompare(n2);
+        } else {
+          return -1;
+        }
+      } );
       const itemsMap: Record<string | number, InstitutionDef> = {}
       items.forEach((institution) => {
         itemsMap[institution.institutionId] = institution;
@@ -57,7 +70,7 @@ export function GeneralContextProvider({ children }: PropsWithChildren<{}>) {
     })()
   }, []);
 
-  return <GeneralContext.Provider value={{ institutions, userStatus }}>
+  return <GeneralContext.Provider value={{ institutions, userStatus, institutionId, setInstitutionId }}>
     {children}
   </GeneralContext.Provider>;
 }

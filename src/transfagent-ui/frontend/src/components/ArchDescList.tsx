@@ -9,6 +9,7 @@ import {
     ListContainer,
     ListItem,
     StyledInput,
+    StyledSelect,
 } from "jareco/dist/common-ui-elements";
 import { confirm, open } from "jareco/dist/modal";
 import { ConfirmationDialogResult } from "jareco/dist/modal/ConfirmationDialog";
@@ -25,10 +26,11 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import { Api, ArchDescDef/* , ReimportType */ } from "../api";
-import { getFundsPath, getSourcesPath } from "../App";
+import { getFundsPath, getInstitutionsPath, getSourcesPath } from "../App";
 import { archDescColumnInfo, ColumnInfo } from "./columnMap";
 
 import { ArchDescImport } from "./ArchDescImport";
+import { useGeneralContext } from "../GeneralContext";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -46,11 +48,14 @@ export const ArchDescList = () => {
     const [items, setItems] = useState<ArchDescDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
 
+    const { institutions, institutionId, setInstitutionId } = useGeneralContext();
+
     const requestData = async () => {
         if (page >= 1) {
             Api.transfagent
                 .getArchDescs({
                     query: filterFulltext || undefined,
+                    instId: institutionId,
                     uuid: undefined,
                     page: page - 1,
                     pageSize: pageSize,
@@ -69,7 +74,7 @@ export const ArchDescList = () => {
 
     useEffect(() => {
         requestData();
-    }, [page, filterFulltext]);
+    }, [page, filterFulltext, institutionId]);
 
     const getChildId = (index: number) => items[index].archDescId || 1;
 
@@ -119,6 +124,7 @@ export const ArchDescList = () => {
         e: React.FormEvent<HTMLInputElement>
     ) => {
         setFilterFulltextInput(e.currentTarget.value);
+        setPage(1);
     };
 
     const getCellContent = (item: any, propCode: ColumnInfo<ArchDescDef>["code"]) => {
@@ -129,7 +135,12 @@ export const ArchDescList = () => {
             return <Link to={getSourcesPath(apuId)}>{apuId}</Link>
         } else if (propCode === "fundId") {
             const fundId = item[propCode];
-            return <Link to={getFundsPath(fundId)}>{fundId}</Link>
+            const fundName = item["fundName"];            
+            return <Link to={getFundsPath(fundId)}>{fundName?fundName:fundId}</Link>
+        }  else if (propCode === "institutionId") {
+            const institutionId = item[propCode];
+            const institution = institutions.itemsMap[institutionId];
+            return <Link to={getInstitutionsPath(institutionId)}>{institution?.name || institutionId}</Link>
         }
         return item[propCode];
     };
@@ -211,6 +222,16 @@ export const ArchDescList = () => {
 
     }
 
+    const handleChangeInstitution = (event:React.ChangeEvent<HTMLSelectElement>) => {
+        const instId = parseInt(event.currentTarget.value);
+        if (isNaN(instId)) {
+            setInstitutionId(-1);
+        } else {
+            setInstitutionId(instId);
+        }
+        setPage(1);
+    }
+
     return (
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
@@ -231,6 +252,10 @@ export const ArchDescList = () => {
                             padding: "0",
                         }}
                     >
+                        <StyledSelect onChange={handleChangeInstitution} value={institutionId}>
+                            <option value={-1}>Všechny instituce</option>
+                            {institutions.items.map((inst)=>{return <option value={inst.institutionId}>{inst.name}</option>})}                        
+                        </StyledSelect>
                         <StyledInput
                             color="dark"
                             value={filterFulltextInput}

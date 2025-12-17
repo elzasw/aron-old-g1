@@ -207,18 +207,18 @@ export const cInfoAids: ColumnInfo<FindingAidDef>[] = [
     {
         code: "numDaos",
         width: 120,
-    },    
+    },        
     {
-        code: "apusourceId",
-        width: 170,
+        code: "name",
+        width: 200,
     },
     {
         code: "institutionId",
         width: 170,
     },
-        {
-        code: "code",
-        width: 300,
+    {
+        code: "apusourceId",
+        width: 170,
     },
 ]
 
@@ -245,9 +245,17 @@ export const archDescColumnInfo: ColumnInfo<ArchDescDef>[] = [
         width: 170,
     },
     {
+        code: "nad",
+        width: 100,
+    },
+    {
         code: "fundId",
         width: 170,
     },
+    {
+        code: "institutionId",
+        width: 200,
+    }
 ]
 
 export const institutionColumnInfo: ColumnInfo<InstitutionDef>[] = [

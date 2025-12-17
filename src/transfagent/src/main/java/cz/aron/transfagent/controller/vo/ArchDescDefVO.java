@@ -9,11 +9,21 @@ public class ArchDescDefVO extends ArchDescDef {
 		setApusourceId(archDesc.getApuSource().getId().longValue());
 		setArchDescId(archDesc.getId().longValue());
 		setFundId(archDesc.getFund().getId().longValue());
-		if (archDesc.getRootUuid()!=null) {
+		if (archDesc.getRootUuid() != null) {
 			setUuid(archDesc.getRootUuid().toString());
 		}
 		setDeleted(archDesc.getApuSource().isDeleted());
-	}
-	
+		setFundName(archDesc.getFund().getName());
+		setInstitutionId(archDesc.getFund().getInstitution().getId().longValue());
+		var fund = archDesc.getFund();
+		if (fund.getNad() != null) {
+			if (fund.getSubNad()!=null) {
+				setNad(fund.getNad().toString() + "/" + fund.getSubNad().toString());		
+			} else {
+				setNad(fund.getNad().toString());
+			}
+		}
+		
+	}	
 
 }

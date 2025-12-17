@@ -26,14 +26,19 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import cz.aron.peva2.wsdl.FieldSort;
 import cz.aron.peva2.wsdl.GetNadSheetRequest;
 import cz.aron.peva2.wsdl.GetNadSheetResponse;
+import cz.aron.peva2.wsdl.Include;
 import cz.aron.peva2.wsdl.InstitutionReference;
 import cz.aron.peva2.wsdl.ListNadSheetRequest;
 import cz.aron.peva2.wsdl.ListNadSheetResponse;
 import cz.aron.peva2.wsdl.NadPrimarySheet;
 import cz.aron.peva2.wsdl.NadSheet;
 import cz.aron.peva2.wsdl.NadSubsheet;
+import cz.aron.peva2.wsdl.SortOrder;
+import cz.aron.peva2.wsdl.ListRequest.Includes;
+import cz.aron.peva2.wsdl.ListRequest.Sorts;
 import cz.aron.transfagent.config.ConfigPeva2;
 import cz.aron.transfagent.repository.PropertyRepository;
 import cz.aron.transfagent.service.AttachmentSource;
@@ -72,6 +77,21 @@ public class Peva2ImportFundIds  extends Peva2Downloader {
 			lnsr.setSize(config.getBatchSize());
 			lnsr.setUpdatedAfter(updateAfter);
 			lnsr.setSearchAfter(searchAfter);
+			
+			var includes = new Includes();
+			includes.getInclude().add(Include.DELETED);
+			includes.getInclude().add(Include.INVALID);
+			includes.getInclude().add(Include.DESTROYED);
+			includes.getInclude().add(Include.MOVED);			
+			lnsr.setIncludes(includes);
+									
+			var sorts = new Sorts();
+			var fieldSort = new FieldSort();
+			fieldSort.setField("updated");
+			fieldSort.setOrder(SortOrder.ASC);			
+			sorts.getSort().add(fieldSort);
+			lnsr.setSorts(sorts);
+			
 			ListNadSheetResponse lnsResp = peva2.getPeva().listNadSheet(lnsr);
 			log.info("Downloaded {} funds to update after {}",
 					lnsResp.getItems().getNadPrimarySheetOrNadSubsheet().size(), updateAfter);

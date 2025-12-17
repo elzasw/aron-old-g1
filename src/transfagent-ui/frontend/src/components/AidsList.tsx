@@ -8,6 +8,7 @@ import {
     ListContainer,
     ListItem,
     StyledInput,
+    StyledSelect,
 } from "jareco/dist/common-ui-elements";
 import { confirm } from "jareco/dist/modal";
 import { ConfirmationDialogResult } from "jareco/dist/modal/ConfirmationDialog";
@@ -44,13 +45,14 @@ export const AidsList = () => {
     const [items, setItems] = useState<FindingAidDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
 
-    const { institutions } = useGeneralContext();
+    const { institutions, institutionId, setInstitutionId } = useGeneralContext();
 
     const requestData = async () => {
         if (page >= 1) {
             Api.transfagent
                 .getFindingAids({
                     code: filterFulltext || undefined,
+                    instId: institutionId,
                     uuid: undefined,
                     page: page - 1,
                     pageSize: pageSize,
@@ -69,7 +71,7 @@ export const AidsList = () => {
 
     useEffect(() => {
         requestData();
-    }, [page, filterFulltext]);
+    }, [page, filterFulltext, institutionId]);
 
     const getChildId = (index: number) => items[index].findingAidId || 1;
 
@@ -118,6 +120,7 @@ export const AidsList = () => {
         e: React.FormEvent<HTMLInputElement>
     ) => {
         setFilterFulltextInput(e.currentTarget.value);
+        setPage(1);
     };
 
     const getCellContent = (item: any, propCode: ColumnInfo<FindingAidDef>["code"]) => {
@@ -202,6 +205,17 @@ export const AidsList = () => {
         });
     }
 
+    const handleChangeInstitution = (event:React.ChangeEvent<HTMLSelectElement>) => {
+        const instId = parseInt(event.currentTarget.value);
+        if (isNaN(instId)) {
+            setInstitutionId(-1);
+        } else {
+            setInstitutionId(instId);
+        }
+        setPage(1);
+    }
+
+
     return (
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
@@ -222,6 +236,10 @@ export const AidsList = () => {
                             padding: "0",
                         }}
                     >
+                        <StyledSelect onChange={handleChangeInstitution} value={institutionId}>
+                            <option value={-1}>Všechny instituce</option>
+                            {institutions.items.map((inst)=>{return <option value={inst.institutionId}>{inst.name}</option>})}                        
+                        </StyledSelect>                        
                         <StyledInput
                             color="dark"
                             value={filterFulltextInput}

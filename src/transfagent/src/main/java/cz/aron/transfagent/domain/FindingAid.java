@@ -40,6 +40,8 @@ public class FindingAid {
     private Integer evidenceNumber;
     
     private Integer partNumber;
+    
+    private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "apusource_id", nullable = false)
@@ -90,6 +92,14 @@ public class FindingAid {
 
 	public void setPartNumber(Integer partNumber) {
 		this.partNumber = partNumber;
+	}
+	
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public ApuSource getApuSource() {

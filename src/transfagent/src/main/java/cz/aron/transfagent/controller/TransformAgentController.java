@@ -150,23 +150,19 @@ public class TransformAgentController implements TransfagentApi {
         return ResponseEntity.ok(archivalEntityService.getEntities(code, uuid, page, pageSize));
     }
 
-    // get: /findingaids
-    @Override
-    public ResponseEntity<FindingAidsResponse> getFindingAids(@Valid String code, 
-    		                                                  @Valid String uuid,
-                                                              @Min(0) @Valid Integer page,
-                                                              @Min(1) @Max(1000) @Valid Integer pageSize) {
-        return ResponseEntity.ok(findingAidService.getFindingAids(code, uuid, page, pageSize));
-    }
+    // get: /findingaids	
+	@Override
+	public ResponseEntity<FindingAidsResponse> getFindingAids(@Valid String code, @Valid Integer instId,
+			@Valid String uuid, @Min(0) @Valid Integer page, @Min(1) @Max(1000) @Valid Integer pageSize) {		
+		return ResponseEntity.ok(findingAidService.getFindingAids(code, instId, uuid, page, pageSize));
+	}
 
-    // get: /funds
-    @Override
-    public ResponseEntity<FundsResponse> getFunds(@Valid String code, 
-    		                                      @Valid String uuid, 
-    		                                      @Min(0) @Valid Integer page,
-                                                  @Min(1) @Max(1000) @Valid Integer pageSize) {
-        return ResponseEntity.ok(fundService.getFunds(code, uuid, page, pageSize));
-    }
+	// get: /funds
+	@Override
+	public ResponseEntity<FundsResponse> getFunds(@Valid String code, @Valid Integer instId, @Valid String uuid,
+			@Min(0) @Valid Integer page, @Min(1) @Max(1000) @Valid Integer pageSize) {
+		return ResponseEntity.ok(fundService.getFunds(code, instId, uuid, page, pageSize));
+	}
 
 	@Override
 	public ResponseEntity<Void> reimportAllApusOfType(@NotNull @Valid ReimportType apuType) {
@@ -175,9 +171,9 @@ public class TransformAgentController implements TransfagentApi {
 	}
 
 	@Override
-	public ResponseEntity<ArchDescResponse> getArchDescs(@Valid String query, @Valid String uuid,
-			@Min(0) @Valid Integer page, @Min(1) @Max(1000) @Valid Integer pageSize) {		
-		return ResponseEntity.ok(archDescService.getArchDesc(query, page, pageSize));
+	public ResponseEntity<ArchDescResponse> getArchDescs(@Valid String query, @Valid Integer instId, @Valid String uuid,
+			@Min(0) @Valid Integer page, @Min(1) @Max(1000) @Valid Integer pageSize) {
+		return ResponseEntity.ok(archDescService.getArchDesc(query, instId, page, pageSize));
 	}
 
 	@Override

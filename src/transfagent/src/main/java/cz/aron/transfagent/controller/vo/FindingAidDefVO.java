@@ -31,6 +31,7 @@ public class FindingAidDefVO extends FindingAidDef {
             	}
             }
         }
+        setName(findingAid.getName());
     }
 
 }
