@@ -65,6 +65,7 @@ export default {
         "fund.reimport.confirm.message": "Přejete si znovu odeslat archivní soubor s id: {id}?",
         "fund.reimportAll.confirm.title": "Znovu odeslat všechny archivní soubory",
         "fund.reimportAll.confirm.message": "Přejete si znovu odeslat všechny archivní soubory?",
+        "fund.downloadFundsXlsx": "Stáhnout XLSX",
         "fundColumn.actions" : " ",
         "fundColumn.fundId" : "Id",
         "fundColumn.uuid" : "APU",

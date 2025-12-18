@@ -301,7 +301,7 @@ export const FundsList = () => {
                         id="buttonDownloadXlsx"
                         onClick={handleDownloadXlsx}
                     >
-                        {formatMessage({ id: "downloadFundsXslx" })}
+                        {formatMessage({ id: "fund.downloadFundsXlsx" })}
                     </ActionButton>
                 </ActionsContainer>
             </ActionBar>
