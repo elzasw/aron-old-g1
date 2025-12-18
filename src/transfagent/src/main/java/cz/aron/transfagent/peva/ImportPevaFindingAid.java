@@ -258,11 +258,11 @@ public class ImportPevaFindingAid implements FindingAidImporter {
             if (findingAid == null) {
 				fa = findingAidService.createFindingAid(findingAidCode, funds, institution, dataDir, dir, builder,
 						attachments, configPeva2.getFundProperties().isAggregateAttachments(), send,
-						ifai.getFindingAidCodeInt(), ifai.getFindingAidPartNumberInt(), numAttachments, numDaos);
+						ifai.getFindingAidCodeInt(), ifai.getFindingAidPartNumberInt(), numAttachments, numDaos, ifai.getFindingAidName());
             } else {
 				findingAidService.updateFindingAid(findingAid, dataDir, dir, builder, attachments,
 						configPeva2.getFundProperties().isAggregateAttachments(), send, ifai.getFindingAidCodeInt(),
-						ifai.getFindingAidPartNumberInt(), numAttachments, numDaos);
+						ifai.getFindingAidPartNumberInt(), numAttachments, numDaos, ifai.getFindingAidName());
                 fa = findingAid;
             }
             if (daoFileStore3Service != null || !daoImporters.isEmpty()) {
@@ -300,10 +300,10 @@ public class ImportPevaFindingAid implements FindingAidImporter {
             fa = findingAidService.createFindingAid(findingAidCode, funds, institution, dataDir, dir, builder,
                                                Collections.emptyList(),
                                                configPeva2.getFundProperties().isAggregateAttachments(), send,
-                                               null, null, 0, 0);            
+                                               null, null, 0, 0, null);            
         } else {
             findingAidService.updateFindingAid(findingAid, dataDir, dir, builder, Collections.emptyList(),
-                                               true, send, null, null, 0, 0);
+                                               true, send, null, null, 0, 0, null);
             fa = findingAid;
         }
         fa.getApuSource().setDeleted(true);
@@ -572,11 +572,11 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 			transactionTemplate.executeWithoutResult(c -> {
 				findingAidService.updateFindingAid(findingAid, relativeDataDir, apuPath, builder, attachments,
 						configPeva2.getFundProperties().isAggregateAttachments(), false,
-						ifai.getFindingAidCodeInt(), ifai.getFindingAidPartNumberInt(), numAttachments, numDaos);
+						ifai.getFindingAidCodeInt(), ifai.getFindingAidPartNumberInt(), numAttachments, numDaos, ifai.getFindingAidName());
 				if (daoFileStore3Service != null||!daoImporters.isEmpty()) {
 				    this.daoImportService.updateDaos(apuSource, daos);
 				}
-			});			
+			});
 		} catch (Exception e) {
 			log.error("Fail to process downloaded {}, dir={}", fileName, apuPath, e);
 			return ReimportProcessor.Result.FAILED;

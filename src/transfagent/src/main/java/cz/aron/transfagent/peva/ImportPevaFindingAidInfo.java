@@ -51,6 +51,8 @@ public class ImportPevaFindingAidInfo {
 	
 	private Integer findingAidPartNumberInt;
 	
+	private String findingAidName;
+	
 	private boolean valid;
 
 	private List<UUID> fundUUIDs = new ArrayList<>();
@@ -84,7 +86,7 @@ public class ImportPevaFindingAidInfo {
 		var instInfo = getInstitutionInfo(findingAid);
 		findingAidUUID = UUID.fromString(findingAid.getId());
 
-		var findingAidName = findingAid.getName();
+		findingAidName = findingAid.getName();
 		var fullFindingAidName = createFindingAidName(instInfo, findingAid);
 		
 		Apu apu = apusBuilder.createApu(fullFindingAidName, ApuType.FINDING_AID, UUID.fromString(findingAid.getId()));
@@ -303,6 +305,10 @@ public class ImportPevaFindingAidInfo {
 
 	public Integer getFindingAidPartNumberInt() {
 		return findingAidPartNumberInt;
+	}
+
+	public String getFindingAidName() {
+		return findingAidName;
 	}
 
 	public List<UUID> getFundUUIDs() {

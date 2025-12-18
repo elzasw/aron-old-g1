@@ -33,6 +33,8 @@ public class ImportFindingAidInfo {
 
     private String fundCode;
     
+    private String findingAidName;
+    
     private final ImportFindingAidResultBuilder resultBuilder;
 
     public ImportFindingAidInfo(String fundCode, ImportFindingAidResultBuilder resultBuilder) {
@@ -64,7 +66,7 @@ public class ImportFindingAidInfo {
             uuid = UUID.randomUUID();
         }
 
-        String findingAidName = ead3XmlReader.getSubtitle();
+        findingAidName = ead3XmlReader.getSubtitle();
         Apu apu = builder.createApu(findingAidName, ApuType.FINDING_AID, uuid);
 
         // add title part
@@ -116,5 +118,9 @@ public class ImportFindingAidInfo {
 
     public String getInstitutionCode() {
         return institutionCode;
+    }
+    
+    public String getFindingAidName() {
+    	return findingAidName;
     }
 }

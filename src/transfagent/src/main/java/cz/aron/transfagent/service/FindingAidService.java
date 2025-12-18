@@ -83,7 +83,7 @@ public class FindingAidService {
 	@Transactional
 	public FindingAid createFindingAid(String findingaidCode, List<Fund> relatedFunds, Institution institution,
 			Path dataDir, Path origDir, ApuSourceBuilder builder, List<AttachmentDesc> attachments, boolean reimportFund,
-			boolean send, Integer evidenceNumber, Integer partNumber, int numAttachments, int numDaos) {
+			boolean send, Integer evidenceNumber, Integer partNumber, int numAttachments, int numDaos, String findingAidName) {
 
 		// reload funds from db
 		var funds = fundRepository.findAllById(relatedFunds.stream().map(f -> f.getId()).collect(Collectors.toList()));
@@ -99,6 +99,7 @@ public class FindingAidService {
 
 		var findingAid = new FindingAid();
 		findingAid.setCode(findingaidCode);
+		findingAid.setName(findingAidName);
 		findingAid.setUuid(UUID.fromString(findingaidUuid));
 		findingAid.setApuSource(apuSource);
 		findingAid.setInstitution(institution);
@@ -127,7 +128,7 @@ public class FindingAidService {
 	@Transactional
 	public void updateFindingAid(FindingAid findingAidSrc, Path dataDir, Path origDir, ApuSourceBuilder builder,
 			List<AttachmentDesc> attachments, boolean reimportFund, boolean send, Integer evidenceNumber, Integer partNumber,
-			int numAttachments, int numDaos) {
+			int numAttachments, int numDaos, String findingAidName) {
 
 		FindingAid findingAid = findingAidRepository.findById(findingAidSrc.getId())
 				.orElseThrow(() -> new EntityNotFoundException());
@@ -137,6 +138,9 @@ public class FindingAidService {
 		}
 		if (!Objects.equals(findingAid.getPartNumber(), partNumber)) {
 			findingAid.setPartNumber(partNumber);
+		}
+		if (!Objects.equals(findingAid.getName(), findingAidName)) {
+			findingAid.setName(findingAidName);
 		}
 
 		var apuSource = findingAid.getApuSource();
