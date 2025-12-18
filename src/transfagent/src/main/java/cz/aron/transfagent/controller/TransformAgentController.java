@@ -3,6 +3,7 @@ package cz.aron.transfagent.controller;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
@@ -14,6 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +47,7 @@ import cz.aron.transfagent.service.FindingAidService;
 import cz.aron.transfagent.service.FundService;
 import cz.aron.transfagent.service.InstitutionsService;
 import cz.aron.transfagent.service.UserService;
+import cz.aron.transfagent.service.reports.FundReportService;
 
 @CrossOrigin
 @RestController
@@ -57,6 +62,8 @@ public class TransformAgentController implements TransfagentApi {
     private final DaoImportService daoImportService;
 
     private final FundService fundService;
+    
+    private final FundReportService fundReportService;
 
     private final FindingAidService findingAidService;
 
@@ -71,6 +78,7 @@ public class TransformAgentController implements TransfagentApi {
     public TransformAgentController(ApuSourceService apuSourceService, 
     							    DaoImportService daoImportService,
                                     FundService fundService,
+                                    FundReportService fundReportService,
                                     FindingAidService findingAidService, 
                                     ArchivalEntityService archivalEntityService,
                                     ArchDescService archDescService,
@@ -79,6 +87,7 @@ public class TransformAgentController implements TransfagentApi {
         this.apuSourceService = apuSourceService;
         this.daoImportService = daoImportService;
         this.fundService = fundService;
+        this.fundReportService = fundReportService;
         this.findingAidService = findingAidService;
         this.archivalEntityService = archivalEntityService;
         this.archDescService = archDescService;
@@ -165,6 +174,13 @@ public class TransformAgentController implements TransfagentApi {
 	}
 
 	@Override
+	public ResponseEntity<Resource> getFundsXlsx(@Valid String code, @Valid Integer instId, @Valid String uuid) {
+		return createResponseEntity(() -> {
+			return fundReportService.getFundsXlsx(code, instId);
+		});
+	}
+
+	@Override
 	public ResponseEntity<Void> reimportAllApusOfType(@NotNull @Valid ReimportType apuType) {
 		apuSourceService.reimportAll(apuType);
 		return ResponseEntity.ok().build();
@@ -179,7 +195,6 @@ public class TransformAgentController implements TransfagentApi {
 	@Override
 	public ResponseEntity<InstitutionResponse> getInstitutions(@Valid String code, @Min(0) @Valid Integer page,
 			@Min(1) @Max(1000) @Valid Integer pageSize) {
-		// TODO Auto-generated method stub
 		return ResponseEntity.ok(institutionsService.getInstitutions(code, page, pageSize));
 	}
 
@@ -223,5 +238,31 @@ public class TransformAgentController implements TransfagentApi {
 		archDescService.scheduleArchDescImport(fundVersionId);
 		return ResponseEntity.ok().build();
 	}
-	
+		
+	private ResponseEntity<Resource> createResponseEntity(ReportGenerator reportGenerator) {		
+		Resource resource;
+        long lastModified;
+        MediaType mediaType;
+        try {
+            Path path = reportGenerator.generate();
+            resource = new UrlResource(path.toUri());
+            lastModified = resource.lastModified();
+            mediaType = MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        } catch (Exception e) {
+            log.error("Fail to get xlsx file.", e);
+            return ResponseEntity.unprocessableEntity().build();
+        }
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                .lastModified(lastModified)
+                .body(resource);
+		
+	}
+
+	@FunctionalInterface
+	public interface ReportGenerator {
+	    Path generate() throws Exception;
+	}
+
 }

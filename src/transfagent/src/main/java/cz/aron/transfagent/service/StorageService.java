@@ -3,6 +3,8 @@ package cz.aron.transfagent.service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
@@ -164,4 +166,15 @@ public class StorageService {
 		return Arrays.equals(existingFileContent, content);
 	}
 	
+	private DateTimeFormatter formatter =
+	        DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss-SSS");
+
+	
+	public Path createXlsxReportName(String reportName) throws IOException {
+		var dailyTmpDir = workDir.resolve("tmp").resolve(String.format("%1$tY%1$tm%1$td", new Date()));
+		Files.createDirectories(dailyTmpDir);
+		var fileName = "" + reportName + "_" + formatter.format(LocalDateTime.now()) + ".xlsx";
+		return dailyTmpDir.resolve(fileName);
+	};
+
 }

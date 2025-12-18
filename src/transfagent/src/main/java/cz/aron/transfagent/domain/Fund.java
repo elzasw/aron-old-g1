@@ -22,6 +22,7 @@ import javax.persistence.Table;
 public class Fund {
 	
     public static final String JPA_APUSOURCE = "apuSource";
+    public static final String JPA_INSTITUTION = "institution";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

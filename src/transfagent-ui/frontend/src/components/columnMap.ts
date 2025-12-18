@@ -90,7 +90,7 @@ export const cInfoFunds: ColumnInfo<FundDef>[] = [
     },
     {
         code: "fundId",
-        width: 120,
+        width: 80,
     },
     {
         code: "uuid",
@@ -98,11 +98,7 @@ export const cInfoFunds: ColumnInfo<FundDef>[] = [
     },
     {
         code: "deleted",
-        width: 150,
-    },
-    {
-        code: "code",
-        width: 200,
+        width: 60,
     },
     {
         code: "nad",
@@ -121,6 +117,10 @@ export const cInfoFunds: ColumnInfo<FundDef>[] = [
         width: 300,
     },
     {
+        code: "institutionId",
+        width: 170,
+    },
+    {
         code: "source",
         width: 170,
     },
@@ -129,8 +129,8 @@ export const cInfoFunds: ColumnInfo<FundDef>[] = [
         width: 170,
     },
     {
-        code: "institutionId",
-        width: 170,
+        code: "code",
+        width: 200,
     },
 ]
 

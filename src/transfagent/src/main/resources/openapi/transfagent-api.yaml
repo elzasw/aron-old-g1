@@ -248,6 +248,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FundsResponse'
+
+  '/funds/xlsx':
+    get:
+      tags:
+        - Transfagent
+      summary: Vrati excel s fondy
+      operationId: getFundsXlsx
+      parameters:
+        - name: code
+          in: query
+          required: false
+          description: code of fund
+          schema:
+            type: string
+        - $ref: '#/components/parameters/instIdOptional'            
+        - $ref: '#/components/parameters/uuidOptional'
+      responses:
+        '200':
+          description: Success
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+
   /archdescs:
     get:
       tags:

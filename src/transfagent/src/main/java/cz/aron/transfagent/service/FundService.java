@@ -160,7 +160,7 @@ public class FundService {
         return new FundsResponse(items, totalItems.intValue());
 	}
 
-	private <T> void addFundPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<Fund> root, String code, Integer instId, String uuid) {        
+	public static <T> void addFundPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<Fund> root, String code, Integer instId, String uuid) {        
         if (code==null && uuid==null && instId == null) {
             // no filter
             return;
