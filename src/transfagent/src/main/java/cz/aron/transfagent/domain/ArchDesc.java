@@ -39,6 +39,9 @@ public class ArchDesc {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fund_id", nullable = true)
     private Fund fund;
+    
+    @Column(name = "num_levels")
+    private int numLevels;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "collection_id", nullable = true)
@@ -90,6 +93,14 @@ public class ArchDesc {
 
 	public void setCollection(Collection collection) {
 		this.collection = collection;
+	}
+
+	public int getNumLevels() {
+		return numLevels;
+	}
+
+	public void setNumLevels(int numLevels) {
+		this.numLevels = numLevels;
 	}
 
 }

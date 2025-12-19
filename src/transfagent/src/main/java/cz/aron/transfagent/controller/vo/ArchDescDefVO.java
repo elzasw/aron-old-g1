@@ -17,13 +17,15 @@ public class ArchDescDefVO extends ArchDescDef {
 		setInstitutionId(archDesc.getFund().getInstitution().getId().longValue());
 		var fund = archDesc.getFund();
 		if (fund.getNad() != null) {
-			if (fund.getSubNad()!=null) {
-				setNad(fund.getNad().toString() + "/" + fund.getSubNad().toString());		
+			if (fund.getSubNad() != null) {
+				setNad(fund.getNad().toString() + "/" + fund.getSubNad().toString());
 			} else {
 				setNad(fund.getNad().toString());
 			}
 		}
-		
-	}	
+		setNumAttachments(archDesc.getApuSource().getNumAttachments());
+		setNumDaos(archDesc.getApuSource().getNumDaos());
+		setNumLevels(archDesc.getNumLevels());
+	}
 
 }

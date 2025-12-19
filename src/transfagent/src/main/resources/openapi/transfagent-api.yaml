@@ -764,7 +764,16 @@ components:
           type: boolean
         institutionId:
           type: integer
-          format: int64                  
+          format: int64
+        numAttachments:
+          type: integer
+          format: int32
+        numDaos:
+          type: integer
+          format: int32
+        numLevels:
+          type: integer
+          format: int32                          
       description: Fund definition
     ArchDescResponse:
       type: object

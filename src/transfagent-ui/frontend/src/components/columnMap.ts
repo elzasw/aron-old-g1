@@ -241,11 +241,19 @@ export const archDescColumnInfo: ColumnInfo<ArchDescDef>[] = [
         width: 150,
     },
     {
-        code: "apusourceId",
-        width: 170,
+        code: "nad",
+        width: 100,
     },
     {
-        code: "nad",
+        code: "numAttachments",
+        width: 100,
+    },
+    {
+        code: "numDaos",
+        width: 100,
+    },
+    {
+        code: "numLevels",
         width: 100,
     },
     {
@@ -255,7 +263,11 @@ export const archDescColumnInfo: ColumnInfo<ArchDescDef>[] = [
     {
         code: "institutionId",
         width: 200,
-    }
+    },
+    {
+        code: "apusourceId",
+        width: 170,
+    },
 ]
 
 export const institutionColumnInfo: ColumnInfo<InstitutionDef>[] = [

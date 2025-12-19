@@ -6,6 +6,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,7 +40,6 @@ import cz.aron.transfagent.elza.ImportArchDescRefreshEntitiesCommand;
 import cz.aron.transfagent.elza.ImportArchDescResultBuilder;
 import cz.aron.transfagent.elza.dao.ArchDescLevelDaoImporter;
 import cz.aron.transfagent.peva.ArchiveFundId;
-import cz.aron.transfagent.repository.ApuSourceRepository;
 import cz.aron.transfagent.repository.ArchDescRepository;
 import cz.aron.transfagent.repository.CoreQueueRepository;
 import cz.aron.transfagent.repository.FundRepository;
@@ -75,13 +75,11 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
 
     private final InstitutionRepository institutionRepository;
 
-    private final ApuSourceRepository apuSourceRepository;
-
     private final CoreQueueRepository coreQueueRepository;
 
     private final ArchDescRepository archDescRepository;
 
-    private final TransactionTemplate transactionTemplate;
+    private final TransactionTemplate tt;
 
     private final DatabaseDataProvider databaseDataProvider;
 
@@ -114,9 +112,9 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
 
     public ImportArchDescService(ApTypeService apTypeService, ApuSourceService apuSourceService,
             ReimportService reimportService, StorageService storageService, FundRepository fundRepository,
-            InstitutionRepository institutionRepository, ApuSourceRepository apuSourceRepository,
+            InstitutionRepository institutionRepository,
             CoreQueueRepository coreQueueRepository, ArchDescRepository archDescRepository,
-            TransactionTemplate transactionTemplate, DatabaseDataProvider databaseDataProvider,
+            TransactionTemplate tt, DatabaseDataProvider databaseDataProvider,
             ConfigurationLoader configurationLoader,
             ArchivalEntityService archivalEntityService,
             FileImportService fileImportService,
@@ -135,10 +133,9 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         this.storageService = storageService;
         this.fundRepository = fundRepository;
         this.institutionRepository = institutionRepository;
-        this.apuSourceRepository = apuSourceRepository;
         this.coreQueueRepository = coreQueueRepository;
         this.archDescRepository = archDescRepository;
-        this.transactionTemplate = transactionTemplate;
+        this.tt = tt;
         this.databaseDataProvider = databaseDataProvider;
         this.configurationLoader = configurationLoader;
         this.archivalEntityService = archivalEntityService;
@@ -191,7 +188,7 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         var tmp = fileName.substring("archdesc-".length());
         var fundCode = tmp.substring(0, tmp.length() - ".xml".length());
         
-        transactionTemplate.execute(t -> {
+        tt.execute(t -> {
            importArchDesc(t, dir, fundCode, archdescXml.get());
            return null;
         });
@@ -273,11 +270,16 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
             throw new IllegalStateException(e);
         }
 
+        int numAttachments = iad.getAttachments().size();
+        int numDaos = iad.getDaoRefs().values().stream().mapToInt(Collection::size).sum();
+        int numLevels = iad.getNumLevels();
+
         if (archDesc == null) {
-            archDesc = createArchDesc(fund, dataDir, dir, apusrcBuilder);
+            archDesc = createArchDesc(fund, dataDir, dir, apusrcBuilder, numAttachments, numDaos, numLevels);
         } else {
-            updateArchDesc(archDesc, dataDir, dir, apusrcBuilder);
+            updateArchDesc(archDesc, dataDir, dir, apusrcBuilder, numAttachments, numDaos, numLevels);
         }
+        insertToCoreQueue(archDesc.getApuSource());
 
         // Request entities and store refs
         Set<UUID> uuids = iad.getApRefs();
@@ -287,9 +289,14 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
 
         if (configArchDesc.isRefreshEntities()) {
         	refreshEntitiesCommand.scheduleRefresh(archDesc.getId());	
-        }        
+        }
     }
 
+    private void insertToCoreQueue(ApuSource apuSource) {
+    	var coreQueue = new CoreQueue();
+        coreQueue.setApuSource(apuSource);
+        coreQueueRepository.save(coreQueue);
+    }
     
 	private List<DaoSource> getDaoSources(ImportArchDesc iad) {
 		var daoSources = new ArrayList<DaoSource>();
@@ -309,54 +316,44 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
 		return daoSources;
 	}
 
-    private ArchDesc createArchDesc(Fund fund, Path dataDir, Path origDir, ApuSourceBuilder apusrcBuilder) {
+    private ArchDesc createArchDesc(Fund fund, Path dataDir, Path origDir, ApuSourceBuilder apusrcBuilder, int numAttachments, int numDaos, int numLevels) {
     	
         var archDescUuid = UUID.randomUUID();
         var apuSourceUuidStr = apusrcBuilder.getApusrc().getUuid();
         var apuSourceUuid = apuSourceUuidStr == null? UUID.randomUUID() : UUID.fromString(apuSourceUuidStr); 
 
         var apuSource = apuSourceService.createApuSource(apuSourceUuid, SourceType.ARCH_DESCS, 
-            		dataDir, origDir.getFileName().toString(), 0, 0);
+            		dataDir, origDir.getFileName().toString(), numAttachments, numDaos);
 
         var archDesc = new ArchDesc();
         archDesc.setApuSource(apuSource);
         archDesc.setFund(fund);
         archDesc.setUuid(archDescUuid);
+        archDesc.setNumLevels(numLevels);
         var rootUuid = apusrcBuilder.getMainApu().getUuid();
         if (rootUuid!=null) {
         	archDesc.setRootUuid(UUID.fromString(apusrcBuilder.getMainApu().getUuid()));	
         }        
         archDesc = archDescRepository.save(archDesc);
-
-        var coreQueue = new CoreQueue();
-        coreQueue.setApuSource(apuSource);
-        coreQueueRepository.save(coreQueue);
-
-        log.info("ArchDesc created uuid={}", archDescUuid);
-        
+        log.info("ArchDesc created uuid={}", archDescUuid);        
         return archDesc;
     }
 
-	private void updateArchDesc(ArchDesc archDesc, Path dataDir, Path origDir, ApuSourceBuilder apusrcBuilder) {
+	private void updateArchDesc(ArchDesc archDesc, Path dataDir, Path origDir, ApuSourceBuilder apusrcBuilder, int numAttachments, int numDaos, int numLevels) {
 
 		var oldDir = archDesc.getApuSource().getDataDir();
 
 		var apuSource = archDesc.getApuSource();
 		apuSource.setDataDir(dataDir.toString());
 		apuSource.setOrigDir(origDir.getFileName().toString());
+		apuSource.setNumAttachments(numAttachments);
+		apuSource.setNumDaos(numDaos);
 
-		updateArchDescRootUuid(archDesc, apusrcBuilder);
-
-		var coreQueue = new CoreQueue();
-		coreQueue.setApuSource(apuSource);
-
-		apuSourceRepository.save(apuSource);
-		coreQueueRepository.save(coreQueue);
-
+		updateArchDescMetadata(archDesc, apusrcBuilder, numLevels);
 		log.info("ArchDesc updated uuid={}, original data dir {}", archDesc.getUuid(), oldDir);
 	}    
     
-    private void updateArchDescRootUuid(ArchDesc archDesc, ApuSourceBuilder apusrcBuilder) {
+    private void updateArchDescMetadata(ArchDesc archDesc, ApuSourceBuilder apusrcBuilder, int numLevels) {
     	UUID rootUuid = null;
         var mainApu = apusrcBuilder.getMainApu();
         if (mainApu!=null) {
@@ -364,10 +361,9 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         		rootUuid = UUID.fromString(mainApu.getUuid());
         	}
         }        
-        if (!Objects.equals(rootUuid, archDesc.getRootUuid())) {
-        	archDesc.setRootUuid(rootUuid);        
-            archDescRepository.save(archDesc);
-            log.info("ArchDescRoot updated id={}, rootUuid={}", archDesc.getId(), archDesc.getRootUuid());
+        if (!Objects.equals(rootUuid, archDesc.getRootUuid())||archDesc.getNumLevels()!=numLevels) {
+        	archDesc.setRootUuid(rootUuid);
+        	archDesc.setNumLevels(numLevels);            
         }
     }
 
@@ -376,8 +372,8 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         if (apuSource.getSourceType() != SourceType.ARCH_DESCS)
             return Result.UNSUPPORTED;
 
-        var archDesc = archDescRepository.findByApuSource(apuSource);
-        if (archDesc == null) {
+        var existingArchDesc = archDescRepository.findByApuSource(apuSource);
+        if (existingArchDesc == null) {
             log.error("Missing archive description: {}", apuSource.getId());
             return Result.UNSUPPORTED;
         }        
@@ -398,28 +394,46 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
             apuSourceBuilder = iad.importArchDesc(inputFile, new CachedDataProvider(databaseDataProvider));
             apuSourceBuilder.setUuid(apuSource.getUuid());
             
-            updateArchDescRootUuid(archDesc, apuSourceBuilder);
+            boolean force = apuSource.isForce();
             
             // compare original apusrc.xml and newly generated
             var apuSrcXmlPath = apuDir.resolve(StorageService.APUSRC_XML);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             apuSourceBuilder.build(baos, new ApuValidator(configurationLoader.getConfig()));
             byte [] newContent = baos.toByteArray();
-            if (StorageService.isContentEqual(apuSrcXmlPath, newContent)) {
+            if (!force && StorageService.isContentEqual(apuSrcXmlPath, newContent)) {
                 return ReimportProcessor.Result.NOCHANGES;
             }
             Files.write(apuSrcXmlPath, newContent);
-
-            // Request entities and store refs
-            Set<UUID> uuids = iad.getApRefs();        
-            archivalEntityService.updateSourceEntityLinks(archDesc.getApuSource(), uuids, null);
-            daoImportService.updateDaos(archDesc.getApuSource(), getDaoSources(iad));            
-            attachmentService.updateAttachments(apuSource, apuSourceBuilder, iad.getAttachments());
+            
+            var numAttachments = iad.getAttachments().size();
+            var numDaos = iad.getDaoRefs().values().stream().mapToInt(Collection::size).sum();
+            var numLevels = iad.getNumLevels();
+            
+			tt.executeWithoutResult(t -> {				
+				var archDesc = archDescRepository.findByIdWithApuSource(existingArchDesc.getId());
+				if (archDesc==null) {
+					log.error("ArchDesc not exist id={}", apuSource.getId());
+					throw new RuntimeException();
+				}
+				// Request entities and store refs
+				updateArchDescMetadata(archDesc, apuSourceBuilder, numLevels);
+				archDesc.getApuSource().setNumAttachments(numAttachments);
+				archDesc.getApuSource().setNumDaos(numDaos);
+				archivalEntityService.updateSourceEntityLinks(archDesc.getApuSource(), iad.getApRefs(), null);
+				daoImportService.updateDaos(archDesc.getApuSource(), getDaoSources(iad));
+				attachmentService.updateAttachments(apuSource, apuSourceBuilder, iad.getAttachments());
+			});
         } catch (Exception e) {
             log.error("Fail to process, file: {}", inputFile, e);
             return Result.FAILED;
         }
-        return Result.REIMPORTED;
+        log.info("ArchDesc reimported uuid={}", apuSource.getUuid());
+        if (apuSource.isDisableSend()) {
+			return ReimportProcessor.Result.REIMPORTED_NO_SEND;
+		} else {
+			return ReimportProcessor.Result.REIMPORTED;
+		}
     }
 
 }

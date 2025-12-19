@@ -123,6 +123,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
 	private Apu activeApu;
 	
 	private Level processedLevel;
+	
+	private int numLevels = 0;
 
     static final String ignoredTypes[] = {"ZP2015_ARRANGEMENT_TYPE",
             "ZP2015_SERIAL_NUMBER", "ZP2015_NAD", "ZP2015_ZNACKA_FONDU",
@@ -221,6 +223,10 @@ public class ImportArchDesc implements EdxItemCovertContext {
     	return fundId;
     }
     
+    public int getNumLevels() {
+    	return numLevels;
+    }
+    
     public Map<String,Set<ArchDescDaoRef>> getDaoRefs() {
     	return daoRefs;
     }
@@ -278,6 +284,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
         if(sect.getLvls()==null) {
             throw new RuntimeException("Missing levels.");
         }
+        
+        numLevels = sect.getLvls().getLvl().size();
 
         // read fund info
         FundInfo fi = sect.getFi();

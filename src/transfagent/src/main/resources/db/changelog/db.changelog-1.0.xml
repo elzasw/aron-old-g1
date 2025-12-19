@@ -597,4 +597,14 @@
       <column name="name" type="text" />
      </addColumn>
  </changeSet>
+ <changeSet author="karel.zacek@lightcomp.cz" id="19">
+ 	<addColumn tableName="arch_desc">
+      <column name="num_levels" type="int" />
+     </addColumn>
+    <sql>
+      update arch_desc set num_levels=0;
+    </sql>
+    <addNotNullConstraint tableName="arch_desc"
+      columnDataType="int" columnName="num_levels" />     
+ </changeSet>
 </databaseChangeLog>
