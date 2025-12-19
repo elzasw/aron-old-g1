@@ -47,6 +47,7 @@ import cz.aron.transfagent.service.FindingAidService;
 import cz.aron.transfagent.service.FundService;
 import cz.aron.transfagent.service.InstitutionsService;
 import cz.aron.transfagent.service.UserService;
+import cz.aron.transfagent.service.reports.FindingAidReportService;
 import cz.aron.transfagent.service.reports.FundReportService;
 
 @CrossOrigin
@@ -66,6 +67,8 @@ public class TransformAgentController implements TransfagentApi {
     private final FundReportService fundReportService;
 
     private final FindingAidService findingAidService;
+    
+    private final FindingAidReportService findingAidReportService;
 
     private final ArchivalEntityService archivalEntityService;
     
@@ -79,7 +82,8 @@ public class TransformAgentController implements TransfagentApi {
     							    DaoImportService daoImportService,
                                     FundService fundService,
                                     FundReportService fundReportService,
-                                    FindingAidService findingAidService, 
+                                    FindingAidService findingAidService,
+                                    FindingAidReportService findingAidReportService,
                                     ArchivalEntityService archivalEntityService,
                                     ArchDescService archDescService,
                                     InstitutionsService institutionsService,
@@ -89,6 +93,7 @@ public class TransformAgentController implements TransfagentApi {
         this.fundService = fundService;
         this.fundReportService = fundReportService;
         this.findingAidService = findingAidService;
+        this.findingAidReportService = findingAidReportService;
         this.archivalEntityService = archivalEntityService;
         this.archDescService = archDescService;
         this.institutionsService = institutionsService;
@@ -164,6 +169,14 @@ public class TransformAgentController implements TransfagentApi {
 	public ResponseEntity<FindingAidsResponse> getFindingAids(@Valid String code, @Valid Integer instId,
 			@Valid String uuid, @Min(0) @Valid Integer page, @Min(1) @Max(1000) @Valid Integer pageSize) {		
 		return ResponseEntity.ok(findingAidService.getFindingAids(code, instId, uuid, page, pageSize));
+	}
+
+	@Override
+	public ResponseEntity<Resource> getFindingAidsXlsx(@Valid String code, @Valid Integer instId, @Valid String uuid,
+			@Min(0) @Valid Integer page, @Min(1) @Max(1000) @Valid Integer pageSize) {
+		return createResponseEntity(() -> {
+			return findingAidReportService.getFindingAidsXlsx(code, instId);
+		});
 	}
 
 	// get: /funds

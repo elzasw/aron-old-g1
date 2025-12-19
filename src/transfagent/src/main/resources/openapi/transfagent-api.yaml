@@ -224,6 +224,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FindingAidsResponse'
+  /findingaids/xlsx:
+    get:
+      tags:
+        - Transfagent
+      operationId: getFindingAidsXlsx
+      description: Return list of finding aids filtered by required criteria
+      parameters:
+        - name: code
+          in: query
+          required: false
+          description: code of finding aids
+          schema:
+            type: string
+        - $ref: '#/components/parameters/instIdOptional'
+        - $ref: '#/components/parameters/uuidOptional'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':      
+          description: Success
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
   /funds:
     get:
       tags:

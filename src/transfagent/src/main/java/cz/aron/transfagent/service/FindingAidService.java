@@ -246,7 +246,7 @@ public class FindingAidService {
 		return new FindingAidsResponse(items, totalItems.intValue());
 	}
 
-	private <T> void addFindingAidPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<FindingAid> root, String code,
+	public static <T> void addFindingAidPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<FindingAid> root, String code,
 			Integer instId, String uuid) {
 		if (code == null && uuid == null && instId == null) {
 			// no filter

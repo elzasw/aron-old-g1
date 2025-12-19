@@ -7,6 +7,7 @@ import {
     DarkListHeader,
     ListContainer,
     ListItem,
+    Spacer,
     StyledInput,
     StyledSelect,
 } from "jareco/dist/common-ui-elements";
@@ -28,6 +29,7 @@ import { Api, FindingAidDef, ReimportType } from "../api";
 import { getInstitutionsPath, getSourcesPath } from "../App";
 import { useGeneralContext } from "../GeneralContext";
 import { cInfoAids, ColumnInfo } from "./columnMap";
+import { downloadFile, } from "../utils";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -215,6 +217,12 @@ export const AidsList = () => {
         setPage(1);
     }
 
+        const handleDownloadXlsx = () =>
+            downloadFile(
+                Api.transfagent.getFindingAidsXlsxRaw({code: filterFulltext || undefined,
+                        instId: institutionId,
+                        uuid: undefined,})
+            );
 
     return (
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
@@ -276,6 +284,15 @@ export const AidsList = () => {
                         <FaFileImport />
                         &nbsp;
                         <FormattedMessage id="reimportAll" />
+                    </ActionButton>
+                </ActionsContainer>
+                <Spacer />
+                <ActionsContainer>
+                    <ActionButton
+                        id="buttonDownloadXlsx"
+                        onClick={handleDownloadXlsx}
+                    >
+                        {formatMessage({ id: "fund.downloadFundsXlsx" })}
                     </ActionButton>
                 </ActionsContainer>
             </ActionBar>

@@ -25,6 +25,7 @@ public class FindingAid {
 	public static final String JPA_ID = "id";
 	public static final String JPA_EVIDENCE_NUMBER = "evidenceNumber";
 	public static final String JPA_FUNDS = "funds";
+	public static final String JPA_INSTITUTION = "institution";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
