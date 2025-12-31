@@ -5,12 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,14 +27,13 @@ import cz.aron.transfagent.common.MonitoredFileResource;
 import cz.aron.transfagent.domain.Dao;
 import cz.aron.transfagent.domain.DaoState;
 import cz.aron.transfagent.peva.PermalinkGenerator;
-import cz.aron.transfagent.service.AttachmentSource;
 import cz.aron.transfagent.service.DaoImportService.DaoImporter;
 import cz.aron.transfagent.service.importfromdir.TransformService;
 import cz.aron.transfagent.service.importfromdir.TransformService.TileThumbnailUrl;
 
 @ConditionalOnProperty(value = "filestore5.path")
 @Service
-public class DaoFileStore5Service implements DaoImporter, AttachmentSource, PermalinkGenerator {
+public class DaoFileStore5Service implements DaoImporter, PermalinkGenerator {
 
 	private static final Logger log = LoggerFactory.getLogger(DaoFileStore5Service.class);
 	
@@ -50,10 +46,6 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource, Perm
 		}
 
 	};
-	
-	private Map<InstitutionFindingAidKey, List<AttachmentDesc>> attachments = new HashMap<>();
-	
-	private long lastAttachmentReload = 0;
 
 	private final Path path;
 
@@ -98,131 +90,6 @@ public class DaoFileStore5Service implements DaoImporter, AttachmentSource, Perm
 		} else {
 			dao.setState(DaoState.INACCESSIBLE);
 		}
-	}
-
-	@Override
-	public List<AttachmentDesc> getFundAttachments(String archiveCode, String fundCode, Integer subFundCode)
-			throws IOException {		
-		return Collections.emptyList();
-	}
-
-	@Override
-	public List<AttachmentDesc> getFindingAidAttachments(String archiveCode, String findingAidCode,
-			String findingAidPartNumber) throws IOException {
-		
-		var ifKey = new InstitutionFindingAidKey(archiveCode, Integer.parseInt(findingAidCode), findingAidPartNumber);
-		var attachments = getAttachments(false);						
-		var att = attachments.get(ifKey);
-		if (att == null) {
-			return Collections.emptyList();
-		} else {
-			if (findingAidPartNumber != null) {
-				// pridame prilohu celeho inventare
-				var ifRootKey = new InstitutionFindingAidKey(archiveCode, Integer.parseInt(findingAidCode), null);
-				var rootAtt = attachments.get(ifRootKey);
-				if (rootAtt != null) {
-					var tmp = new ArrayList<AttachmentDesc>(att);
-					tmp.addAll(rootAtt);
-					return tmp;
-				}
-			}						
-			return att;			
-		}				
-	}
-
-	protected synchronized Map<InstitutionFindingAidKey, List<AttachmentDesc>> getAttachments(boolean forceReload) {		
-		var currentTime = System.currentTimeMillis();		
-		if ( currentTime - lastAttachmentReload > 5*60*1000 || forceReload) { // znovu nactu po peti minutach
-			try {
-				attachments = readAttachments();
-				lastAttachmentReload = currentTime;
-			} catch (IOException e) {
-				log.error("Fail to read attachments", e);
-			}			
-		}
-		return attachments;				
-	}
-
-	private Map<InstitutionFindingAidKey, List<AttachmentDesc>> readAttachments() throws IOException {
-		var attPath = path.resolve("ap").resolve("pdf");		
-		// check existency of directory
-		if (!Files.isDirectory(attPath)) {
-			log.error("Directory not exist {}", attPath);
-			throw new IOException("Directory not exist " + attPath);
-		}
-		
-		Map<InstitutionFindingAidKey, List<AttachmentDesc>> tmpAttachments = new HashMap<>();
-		read(attPath, tmpAttachments);
-		log.info("Attachments metadata reloaded from path {}", attPath);
-		return tmpAttachments;
-	}
-
-	private void read(Path path, Map<InstitutionFindingAidKey, List<AttachmentDesc>> tmpAttachments)
-			throws IOException {
-		try (var stream = Files.find(path, Integer.MAX_VALUE, (p, a) -> {
-			if (Files.isRegularFile(p)) {
-				var key = fromFile(p);
-				if (key != null) {
-					tmpAttachments.compute(key, (k, v) -> {
-						if (v == null) {
-							v = new ArrayList<AttachmentDesc>();
-						}
-						v.add(new AttachmentDesc(p, p.getFileName().toString(), a.lastModifiedTime().toMillis()));
-						return v;
-					});
-				}
-			}
-			return false;
-		}, FileVisitOption.FOLLOW_LINKS)) {
-			stream.count();
-		}
-	}
-
-	private InstitutionFindingAidKey fromFile(Path file) {		
-		var fileName = file.getFileName().toString();
-		var splitted = fileName.split("_");
-		if (splitted.length < 3) {
-			return null;
-		}
-		
-		String archiveCode = null;
-		for (var inst : config.getInstitutions()) {
-			if (Objects.equals(splitted[0], inst.getShortcut())) {
-				archiveCode = inst.getInstitutionCode();
-				break;
-			}
-		}
-		if (archiveCode == null) {
-			return null;
-		}
-		int apCode = -1;
-		String partNumber = null;
-		var splittedApCode = splitted[1].split("\\.");
-		if (splittedApCode.length == 1) {
-			if (splittedApCode[0].startsWith("ap")) {
-				try {
-					apCode = Integer.parseInt(splittedApCode[0].substring(2));
-				} catch (NumberFormatException e) {
-					return null;
-				}
-			} else {
-				return null;
-			}
-		} else if (splittedApCode.length == 2) {
-			if (splittedApCode[0].startsWith("ap")) {
-				try {
-					apCode = Integer.parseInt(splittedApCode[0].substring(2));
-					partNumber = "" + Integer.parseInt(splittedApCode[1]);
-				} catch (NumberFormatException e) {
-					return null;
-				}				
-			} else {
-				return null;
-			}
-		} else {
-			return null;
-		}		
-		return new InstitutionFindingAidKey(archiveCode, apCode, partNumber);				
 	}
 	
 	

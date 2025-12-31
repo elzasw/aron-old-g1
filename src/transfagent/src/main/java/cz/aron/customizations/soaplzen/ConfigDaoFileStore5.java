@@ -2,6 +2,7 @@ package cz.aron.customizations.soaplzen;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -77,4 +78,18 @@ public class ConfigDaoFileStore5 {
 		return null;
 	}
 
+	/**
+	 * Get institution code for shortcut
+	 * @param shortcut to get code for
+	 * @return institution code or null
+	 */
+	public String getInstitutionCodeByShortcut(String shortcut) {
+		for (var inst : institutions) {
+			if (Objects.equals(inst.getShortcut(), shortcut)) {
+				return inst.getInstitutionCode();
+			}
+		}
+		return null;
+	}
+	
 }

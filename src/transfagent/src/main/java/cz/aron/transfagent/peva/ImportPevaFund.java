@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +41,6 @@ import cz.aron.transfagent.domain.ArchDesc;
 import cz.aron.transfagent.domain.Fund;
 import cz.aron.transfagent.domain.Institution;
 import cz.aron.transfagent.elza.ApTypeService;
-import cz.aron.transfagent.elza.ImportArchDesc;
 import cz.aron.transfagent.peva.ImportPevaFundInfo.FundIgnored;
 import cz.aron.transfagent.peva.ImportPevaFundInfo.FundProvider;
 import cz.aron.transfagent.peva.fund.Peva2FundResultBuilder;
@@ -48,6 +49,7 @@ import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
 import cz.aron.transfagent.service.ArchivalEntityService;
 import cz.aron.transfagent.service.AttachmentService;
+import cz.aron.transfagent.service.AttachmentSource;
 import cz.aron.transfagent.service.AttachmentSource.AttachmentDesc;
 import cz.aron.transfagent.service.DaoFileStore3Service;
 import cz.aron.transfagent.service.DaoImportService;
@@ -105,6 +107,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
     private final PermalinkGenerator permalinkGenerator;
     
     private final Peva2FundResultBuilder resultBuilder;
+    
+    private final AttachmentSource attachmentSource;
 
 	public ImportPevaFund(FundRepository fundRepository, InstitutionRepository institutionRepository,
 			DatabaseDataProvider databaseDataProvider, ConfigurationLoader configurationLoader, ConfigPeva2 configPeva2,
@@ -113,7 +117,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			ArchivalEntityService archivalEntityService, AttachmentService attachmentService,
 			ArchDescRepository archDescRepository, DaoImportService daoImportService,
 			@Nullable DaoFileStore3Service daoFileStore3Service,ApTypeService apTypeService,
-			@Nullable PermalinkGenerator permalinkGenerator, @Nullable Peva2FundResultBuilder resultBuilder) {
+			@Nullable PermalinkGenerator permalinkGenerator, @Nullable Peva2FundResultBuilder resultBuilder,
+			@Nullable AttachmentSource attachmentSource) {
 		super();
 		this.fundRepository = fundRepository;
 		this.institutionRepository = institutionRepository;
@@ -133,6 +138,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		this.apTypeService = apTypeService;
 		this.permalinkGenerator = permalinkGenerator;
 		this.resultBuilder = resultBuilder;
+		this.attachmentSource = attachmentSource;
 	}
     
 	@Override
@@ -410,20 +416,19 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 				}				
 			}
 					
-			var attachments = new ArrayList<AttachmentDesc>();
-			tt.executeWithoutResult(t -> {
-				fundRepository.findById(fund.getId()).ifPresentOrElse(f -> {
-					attachments.addAll(readAllAttachments(apuSource, f, apuSourceBuilder));
-				}, () -> {
+			
+			var updateResult = tt.execute(t->{
+				var f = fundRepository.findById(fund.getId()).orElseThrow(() -> {
 					throw new IllegalStateException("Fund not exist id="+fund.getId());
 				});
-
+				return updateAttachments(apuPath, apuSourceBuilder, ifi, apuSource, f);
 			});
+			List<AttachmentDesc> attachments = updateResult.getAttachments();
 
 			var daos = addDaos(apuSourceBuilder, ifi.getInstitutionCode(), ifi.getNadNumber());
 			addPermalink(apuSourceBuilder, ifi.getInstitutionCode(), ifi.getPrimarySheetNumber(), ifi.getSubSheetNumber());
 			
-			boolean force = apuSource.isForce()||apuSource.isDeleted();
+			boolean force = apuSource.isForce()||apuSource.isDeleted()||updateResult.isMetadataModified()||updateResult.isModified();
 			
 			// compare original apusrc.xml and newly generated
 			var apuSrcXmlPath = apuPath.resolve(StorageService.APUSRC_XML);			
@@ -528,33 +533,142 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		return true;
 	}
 	
-	
-	private List<AttachmentDesc> readAllAttachments(ApuSource apuSource, Fund fund, ApuSourceBuilder apuSourceBuilder) {
-		var ret = new ArrayList<AttachmentDesc>();
+	private UpdateResult updateAttachments(Path dir, ApuSourceBuilder builder, ImportPevaFundInfo ifi,
+			ApuSource apuSource, Fund fund) {
 		var fundProp = configPeva2.getFundProperties();
-		if (fundProp != null && fundProp.isAggregateAttachments()&&fund!=null) {
+		if (fundProp != null && fundProp.isAggregateAttachments() && fund != null) {
 			// copy attachments
 			try {
-				var attachments = attachmentService.copyAttachmentsFromApus(apuSource, fund.getFindingAids().stream()
-						.map(fa -> fa.getApuSource()).collect(Collectors.toList()));
-				for(var attachment:attachments) {
+				var attachments = attachmentService.copyAttachmentsFromApus(apuSource,
+						fund.getFindingAids().stream().map(fa -> fa.getApuSource()).collect(Collectors.toList()));
+				for (var attachment : attachments) {
 					String mimetype = null;
 					try {
 						mimetype = this.storageService.detectMimetype(attachment.getPath());
 					} catch (IOException e) {
 						throw new UncheckedIOException(e);
 					}
-					apuSourceBuilder.addAttachment(apuSourceBuilder.getMainApu(), attachment.getName(), mimetype);
-					ret.add(attachment);
-				}				
+					builder.addAttachment(builder.getMainApu(), attachment.getName(), mimetype);
+				}
+				return new UpdateResult(attachments, true, true);
 			} catch (IOException e) {
-				log.error("Fund, fail to import funding aid attachment, apuSource={}",apuSource.getUuid(),e);
+				log.error("Fund, fail to import funding aid attachment, apuSource={}", apuSource.getUuid(), e);
 				throw new UncheckedIOException(e);
 			}
+		} else if (attachmentSource != null) {
+			return updateAttachments(dir, builder, ifi, apuSource);
+		} else {
+			return new UpdateResult(Collections.emptyList(), false, false);
 		}
-		return ret;
+	}	
+	
+	/**
+	 * Update attachments from attachment source
+	 * 
+	 * - read attachment from attachment source
+	 * - compare with existing (update modified, delete removed)
+	 * - fill attachments to apu source builder
+	 * - return list of Path to attachment and modified flag
+	 * 
+	 * @param dir fund directory
+	 * @param builder apu source builder
+	 * @param ifi ImportPevaFundInfo
+	 * @return {@code UpdateResult}
+	 */
+	private UpdateResult updateAttachments(Path dir, ApuSourceBuilder builder, ImportPevaFundInfo ifi, ApuSource apuSource) {
+		// read existing attachments
+		var existingAttachments = new ArrayList<Path>();
+		try (var stream = Files.list(dir)) {
+			stream.forEach(f -> {
+				if (isAttachment(f)) {					
+					existingAttachments.add(f);
+				}
+			});
+		} catch (IOException e) {
+			log.error("Fail to read attachments from directory {}", dir);
+			throw new UncheckedIOException(e);
+		}
+
+		var nameToUuid = attachmentService.getNameUuids(apuSource);
+		
+		// compare existing and new and fill attachments to apuBuilder
+		try {
+			var contentModified = false;
+			var metadataModified = false;
+			var toDelete = new HashSet<Path>(existingAttachments);
+			var attachments = attachmentSource.getFundAttachments(ifi.getInstitutionCode(),
+					ifi.getNadNumber(), ifi.getSubSheetNumber());
+			int pos = 1;
+			for (var attachment : attachments) {
+				var tmp = dir.resolve(attachment.getPath().getFileName());
+				if (!FileUtils.contentEquals(tmp.toFile(), attachment.getPath().toFile())) {
+					// file exist and is different or file not exist
+					Files.copy(attachment.getPath(), tmp, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+					contentModified = true;
+				}
+				if (attachment.getLastModified()==0) {
+					metadataModified = true;
+				}
+				var mimetype = this.storageService.detectMimetype(tmp);
+				var fileName = tmp.getFileName().toString();
+				builder.addAttachment(builder.getMainApu(), fileName, mimetype, pos, nameToUuid.get(fileName));
+				toDelete.remove(tmp);
+				pos++;
+			}
+
+			// delete abandoned
+			if (!toDelete.isEmpty()) {
+				contentModified = true;
+				for (var pathToDelete : toDelete) {
+					Files.delete(pathToDelete);
+				}	
+			}			
+			return new UpdateResult(attachments, contentModified, metadataModified);
+		} catch (IOException e) {
+			log.error("Fail to update attachments from attachmentSource", e);
+			throw new UncheckedIOException(e);
+		}
 	}
 	
+	private static class UpdateResult {
+		private final List<AttachmentDesc> attachments;
+		private final boolean modified;
+		private final boolean metadataModified;
+
+		public UpdateResult(List<AttachmentDesc> attachments, boolean modified, boolean metadataModified) {
+			this.attachments = attachments;
+			this.modified = modified;
+			this.metadataModified = metadataModified;
+		}
+
+		public List<AttachmentDesc> getAttachments() {
+			return attachments;
+		}
+
+		public boolean isModified() {
+			return modified;
+		}
+
+		public boolean isMetadataModified() {
+			return metadataModified;
+		}				
+	}
+	
+	/**
+	 * Check file is attachment
+	 * @param path to check
+	 * @return true - attachment, false - not 
+	 */
+	private boolean isAttachment(Path path) {
+		if (Files.isRegularFile(path) && !path.getFileName().toString().startsWith(PREFIX)
+				&& !"protokol.txt".equals(path.getFileName().toString())
+				&& !StorageService.APUSRC_XML.equals(path.getFileName().toString())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	
 	private List<AttachmentDesc> readAllAttachments(Path targetDir, Fund fund, ApuSourceBuilder apuSourceBuilder) {
 		var ret = new ArrayList<AttachmentDesc>();
@@ -586,10 +700,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 	        var apu = apuSourceBuilder.getMainApu();	        
 	        try (var stream = Files.list(targetDir)) {
 	            stream.forEach(f -> {
-	                if (Files.isRegularFile(f) && !f.getFileName().toString().startsWith(PREFIX)
-	                        && !"protokol.txt".equals(f.getFileName().toString())
-	                        && !StorageService.APUSRC_XML.equals(f.getFileName().toString())) {
-
+	                if (isAttachment(f)) {
 	                    String mimetype = null;
 	                    try {
 	                        mimetype = this.storageService.detectMimetype(f);
