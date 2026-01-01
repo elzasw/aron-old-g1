@@ -22,5 +22,11 @@ public interface FundRepository extends JpaRepository<Fund, Integer> {
     Fund findByApuSource(ApuSource apuSource);
     
     Fund findByUuid(UUID uuid);
+    
+    @EntityGraph(attributePaths = { "apuSource" })
+	Fund findByInstitutionIdAndNadAndSubNadIsNull(int institutionId, int nad);
+
+    @EntityGraph(attributePaths = { "apuSource" })
+	Fund findByInstitutionIdAndNadAndSubNad(int institutionId, int nad, int subNad);
 
 }

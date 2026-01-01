@@ -220,7 +220,6 @@ public class FileStore5AttachmentSource implements AttachmentSource {
 		private final Integer subFundCode;
 
 		public InstitutionFundKey(String institutionCode, String fundCode, Integer subFundCode) {
-			super();
 			this.institutionCode = institutionCode;
 			this.fundCode = fundCode;
 			this.subFundCode = subFundCode;
@@ -244,6 +243,18 @@ public class FileStore5AttachmentSource implements AttachmentSource {
 					&& Objects.equals(subFundCode, other.subFundCode);
 		}
 
+		public String getInstitutionCode() {
+			return institutionCode;
+		}
+
+		public String getFundCode() {
+			return fundCode;
+		}
+
+		public Integer getSubFundCode() {
+			return subFundCode;
+		}
+		
 	}
 
 

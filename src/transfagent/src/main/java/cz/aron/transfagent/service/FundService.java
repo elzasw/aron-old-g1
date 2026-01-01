@@ -2,6 +2,7 @@ package cz.aron.transfagent.service;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,13 +25,17 @@ import cz.aron.api.rest.model.FundDef;
 import cz.aron.api.rest.model.FundsResponse;
 import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.transfagent.controller.vo.FundDefVO;
+import cz.aron.transfagent.domain.Attachment;
 import cz.aron.transfagent.domain.CoreQueue;
+import cz.aron.transfagent.domain.FindingAid;
 import cz.aron.transfagent.domain.Fund;
 import cz.aron.transfagent.domain.Institution;
 import cz.aron.transfagent.domain.SourceType;
 import cz.aron.transfagent.repository.ApuSourceRepository;
+import cz.aron.transfagent.repository.AttachmentRepository;
 import cz.aron.transfagent.repository.CoreQueueRepository;
 import cz.aron.transfagent.repository.FundRepository;
+import cz.aron.transfagent.service.FindingAidService.FindingAidAttachments;
 
 @Service
 public class FundService {
@@ -45,18 +50,18 @@ public class FundService {
 
 	private final CoreQueueRepository coreQueueRepository;
 	
-	private final AttachmentService attachmentService;
+	private final AttachmentRepository attachmentRepository;
 	
 	private final EntityManager em;
 
 	public FundService(ApuSourceService apuSourceService, ApuSourceRepository apuSourceRepository,
-			FundRepository fundRepository, CoreQueueRepository coreQueueRepository, AttachmentService attachmentService,
-			EntityManager em) {
+			FundRepository fundRepository, CoreQueueRepository coreQueueRepository,
+			AttachmentRepository attachmentRepository, EntityManager em) {
 		this.apuSourceService = apuSourceService;
 		this.apuSourceRepository = apuSourceRepository;
 		this.fundRepository = fundRepository;
 		this.coreQueueRepository = coreQueueRepository;
-		this.attachmentService = attachmentService;
+		this.attachmentRepository = attachmentRepository;
 		this.em = em;
 	}
 
@@ -130,6 +135,44 @@ public class FundService {
 		log.info("Fund updated code={}, uuid={}, original data dir {}", fund.getCode(), fund.getUuid(), oldDir);
 	}
 	
+	
+	public static class FundAttachments {
+		
+		private final Fund fund;
+		
+		private final List<Attachment> attachments;
+
+		public FundAttachments(Fund fund, List<Attachment> attachments) {
+			this.fund = fund;
+			this.attachments = attachments;
+		}
+
+		public Fund getFund() {
+			return fund;
+		}
+
+		public List<Attachment> getAttachments() {
+			return attachments;
+		}
+		
+	}
+
+	@Transactional
+	public FundAttachments getFundAttachments(Integer institutionId, int nad,
+			Integer subNad) {
+		Fund fund = null;
+		if (subNad == null) {
+			fund = fundRepository.findByInstitutionIdAndNadAndSubNadIsNull(institutionId, nad);
+		} else {
+			fund = fundRepository.findByInstitutionIdAndNadAndSubNad(institutionId,
+					nad, subNad);
+		}
+		if (fund == null) {
+			return new FundAttachments(null, Collections.emptyList());
+		} else {
+			return new FundAttachments(fund, attachmentRepository.findByApuSource(fund.getApuSource()));
+		}		
+	}
 	
 	@Transactional(readOnly = true)
     public FundsResponse getFunds(String code, Integer instId, String uuid, int page, int pageSize) {
