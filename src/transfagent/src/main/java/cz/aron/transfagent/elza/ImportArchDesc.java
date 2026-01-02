@@ -442,20 +442,22 @@ public class ImportArchDesc implements EdxItemCovertContext {
 
         activateArchDescPart(apu);                
 
-        //Set<ConfigElzaInheritedType> toInherit = new HashSet<>(configArchDesc.getInherited());
         Set<EdxItemConvertor> usedMultiConvertors = new HashSet<>();
+        Set<ConfigElzaInheritedType> usedTypes = new HashSet<>();
         // add items
         processedLevel = lvl;
         for(DescriptionItem item: lvl.getDdOrDoOrDp()) {
-            addItem(apu, item, usedMultiConvertors, levelContext);
+            addItem(apu, item, usedMultiConvertors, usedTypes, levelContext);
         }
 		if (parentContext != null) {
 			for (var type : configArchDesc.getInherited()) {
-				parentContext.inheritValue(type);
+				// inherit value only from not used types
+				if (!usedTypes.contains(type)) {
+					parentContext.inheritValue(type);	
+				}				
 			}
 		}
         processedLevel = null;
-        
         
         processLevelEnrichment(lvl);
 
@@ -678,7 +680,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
     }
 
 	private void addItem(Apu apu, DescriptionItem item, Set<EdxItemConvertor> usedMultiConvertors,
-			LevelContext currentContext) {
+			Set<ConfigElzaInheritedType> usedTypes,	LevelContext currentContext) {
 		
 		var typeSpec = new ConfigElzaInheritedType(item.getT(),item.getS());		
 		if (item instanceof DescriptionItemUndefined) {
@@ -693,7 +695,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
 
 		EdxItemConvertor convertor = stringTypeMap.get(item.getT());
 		if (convertor != null) {
-			convertor.convert(this, item);			
+			convertor.convert(this, item);
+			usedTypes.add(typeSpec);
 			if(configArchDesc.isInherited(typeSpec)) {
 				currentContext.addInheritedConvertor(convertor, item, typeSpec);
 			}
