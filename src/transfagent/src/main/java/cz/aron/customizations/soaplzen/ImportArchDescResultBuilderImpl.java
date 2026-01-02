@@ -36,6 +36,7 @@ import cz.aron.transfagent.transformation.InstitutionInfo;
 import cz.tacr.elza.schema.v2.DescriptionItem;
 import cz.tacr.elza.schema.v2.DescriptionItemAPRef;
 import cz.tacr.elza.schema.v2.DescriptionItemEnum;
+import cz.tacr.elza.schema.v2.DescriptionItemInteger;
 import cz.tacr.elza.schema.v2.DescriptionItemString;
 import cz.tacr.elza.schema.v2.DescriptionItemStructObjectRef;
 import cz.tacr.elza.schema.v2.DescriptionItemUnitDate;
@@ -514,9 +515,9 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					} else if ("ZP2015_INV_CISLO".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
 						DescriptionItemString invCisloStr = (DescriptionItemString) pp;
 						invCislo = invCisloStr.getV();
-					} else if ("ZP2015_PACKET_NUMBER".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
-						DescriptionItemString uklC = (DescriptionItemString) pp;
-						ukladaciCislo = uklC.getV();
+					} else if ("ZP2015_PACKET_NUMBER".equals(pp.getT()) && (pp instanceof DescriptionItemInteger)) {
+						var uklC = (DescriptionItemInteger) pp;
+						ukladaciCislo = uklC.getV().toString();
 					} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT()) && "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())  ) {
 						matrika = true;
 					} else if (ElzaTypes.ZP2015_STORAGE_ID.equals(pp.getT()) && (pp instanceof DescriptionItemStructObjectRef)) {
@@ -568,11 +569,17 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 							unitDate = UnitDateConvertor.convertToString((DescriptionItemUnitDate) pp);
 						}					
 					} else if (ukladaciCislo == null && "ZP2015_PACKET_NUMBER".equals(pp.getT())
-							&& (pp instanceof DescriptionItemString)) {
-						DescriptionItemString uklC = (DescriptionItemString) pp;
-						ukladaciCislo = uklC.getV();
+							&& (pp instanceof DescriptionItemInteger)) {
+						var uklC = (DescriptionItemInteger) pp;
+						ukladaciCislo = uklC.getV().toString();
+					} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT()) && "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())  ) {
+						matrika = true;
+					} else if (ElzaTypes.ZP2015_STORAGE_ID.equals(pp.getT()) && (pp instanceof DescriptionItemStructObjectRef)) {
+						DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;						
+						StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
+						ukladaciJednotka = so.getV();
 					}
-				}								
+				}
 			}
 			
 			createTypZaznamu();
