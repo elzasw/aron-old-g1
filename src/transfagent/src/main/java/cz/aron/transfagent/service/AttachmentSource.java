@@ -53,7 +53,7 @@ public interface AttachmentSource {
 			AttachmentDesc other = (AttachmentDesc) obj;
 			return lastModified == other.lastModified && Objects.equals(name, other.name)
 					&& Objects.equals(path, other.path);
-		}        
+		}
 		
     }
 

@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -219,7 +220,7 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
 
         var iad = new ImportArchDesc(apTypeService, daoFileStoreService, levelEnrichmentService,
                 configArchDesc, archDescLevelDaoImporters, configurationLoader.getConfig(), resultBuilder,
-                nameBuilder);
+                nameBuilder, Collections.emptyMap());
         ApuSourceBuilder apusrcBuilder;
 
         try {
@@ -385,11 +386,13 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         	return Result.FAILED;        	
         }                
         var inputFile = archDescFile.get();
+        
+        var attachmentNameToUuid = attachmentService.getNameUuids(apuSource);
              
         ApuSourceBuilder apuSourceBuilder;
 		var iad = new ImportArchDesc(apTypeService, daoFileStoreService, levelEnrichmentService, configArchDesc,
 				archDescLevelDaoImporters, configurationLoader.getConfig(), resultBuilder,
-				nameBuilder);
+				nameBuilder, attachmentNameToUuid);
         try {
             apuSourceBuilder = iad.importArchDesc(inputFile, new CachedDataProvider(databaseDataProvider));
             apuSourceBuilder.setUuid(apuSource.getUuid());

@@ -191,12 +191,14 @@ public class ImportArchDesc implements EdxItemCovertContext {
     private final ImportArchDescResultBuilder resultBuilder;
     
     private final ImportArchDescNameBuilder nameBuilder;
+    
+    private final Map<String,String> attachmentNameToUuid;
 
     public ImportArchDesc(ApTypeService apTypeService, DaoFileStoreService daoFileStoreService,
                           LevelEnrichmentService levelEnrichmentService,
                           ConfigElzaArchDesc configArchDesc, List<ArchDescLevelDaoImporter> levelDaoImporters,
                           TypesConfiguration typesConfig, @Nullable ImportArchDescResultBuilder resultBuilder,
-                          ImportArchDescNameBuilder nameBuilder) {
+                          ImportArchDescNameBuilder nameBuilder, Map<String,String> attachmentNameToUuid) {
         this.apTypeService = apTypeService;
         this.daoFileStoreService = daoFileStoreService;
         this.levelEnrichmentService = levelEnrichmentService;
@@ -209,6 +211,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
         } else {
         	this.nameBuilder = nameBuilder;
         }
+        this.attachmentNameToUuid = attachmentNameToUuid;
     }
 
     public Set<UUID> getApRefs() {
@@ -238,7 +241,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
 	public static void main(String[] args) {
 		Path inputFile = Path.of(args[0]);
 		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, null, new ConfigElzaArchDesc(),
-				Collections.emptyList(), null, null, null);
+				Collections.emptyList(), null, null, null, null);
 		try {
 			ApuSourceBuilder apusrcBuilder = iad.importArchDesc(inputFile, args[1]);
 			Path outputPath = Path.of(args[2]);
@@ -350,7 +353,13 @@ public class ImportArchDesc implements EdxItemCovertContext {
                         } catch (IOException e) {
                             throw new UncheckedIOException(e);
                         }
-                        apusBuilder.addAttachment(apusBuilder.getMainApu(), f.getN(), f.getMt(), pos++);
+                        
+                        var attachmentUuid = attachmentNameToUuid.get(f.getFn());
+                        if (attachmentUuid != null) {
+                        	apusBuilder.addAttachment(apusBuilder.getMainApu(), f.getN(), f.getMt(), pos++, attachmentUuid);
+                        } else {
+                        	apusBuilder.addAttachment(apusBuilder.getMainApu(), f.getN(), f.getMt(), pos++);	
+                        }                        
                         attachments.add(new AttachmentDesc(file, file.getFileName().toString(),lastModified));
                     }
                 }
