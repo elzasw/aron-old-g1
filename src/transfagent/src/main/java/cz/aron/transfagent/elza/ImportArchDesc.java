@@ -854,16 +854,16 @@ public class ImportArchDesc implements EdxItemCovertContext {
     }
     
     public static String inheritTitle(LevelContext parentContext) {
-        if (parentContext==null) {
-            return null;
-        }        
-        for(DescriptionItem item : parentContext.getLevel().getDdOrDoOrDp()) {
-            if(item.getT().equals("ZP2015_TITLE")) {
-                DescriptionItemString title = (DescriptionItemString)item;
-                return title.getV();
+    	while(parentContext!=null) {
+    		for(DescriptionItem item : parentContext.getLevel().getDdOrDoOrDp()) {
+                if(item.getT().equals("ZP2015_TITLE")) {
+                    DescriptionItemString title = (DescriptionItemString)item;
+                    return title.getV();
+                }
             }
-        }        
-        return null;
+    		parentContext = parentContext.getParentContext();
+    	}
+    	return null;    	
     }
 
     /**
