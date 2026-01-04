@@ -190,6 +190,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
     
     private final ImportArchDescResultBuilder resultBuilder;
     
+    private final ImportArchDescDescBuilder descBuilder;
+    
     private final ImportArchDescNameBuilder nameBuilder;
     
     private final Map<String,String> attachmentNameToUuid;
@@ -198,7 +200,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
                           LevelEnrichmentService levelEnrichmentService,
                           ConfigElzaArchDesc configArchDesc, List<ArchDescLevelDaoImporter> levelDaoImporters,
                           TypesConfiguration typesConfig, @Nullable ImportArchDescResultBuilder resultBuilder,
-                          ImportArchDescNameBuilder nameBuilder, Map<String,String> attachmentNameToUuid) {
+                          ImportArchDescNameBuilder nameBuilder, ImportArchDescDescBuilder descBuilder,
+                          Map<String,String> attachmentNameToUuid) {
         this.apTypeService = apTypeService;
         this.daoFileStoreService = daoFileStoreService;
         this.levelEnrichmentService = levelEnrichmentService;
@@ -210,6 +213,11 @@ public class ImportArchDesc implements EdxItemCovertContext {
         	this.nameBuilder = new ImportArchdescNameBuilderDefault(configArchDesc);
         } else {
         	this.nameBuilder = nameBuilder;
+        }
+        if (descBuilder==null) {
+	        this.descBuilder = new ImportArchDescDescBuilderDefault(configArchDesc);
+        } else {
+        	this.descBuilder = descBuilder;
         }
         this.attachmentNameToUuid = attachmentNameToUuid;
     }
@@ -241,7 +249,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
 	public static void main(String[] args) {
 		Path inputFile = Path.of(args[0]);
 		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, null, new ConfigElzaArchDesc(),
-				Collections.emptyList(), null, null, null, null);
+				Collections.emptyList(), null, null, null, null, null);
 		try {
 			ApuSourceBuilder apusrcBuilder = iad.importArchDesc(inputFile, args[1]);
 			Path outputPath = Path.of(args[2]);
@@ -383,7 +391,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
 				var context = new LevelContext(lvl, null, parentContext);
 				apuContexts.put(lvl.getId(), context);
 
-				var desc = getDesc(lvl, parentContext, null);
+				var desc = descBuilder.getDesc(context, null, elzaXmlReader);
 				tmp.compute(lvl.getPid(), (k, v) -> {
 					if (v != null) {
 						v.compute(desc, (k1, v1) -> {
@@ -441,9 +449,9 @@ public class ImportArchDesc implements EdxItemCovertContext {
         var levelContext = new LevelContext(lvl,apu,parentContext);
         apuContexts.put(lvl.getId(), levelContext);
         
-        String name = nameBuilder.getName(sect, lvl, parentContext, institutionName, institutionShortName);
+        String name = nameBuilder.getName(sect, levelContext, institutionName, institutionShortName, elzaXmlReader);
         apu.setName(name);
-        String desc = getDesc(lvl, parentContext, duplicities.get(lvl.getPid()));        
+        String desc = descBuilder.getDesc(levelContext, duplicities.get(lvl.getPid()), elzaXmlReader);        
         apu.setDesc(desc);
         if (resultBuilder!=null) {
         	apu.setResult(resultBuilder.buildResult(institutionInfo, sect, lvl, levelContext, fundApuUuid, elzaXmlReader));
@@ -884,63 +892,6 @@ public class ImportArchDesc implements EdxItemCovertContext {
             parentContext = parentContext.getParentContext();
         }
         return null;
-    }
-
-    private String getDesc(Level lvl, LevelContext parentContext, Set<String> levelDuplicities) {
-        if (lvl.getPid() == null) {
-            // for root no description
-            return null;
-        }
-
-        String titleStr = null;
-        String datace = null;
-        StringBuilder sb = new StringBuilder();
-        for (DescriptionItem item : lvl.getDdOrDoOrDp()) {
-            if (item.getT().equals("ZP2015_TITLE")) {
-                DescriptionItemString title = (DescriptionItemString) item;
-                titleStr = title.getV();
-            }
-            if (item.getT().equals(ElzaTypes.ZP2015_UNIT_DATE) && (item instanceof DescriptionItemUnitDate)) {
-                DescriptionItemUnitDate dataceUnitDate = (DescriptionItemUnitDate) item;
-                datace = UnitDateConvertor.convertToString(dataceUnitDate);
-            }
-        }
-
-        boolean titleInherited = false;
-        boolean dateInherited = false;
-        // inherit title and name when null
-        if (StringUtils.isBlank(titleStr)) {
-            titleStr = inheritTitle(parentContext);
-            titleInherited = true;
-        }
-        if (StringUtils.isBlank(datace) && configArchDesc.isInheritNameDate()) {
-            datace = inheritDatace(parentContext);
-            dateInherited = true;
-        }
-
-        if (StringUtils.isNotBlank(titleStr)) {
-            sb.append(titleStr);
-        }
-		if (StringUtils.isNotBlank(datace)
-				&& (configArchDesc.isAddDateToName() || (configArchDesc.isInheritNameDate() && titleInherited))) {
-			sb.append(", ").append(datace);
-		}
-		
-		if (levelDuplicities != null) {
-			var rawDesc = sb.toString();
-			if (levelDuplicities.contains(rawDesc) && StringUtils.isNotBlank(datace) && dateInherited == false
-					&& !configArchDesc.isAddDateToName()) {
-				sb.append(", ").append(datace);
-			}
-		}
-
-        if (sb.length() == 0) {
-            return null;
-        }
-        
-        
-        
-        return sb.toString();
     }
 
 	@Override

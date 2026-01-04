@@ -9,7 +9,6 @@ import cz.tacr.elza.schema.v2.DescriptionItem;
 import cz.tacr.elza.schema.v2.DescriptionItemInteger;
 import cz.tacr.elza.schema.v2.DescriptionItemString;
 import cz.tacr.elza.schema.v2.DescriptionItemUnitDate;
-import cz.tacr.elza.schema.v2.Level;
 import cz.tacr.elza.schema.v2.Section;
 
 /**
@@ -24,8 +23,9 @@ public class ImportArchdescNameBuilderDefault implements ImportArchDescNameBuild
 	}
 
 	@Override
-	public String getName(Section sect, Level lvl, LevelContext parentContext, String institutionName,
-			String institutionShortName) {
+	public String getName(Section sect, LevelContext levelContext, String institutionName,
+			String institutionShortName, ElzaXmlReader elzaXmlReader) {
+		var lvl = levelContext.getLevel();
 		String parentId = lvl.getPid();
 
 		StringBuilder sb = new StringBuilder();
@@ -74,7 +74,7 @@ public class ImportArchdescNameBuilderDefault implements ImportArchDescNameBuild
 		}
 
 		if (StringUtils.isBlank(datace)) {
-			datace = ImportArchDesc.inheritDatace(parentContext);
+			datace = ImportArchDesc.inheritDatace(levelContext.getParentContext());
 		}
 
 		if (StringUtils.isNotEmpty(refOzn)) {

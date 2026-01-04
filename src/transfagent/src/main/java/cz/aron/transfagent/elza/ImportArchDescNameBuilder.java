@@ -1,7 +1,6 @@
 package cz.aron.transfagent.elza;
 
 import cz.aron.transfagent.elza.ImportArchDesc.LevelContext;
-import cz.tacr.elza.schema.v2.Level;
 import cz.tacr.elza.schema.v2.Section;
 
 /**
@@ -12,6 +11,6 @@ public interface ImportArchDescNameBuilder {
 	/**
 	 * Generate name for APU
 	 */
-	String getName(Section sect, Level lvl, LevelContext parentContext, String institutionName, String institutionShortName);
+	String getName(Section sect, LevelContext levelContext, String institutionName, String institutionShortName, ElzaXmlReader elzaXmlReader);
 	
 }

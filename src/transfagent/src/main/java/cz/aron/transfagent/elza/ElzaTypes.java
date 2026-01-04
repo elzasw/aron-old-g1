@@ -76,6 +76,8 @@ public abstract class ElzaTypes {
     static {
         // extTypeMap
     }
+    
+    public static final String ZP2015_TITLE = "ZP2015_TITLE";
 
     public static final String ZP2015_EXTRA_UNITS = "ZP2015_EXTRA_UNITS";
     public static final String ZP2015_UNIT_SUBTYPE = "ZP2015_UNIT_SUBTYPE";
