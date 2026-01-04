@@ -82,7 +82,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			UUID fundApuUuid, ElzaXmlReader elzaXmlReader) {
 
 		var valueCollector = new ValueCollector(elzaXmlReader);
-		valueCollector.collect(levelContext, true);
+		valueCollector.collect(levelContext);
 
 		var result = new Result();
 		result.setId(lvl.getUuid());
@@ -454,6 +454,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		String ukladaciJednotka = null;
 		
 		String typZaznamu = null;
+		boolean typZaznamuSet = false;
 		
 		String daoLink = null;
 		
@@ -468,126 +469,148 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			this.elzaXmlReader = elzaXmlReader;
 		}
 
-		public void collect(LevelContext levelContext, boolean leaf) {
-
+		public void collect(LevelContext levelContext) {
+			var context = levelContext;
+			collectNonInheritedAttributes(context);			
+			while((context=context.getParentContext())!=null) {
+				collectInheritedAttributes(context);
+			}
+			createTypZaznamu();			
+		}
+		
+		private void collectNonInheritedAttributes(LevelContext levelContext) {
 			for (var pp : levelContext.getLevel().getDdOrDoOrDp()) {
 
-				// not inherited attributes
-				if (leaf) {
-					if (ElzaTypes.ZP2015_LEVEL_TYPE.equals(pp.getT())) {
-						levelType = (DescriptionItemEnum) pp;
-					} else if (ElzaTypes.ZP2015_UNIT_TYPE.equals(pp.getT())) {
-						unitType = (DescriptionItemEnum) pp;
-					} else if ("ZP2015_UNIT_CONTENT".equals(pp.getT())) {
-						unitContent = ((DescriptionItemString) pp).getV();
-					} else if ("ZP2015_TITLE".equals(pp.getT())) {
-						title = ((DescriptionItemString) pp).getV();
-					} else if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
-						unitDateText = ((DescriptionItemString) pp).getV();
-					} else if (ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT())) {
-						if (pp instanceof DescriptionItemUnitDate) {
-							unitDate = UnitDateConvertor.convertToString2((DescriptionItemUnitDate) pp);
-						}
-					} else if (ElzaTypes.ZP2015_OTHER_ID.equals(pp.getT())) {
-						switch (pp.getS()) {
-						case "ZP2015_OTHERID_OLDSIG2":
-							spisZnak = ((DescriptionItemString) pp).getV();
-							break;
-						case "ZP2015_OTHERID_SIG":
-							signatura = ((DescriptionItemString) pp).getV();
-							break;
-						case "ZP2015_OTHERID_SIG_ORIG":
-							puvodniSignatura = ((DescriptionItemString) pp).getV();
-							break;
-						default:
-							// ignore
-						}
-					} else if ((pp instanceof DescriptionItemAPRef) && "ZP2015_ENTITY_ROLE".equals(pp.getT())
-							&& GEO_ROLES.contains(pp.getS())) {
-						var apRef = (DescriptionItemAPRef) pp;
-						var accessPoint = elzaXmlReader.getApMap().get(apRef.getApid());
-						if (accessPoint != null) {
-							uuids.add(UUID.fromString(accessPoint.getApe().getUuid()));
-						}
-					} else if ("ZP2015_UNIT_ID".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
-						DescriptionItemString refOznStr = (DescriptionItemString) pp;
-						refOzn = refOznStr.getV();
-					} else if ("ZP2015_INV_CISLO".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
-						DescriptionItemString invCisloStr = (DescriptionItemString) pp;
-						invCislo = invCisloStr.getV();
-					} else if ("ZP2015_PACKET_NUMBER".equals(pp.getT()) && (pp instanceof DescriptionItemInteger)) {
-						var uklC = (DescriptionItemInteger) pp;
-						ukladaciCislo = uklC.getV().toString();
-					} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT()) && "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())  ) {
-						matrika = true;
-					} else if (ElzaTypes.ZP2015_STORAGE_ID.equals(pp.getT()) && (pp instanceof DescriptionItemStructObjectRef)) {
-						DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;						
-						StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
-						ukladaciJednotka = so.getV();
-					} else if (ElzaTypes.ZP2015_RECORD_TYPE.equals(pp.getT()) && (pp instanceof DescriptionItemEnum)) {
-						DescriptionItemEnum rt = (DescriptionItemEnum) pp;
-						switch (rt.getS()) {
-						case "ZP2015_RECORD_TYPE_BORN":
-							narozeni = true;
-							break;
-						case "ZP2015_RECORD_TYPE_MARRIED":
-							oddani = true;
-							break;
-						case "ZP2015_RECORD_TYPE_DIED":
-							zemreli = true;
-							break;
-						case "ZP2015_RECORD_TYPE_INDEX_BORN":
-							narozeniIndex = true;
-							break;
-						case "ZP2015_RECORD_TYPE_INDEX_MARRIED":
-							oddaniIndex = true;
-							break;
-						case "ZP2015_RECORD_TYPE_INDEX_DIED":
-							zemreliIndex = true;
-							break;
-						}					
-					} else if (ElzaTypes.ZP2015_DAO_LINK.equals(pp.getT())) {
-						var uriRef = (DescriptionItemUriRef)pp;
-						if (!EdxLinkConvertor.ELZA_NODE.equals(uriRef.getSchm())) {
-							daoLink = uriRef.getUri();						}
+				if (ElzaTypes.ZP2015_LEVEL_TYPE.equals(pp.getT())) {
+					levelType = (DescriptionItemEnum) pp;
+				} else if (ElzaTypes.ZP2015_UNIT_TYPE.equals(pp.getT())) {
+					unitType = (DescriptionItemEnum) pp;
+				} else if ("ZP2015_UNIT_CONTENT".equals(pp.getT())) {
+					unitContent = ((DescriptionItemString) pp).getV();
+				} else if ("ZP2015_TITLE".equals(pp.getT())) {
+					title = ((DescriptionItemString) pp).getV();
+				} else if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
+					unitDateText = ((DescriptionItemString) pp).getV();
+				} else if (ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT())) {
+					if (pp instanceof DescriptionItemUnitDate) {
+						unitDate = UnitDateConvertor.convertToString2((DescriptionItemUnitDate) pp);
 					}
-				} else {
-					// inherited attributes					
-					if ("ZP2015_INV_CISLO".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
-						// try to find invCislo on parent level
-						if (refOzn == null && invCislo == null) {
-							invCislo = ((DescriptionItemString) pp).getV();
-						}
-					} else if (title == null && "ZP2015_TITLE".equals(pp.getT())) {
-						title = ((DescriptionItemString) pp).getV();
-					} else if (parentTitle == null && "ZP2015_TITLE".equals(pp.getT())) {
-						parentTitle = ((DescriptionItemString) pp).getV();
-					} else if (unitDateText == null && unitDate == null) {
-						if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
-							unitDateText = ((DescriptionItemString) pp).getV();
-						} else if (ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT())) {
-							unitDate = UnitDateConvertor.convertToString((DescriptionItemUnitDate) pp);
-						}					
-					} else if (ukladaciCislo == null && "ZP2015_PACKET_NUMBER".equals(pp.getT())
-							&& (pp instanceof DescriptionItemInteger)) {
-						var uklC = (DescriptionItemInteger) pp;
-						ukladaciCislo = uklC.getV().toString();
-					} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT()) && "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())  ) {
-						matrika = true;
-					} else if (ElzaTypes.ZP2015_STORAGE_ID.equals(pp.getT()) && (pp instanceof DescriptionItemStructObjectRef)) {
-						DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;						
-						StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
-						ukladaciJednotka = so.getV();
+				} else if (ElzaTypes.ZP2015_OTHER_ID.equals(pp.getT())) {
+					switch (pp.getS()) {
+					case "ZP2015_OTHERID_OLDSIG2":
+						spisZnak = ((DescriptionItemString) pp).getV();
+						break;
+					case "ZP2015_OTHERID_SIG":
+						signatura = ((DescriptionItemString) pp).getV();
+						break;
+					case "ZP2015_OTHERID_SIG_ORIG":
+						puvodniSignatura = ((DescriptionItemString) pp).getV();
+						break;
+					default:
+						// ignore
+					}
+				} else if ((pp instanceof DescriptionItemAPRef) && "ZP2015_ENTITY_ROLE".equals(pp.getT())
+						&& GEO_ROLES.contains(pp.getS())) {
+					var apRef = (DescriptionItemAPRef) pp;
+					var accessPoint = elzaXmlReader.getApMap().get(apRef.getApid());
+					if (accessPoint != null) {
+						uuids.add(UUID.fromString(accessPoint.getApe().getUuid()));
+					}
+				} else if ("ZP2015_UNIT_ID".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
+					DescriptionItemString refOznStr = (DescriptionItemString) pp;
+					refOzn = refOznStr.getV();
+				} else if ("ZP2015_INV_CISLO".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
+					DescriptionItemString invCisloStr = (DescriptionItemString) pp;
+					invCislo = invCisloStr.getV();
+				} else if ("ZP2015_PACKET_NUMBER".equals(pp.getT()) && (pp instanceof DescriptionItemInteger)) {
+					var uklC = (DescriptionItemInteger) pp;
+					ukladaciCislo = uklC.getV().toString();
+				} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT())
+						&& "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())) {
+					matrika = true;
+				} else if (ElzaTypes.ZP2015_STORAGE_ID.equals(pp.getT())
+						&& (pp instanceof DescriptionItemStructObjectRef)) {
+					DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;
+					StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
+					ukladaciJednotka = so.getV();
+				} else if (ElzaTypes.ZP2015_RECORD_TYPE.equals(pp.getT()) && (pp instanceof DescriptionItemEnum)) {
+					processRecordType(pp);
+				} else if (ElzaTypes.ZP2015_DAO_LINK.equals(pp.getT())) {
+					var uriRef = (DescriptionItemUriRef) pp;
+					if (!EdxLinkConvertor.ELZA_NODE.equals(uriRef.getSchm())) {
+						daoLink = uriRef.getUri();
 					}
 				}
 			}
-			
-			createTypZaznamu();
-			
-			if (levelContext.getParentContext() != null) {
-				collect(levelContext.getParentContext(), false);
+
+		}
+		
+		private void collectInheritedAttributes(LevelContext levelContext) {
+			for (var pp : levelContext.getLevel().getDdOrDoOrDp()) {
+				// inherited attributes
+				if ("ZP2015_INV_CISLO".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
+					// try to find invCislo on parent level
+					if (refOzn == null && invCislo == null) {
+						invCislo = ((DescriptionItemString) pp).getV();
+					}
+				} else if (title == null && "ZP2015_TITLE".equals(pp.getT())) {
+					title = ((DescriptionItemString) pp).getV();
+				} else if (parentTitle == null && "ZP2015_TITLE".equals(pp.getT())) {
+					parentTitle = ((DescriptionItemString) pp).getV();
+				} else if (unitDateText == null && unitDate == null) {
+					if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
+						unitDateText = ((DescriptionItemString) pp).getV();
+					} else if (ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT())) {
+						unitDate = UnitDateConvertor.convertToString((DescriptionItemUnitDate) pp);
+					}
+				} else if (ukladaciCislo == null && "ZP2015_PACKET_NUMBER".equals(pp.getT())
+						&& (pp instanceof DescriptionItemInteger)) {
+					var uklC = (DescriptionItemInteger) pp;
+					ukladaciCislo = uklC.getV().toString();
+				} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT())
+						&& "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())) {
+					matrika = true;
+				} else if (ukladaciJednotka == null && ElzaTypes.ZP2015_STORAGE_ID.equals(pp.getT())
+						&& (pp instanceof DescriptionItemStructObjectRef)) {
+					DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;
+					StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
+					ukladaciJednotka = so.getV();
+				} else if (!typZaznamuSet && ElzaTypes.ZP2015_RECORD_TYPE.equals(pp.getT())
+						&& (pp instanceof DescriptionItemEnum)) {
+					processRecordType(pp);
+				}
 			}
 		}
+		
+		private void processRecordType(DescriptionItem pp) {
+			DescriptionItemEnum rt = (DescriptionItemEnum) pp;
+			switch (rt.getS()) {
+			case "ZP2015_RECORD_TYPE_BORN":
+				narozeni = true;
+				typZaznamuSet = true;
+				break;
+			case "ZP2015_RECORD_TYPE_MARRIED":
+				oddani = true;
+				typZaznamuSet = true;
+				break;
+			case "ZP2015_RECORD_TYPE_DIED":
+				zemreli = true;
+				typZaznamuSet = true;
+				break;
+			case "ZP2015_RECORD_TYPE_INDEX_BORN":
+				narozeniIndex = true;
+				typZaznamuSet = true;
+				break;
+			case "ZP2015_RECORD_TYPE_INDEX_MARRIED":
+				oddaniIndex = true;
+				typZaznamuSet = true;
+				break;
+			case "ZP2015_RECORD_TYPE_INDEX_DIED":
+				zemreliIndex = true;
+				typZaznamuSet = true;
+				break;
+			}
+		}		
 		
 		private void createTypZaznamu() {
 			StringJoiner sj = new StringJoiner(", ");

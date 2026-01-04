@@ -37,6 +37,10 @@ public class ImportArchDescDescBuilderImpl implements ImportArchDescDescBuilder 
 			sb.append(valueCollector.getUkladaciJednotka());
 			if (StringUtils.isNotBlank(valueCollector.getDatace())) {
 				sb.append(", ").append(valueCollector.getDatace());
+				var typZaznamu = valueCollector.getTypZaznamu();
+				if (StringUtils.isNotBlank(typZaznamu)) {
+					sb.append(" ").append(typZaznamu);
+				}
 			}
 		} else {
 			var title = valueCollector.getTitle();
