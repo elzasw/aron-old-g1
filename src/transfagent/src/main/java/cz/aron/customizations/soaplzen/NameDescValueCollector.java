@@ -73,26 +73,30 @@ public class NameDescValueCollector {
 		}
 		
 		// inherited attributes
-		while((context = context.getParentContext())!=null) {
+		while ((context = context.getParentContext()) != null) {
 			for (var pp : context.getLevel().getDdOrDoOrDp()) {
-					if (title==null&&ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
-		                DescriptionItemString titleItem = (DescriptionItemString) pp;
-		                title = titleItem.getV();
-		                titleInherited = true;
-		            } else if (datace==null&&pp.getT().equals(ElzaTypes.ZP2015_UNIT_DATE) && (pp instanceof DescriptionItemUnitDate)) {
-		                DescriptionItemUnitDate dataceUnitDate = (DescriptionItemUnitDate) pp;
-		                datace = UnitDateConvertor.convertToString(dataceUnitDate);
-		                dataceInherited = true;
-		            }  else if (ukladaciJednotka==null&&ElzaTypes.ZP2015_STORAGE_ID.equals(pp.getT()) && (pp instanceof DescriptionItemStructObjectRef)) {
-						DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;						
-						StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
-						ukladaciJednotka = so.getV();
-						ukladaciJednotkaInherited = true;
-					} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT()) && "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())) {
-						matrika = true;
-					} else if (ElzaTypes.ZP2015_RECORD_TYPE.equals(pp.getT()) && (pp instanceof DescriptionItemEnum)) {
-						processRecordType(pp);
-					}										
+				if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
+					DescriptionItemString titleItem = (DescriptionItemString) pp;
+					title = titleItem.getV();
+					titleInherited = true;
+				} else if (datace == null && pp.getT().equals(ElzaTypes.ZP2015_UNIT_DATE)
+						&& (pp instanceof DescriptionItemUnitDate)) {
+					DescriptionItemUnitDate dataceUnitDate = (DescriptionItemUnitDate) pp;
+					datace = UnitDateConvertor.convertToString(dataceUnitDate);
+					dataceInherited = true;
+				} else if (ukladaciJednotka == null && ElzaTypes.ZP2015_STORAGE_ID.equals(pp.getT())
+						&& (pp instanceof DescriptionItemStructObjectRef)) {
+					DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;
+					StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
+					ukladaciJednotka = so.getV();
+					ukladaciJednotkaInherited = true;
+				} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT())
+						&& "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())) {
+					matrika = true;
+				} else if (!typZaznamuSet && ElzaTypes.ZP2015_RECORD_TYPE.equals(pp.getT())
+						&& (pp instanceof DescriptionItemEnum)) {
+					processRecordType(pp);
+				}
 			}
 		}
 		
