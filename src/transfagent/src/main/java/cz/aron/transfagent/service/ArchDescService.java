@@ -75,8 +75,8 @@ public class ArchDescService {
         }
         return new ArchDescResponse(items, totalItems.intValue());
 	}
-
-	private <T> void addArchDescPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<ArchDesc> root, String query, Integer instId) {
+	
+	public static <T> void addArchDescPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<ArchDesc> root, String query, Integer instId) {
      
 		if (query == null && instId == null) {
 			// no filter

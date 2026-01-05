@@ -120,6 +120,7 @@ export default {
 
         "archdesc.delete.confirm.title": "Smazat archivní popis",
         "archdesc.delete.confirm.message": "Přejete si smazat archivní popis s id: {id}?",
+        "archdesc.downloadArchDescXlsx": "Stáhnout XLSX",
         "archdesc.reimport.confirm.title": "Znovu odeslat archivní popis",
         "archdesc.reimport.confirm.message": "Přejete si znovu odeslat archivní popis s id: {id}?",
         "archdesc.reimportAll.confirm.title": "Znovu odeslat všechny archivní popisy",

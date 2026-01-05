@@ -47,6 +47,7 @@ import cz.aron.transfagent.service.FindingAidService;
 import cz.aron.transfagent.service.FundService;
 import cz.aron.transfagent.service.InstitutionsService;
 import cz.aron.transfagent.service.UserService;
+import cz.aron.transfagent.service.reports.ArchDescReportService;
 import cz.aron.transfagent.service.reports.FindingAidReportService;
 import cz.aron.transfagent.service.reports.FundReportService;
 
@@ -74,6 +75,8 @@ public class TransformAgentController implements TransfagentApi {
     
     private final ArchDescService archDescService;
     
+    private final ArchDescReportService archDescReportService;
+    
     private final InstitutionsService institutionsService;
 
     private final UserService userService;
@@ -86,6 +89,7 @@ public class TransformAgentController implements TransfagentApi {
                                     FindingAidReportService findingAidReportService,
                                     ArchivalEntityService archivalEntityService,
                                     ArchDescService archDescService,
+                                    ArchDescReportService archDescReportService,
                                     InstitutionsService institutionsService,
                                     UserService userService) {
         this.apuSourceService = apuSourceService;
@@ -96,6 +100,7 @@ public class TransformAgentController implements TransfagentApi {
         this.findingAidReportService = findingAidReportService;
         this.archivalEntityService = archivalEntityService;
         this.archDescService = archDescService;
+        this.archDescReportService = archDescReportService;
         this.institutionsService = institutionsService;
         this.userService = userService;
         log.info("UI controller started");
@@ -203,6 +208,13 @@ public class TransformAgentController implements TransfagentApi {
 	public ResponseEntity<ArchDescResponse> getArchDescs(@Valid String query, @Valid Integer instId, @Valid String uuid,
 			@Min(0) @Valid Integer page, @Min(1) @Max(1000) @Valid Integer pageSize) {
 		return ResponseEntity.ok(archDescService.getArchDesc(query, instId, page, pageSize));
+	}
+
+	@Override
+	public ResponseEntity<Resource> getArchDescsXlsx(@Valid String query, @Valid Integer instId, @Valid String uuid) {
+		return createResponseEntity(() -> {
+			return archDescReportService.getArchDescsXlsx(query, instId);
+		});
 	}
 
 	@Override

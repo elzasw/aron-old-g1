@@ -8,6 +8,7 @@ import {
     DarkListHeader,
     ListContainer,
     ListItem,
+    Spacer,
     StyledInput,
     StyledSelect,
 } from "jareco/dist/common-ui-elements";
@@ -28,6 +29,7 @@ import styled from "styled-components";
 import { Api, ArchDescDef/* , ReimportType */ } from "../api";
 import { getFundsPath, getInstitutionsPath, getSourcesPath } from "../App";
 import { archDescColumnInfo, ColumnInfo } from "./columnMap";
+import { downloadFile } from "../utils";
 
 import { ArchDescImport } from "./ArchDescImport";
 import { useGeneralContext } from "../GeneralContext";
@@ -232,6 +234,13 @@ export const ArchDescList = () => {
         setPage(1);
     }
 
+    const handleDownloadXlsx = () =>
+            downloadFile(
+                Api.transfagent.getArchDescsXlsxRaw({query: filterFulltext || undefined,
+                        instId: institutionId,
+                        uuid: undefined,})
+            );
+
     return (
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
@@ -292,6 +301,15 @@ export const ArchDescList = () => {
                         <FaFileImport />
                         &nbsp;
                         <FormattedMessage id="archdesc.import" />
+                    </ActionButton>
+                </ActionsContainer>
+                <Spacer />
+                <ActionsContainer>
+                    <ActionButton
+                        id="buttonDownloadXlsx"
+                        onClick={handleDownloadXlsx}
+                        >
+                        {formatMessage({ id: "archdesc.downloadArchDescXlsx" })}
                     </ActionButton>
                 </ActionsContainer>
                 {/* <ActionsContainer> */}

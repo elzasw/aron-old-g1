@@ -341,6 +341,30 @@ paths:
         '200':
           description: The request has succeeded.
 
+  /archdescs/xlsx:
+    get:
+      tags:
+        - Transfagent
+      summary: Vrati excel s archivaliemi
+      operationId: getArchDescsXlsx
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: code of archdesc
+          schema:
+            type: string
+        - $ref: '#/components/parameters/instIdOptional'            
+        - $ref: '#/components/parameters/uuidOptional'
+      responses:
+        '200':
+          description: Success
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+
   /users:
     get:
       tags:
