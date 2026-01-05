@@ -20,7 +20,11 @@ public class ImportArchDescNameBuilderImpl implements ImportArchDescNameBuilder 
 		valueCollector.collect(levelContext);
 		
 		if (valueCollector.isMatrika()) {
-			return valueCollector.getUkladaciJednotka();
+			var title = valueCollector.getUkladaciJednotka(); 
+			if (title==null) {
+				title = valueCollector.getTitle();
+			}		
+			return title;
 		} else {
 			StringBuilder sb = new StringBuilder();
 			if (valueCollector.isRoot()) {

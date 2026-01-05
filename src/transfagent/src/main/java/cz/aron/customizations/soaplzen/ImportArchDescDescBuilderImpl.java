@@ -34,7 +34,11 @@ public class ImportArchDescDescBuilderImpl implements ImportArchDescDescBuilder 
 
 		StringBuilder sb = new StringBuilder();
 		if (valueCollector.isMatrika()) {
-			sb.append(valueCollector.getUkladaciJednotka());
+			var title = valueCollector.getUkladaciJednotka();
+			if (title==null) {
+				title = valueCollector.getTitle();
+			}			
+			sb.append(title);
 			if (StringUtils.isNotBlank(valueCollector.getDatace())) {
 				sb.append(", ").append(valueCollector.getDatace());
 				var typZaznamu = valueCollector.getTypZaznamu();

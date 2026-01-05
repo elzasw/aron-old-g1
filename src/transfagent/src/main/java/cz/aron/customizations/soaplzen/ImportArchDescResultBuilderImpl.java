@@ -154,6 +154,12 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		var title = valueCollector.getUkladaciJednotka();
 		if (title != null) {
 			itemValue.setV(StringUtils.abbreviate(title, MAX_NAME_LENGTH));
+		} else {
+			// pokud neni ukladaci jednotka pouzije se nazev
+			title = valueCollector.getTitle();
+			if (title != null) {
+				itemValue.setV(StringUtils.abbreviate(title, MAX_NAME_LENGTH));
+			}
 		}
 		rowItem.addVItem(itemValue);
 		result.addLItem(Arrays.asList(rowItem));
@@ -394,7 +400,8 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			return ARCHIVALIE_LEVEL_GENERIC;
 		}
 		
-		if (valueCollector.isMatrika()) {
+		if (valueCollector.isMatrika() && ElzaTypes.ZP2015_LEVEL_ITEM.equals(levelType.getS())) {
+			// ikona matriky pouze pro jednotlivost
 			return ARCHIVALIE_LEVEL_JEDNOTLIVOST_MATRIKA;
 		} else if (ElzaTypes.ZP2015_LEVEL_PART.equals(levelType.getS())) {
 			return ARCHIVALIE_LEVEL_JEDNOTLIVOST_CAST;
