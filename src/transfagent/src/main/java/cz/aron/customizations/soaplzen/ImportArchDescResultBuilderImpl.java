@@ -287,7 +287,12 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			ucRowItem.setT("J_UC");
 			var ucRowItemValue = new ResultRowItemValue();
 			ucRowItem.addVItem(ucRowItemValue);
-			ucRowItemValue.setV(ukladaciJednotka);
+			var ukladaciJednotkaPoradi = valueCollector.getUkladaciJednotkaPoradi();
+			if (ukladaciJednotkaPoradi != null) {
+				ucRowItemValue.setV(ukladaciJednotka+"/"+ukladaciJednotkaPoradi);
+			} else {
+				ucRowItemValue.setV(ukladaciJednotka);	
+			}			
 			items.add(ucRowItem);
 		}
 
@@ -459,6 +464,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		boolean matrika = false;
 		
 		String ukladaciJednotka = null;
+		Integer ukladaciJednotkaPoradi = null;
 		
 		String typZaznamu = null;
 		boolean typZaznamuSet = false;
@@ -540,6 +546,9 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;
 					StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
 					ukladaciJednotka = so.getV();
+				} else if (ElzaTypes.ZP2015_ITEM_ORDER.equals(pp.getT())) {
+					var itemInt = (DescriptionItemInteger) pp;
+					ukladaciJednotkaPoradi = itemInt.getV().intValue();
 				} else if (ElzaTypes.ZP2015_RECORD_TYPE.equals(pp.getT()) && (pp instanceof DescriptionItemEnum)) {
 					processRecordType(pp);
 				} else if (ElzaTypes.ZP2015_DAO_LINK.equals(pp.getT())) {
@@ -582,6 +591,9 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;
 					StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
 					ukladaciJednotka = so.getV();
+				} else if (ukladaciJednotkaPoradi==null && ElzaTypes.ZP2015_ITEM_ORDER.equals(pp.getT())) {
+					var itemInt = (DescriptionItemInteger) pp;
+					ukladaciJednotkaPoradi = itemInt.getV().intValue();
 				} else if (!typZaznamuSet && ElzaTypes.ZP2015_RECORD_TYPE.equals(pp.getT())
 						&& (pp instanceof DescriptionItemEnum)) {
 					processRecordType(pp);
@@ -709,6 +721,10 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			return ukladaciJednotka;
 		}
 		
+		public Integer getUkladaciJednotkaPoradi() {
+			return ukladaciJednotkaPoradi;
+		}
+
 		public String getTypZaznamu() {
 			return typZaznamu;
 		}
