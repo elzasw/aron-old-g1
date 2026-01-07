@@ -32,7 +32,9 @@ public class Peva2UtilsTest {
 	public void testCreateItemDateRange() {		
 		compareIdr(Peva2Utils.createItemDateRange(createUniversalTimeRange("1900","1901")),"1900-01-01T00:00:00","1901-12-31T23:59:59","Y-Y");
 		compareIdr(Peva2Utils.createItemDateRange(createUniversalTimeRange("26.4.1740","26.4.1740")),"1740-04-26T00:00:00","1740-04-26T23:59:59","D-D");
-		compareIdr(Peva2Utils.createItemDateRange(createUniversalTimeRange("10. st.","10. st.")),"0901-01-01T00:00:00","1000-12-31T23:59:59","C-C");		
+		compareIdr(Peva2Utils.createItemDateRange(createUniversalTimeRange("10. st.","10. st.")),"0901-01-01T00:00:00","1000-12-31T23:59:59","C-C");
+		compareIdr(Peva2Utils.createItemDateRange(createUniversalTimeRange("1841","31.12.1945-31.12.1945")),"1841-01-01T00:00:00","1945-12-31T23:59:59","Y-D");
+		compareIdr(Peva2Utils.createItemDateRange(createUniversalTimeRange("1574","1979-2000")),"1574-01-01T00:00:00","2000-12-31T23:59:59","Y-Y");
 	}
 	
 	@Test

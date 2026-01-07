@@ -37,7 +37,7 @@ public class Peva2Utils {
     	var formatBuilder = new StringBuilder();		
 		var itemDateRange = new ItemDateRange();
 		if (timeRangeFrom!=null) {
-    		var fromDate = getDate(timeRangeFrom);
+    		var fromDate = getDate(getIntervalStart(timeRangeFrom));
     		if (isCentury(fromDate)) {
     			formatBuilder.append("C");
 				itemDateRange.setF(getCentury(fromDate, true));
@@ -47,7 +47,7 @@ public class Peva2Utils {
         	itemDateRange.setFe(isEstimate(timeRangeFrom));    		
     	}    	
     	if (timeRangeTo!=null) {
-    		var toDate = getDate(timeRangeTo);
+    		var toDate = getDate(getIntervalEnd(timeRangeTo));
     		if (isCentury(toDate)) {
     			formatBuilder.append("-C");
 				itemDateRange.setTo(getCentury(toDate, false));
@@ -65,6 +65,24 @@ public class Peva2Utils {
     		return date.substring(1,date.length()-1);
     	} else {
     		return date;
+    	}
+    }
+
+    private static String getIntervalStart(String date) {
+    	var index = date.indexOf("-");
+    	if (index==-1) {
+    		return date;
+    	} else {
+    		return date.substring(index);
+    	}
+    }
+    
+    private static String getIntervalEnd(String date) {
+    	var index = date.indexOf("-");
+    	if (index==-1) {
+    		return date;
+    	} else {
+    		return date.substring(index+1);
     	}
     }
     
