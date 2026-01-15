@@ -13,6 +13,7 @@ import { useLayoutStyles, useSpacingStyles } from '../../styles';
 import { Language } from '../language';
 import { Props } from './types';
 import { useConfiguration } from '../configuration';
+import { OrderListButton } from '../order-list/order-list-button';
 
 export function AppHeader({ pageTemplate, ...props }: Props) {
   const configuration = useConfiguration();
@@ -95,6 +96,7 @@ export function AppHeader({ pageTemplate, ...props }: Props) {
                 </Link>
               )
           )}
+          <OrderListButton/>
           {showLanguages && (
             <Language
               localizations={pageTemplate?.localizations}

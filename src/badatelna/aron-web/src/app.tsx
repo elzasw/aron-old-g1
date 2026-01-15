@@ -28,6 +28,7 @@ import {
   getPageTemplateTopImage,
 } from './common-utils';
 import { useAppStyles, colorWhite } from './styles';
+import { OrdersProvider } from './components/order-list/orders-provider';
 
 // import {
 //   Palette as MuiPallete,
@@ -205,7 +206,9 @@ function AppWithConfiguration() {
             <AppStateProvider>
               <BrowserRouter {...{ basename: process.env.URL_PREFIX }}>
                 <NavigationProvider>
-                  <AppComponent />
+                  <OrdersProvider>
+                    <AppComponent />
+                  </OrdersProvider>
                 </NavigationProvider>
               </BrowserRouter>
             </AppStateProvider>
