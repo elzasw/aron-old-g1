@@ -68,6 +68,7 @@ import { CitationDialog } from './citation-dialog';
 import { EvidenceDetailIncrementalTree } from './evidence-detail-incremental-tree';
 import { EvidenceDetailCollapsibleAttachments } from './evidence-detail-collapsible-attachments';
 import { InfoOnTop } from './info-on-top/info-on-top';
+import { AddToOrderButton } from '../../components/order-list/add-to-order-button';
 
 function EvidenceDao({
   customActionsLeft,
@@ -427,21 +428,36 @@ export function EvidenceDetail({
                     <h3 className={spacingClasses.marginBottomSmall}>
                       {item.name}
                     </h3>
-                    <Button
-                      className={classes.findRelatedButton}
-                      label={formatMessage({ id: Message.FIND_RELATED })}
-                      outlined={true}
-                      size="small"
-                      onClick={() => {
-                        navigateTo(
-                          ModulePath.APU,
-                          1,
-                          10,
-                          '',
-                          getRelatedApusFilter(id, item.name)
-                        );
-                      }}
-                    />
+                    <div className={classes.buttonsContainer}>
+                      <Button
+                        className={classNames(
+                          classes.findRelatedButton,
+                          classes.citationButton
+                        )}
+                        label={formatMessage({ id: Message.FIND_RELATED })}
+                        outlined={true}
+                        size="small"
+                        onClick={() => {
+                          navigateTo(
+                            ModulePath.APU,
+                            1,
+                            10,
+                            '',
+                            getRelatedApusFilter(id, item.name)
+                          );
+                        }}
+                      />
+                      <AddToOrderButton
+                        apuId={item?.id}
+                        className={classNames(
+                          classes.findRelatedButton,
+                          classes.citationButton
+                        )}
+                        // label={'Test order info'}
+                        outlined={true}
+                        size="small"
+                      />
+                    </div>
                     {item.description && canShowDescription ? (
                       path === ModulePath.ARCH_DESC ||
                       path === ModulePath.ENTITY ? (
