@@ -1,4 +1,4 @@
-package cz.aron.transfagent.elza.dao;
+package cz.aron.customizations.lapnp;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -12,8 +12,9 @@ import org.springframework.stereotype.Service;
 
 import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.apux._2020.Apu;
-import cz.aron.transfagent.service.DaoFileStore2Service;
-import cz.aron.transfagent.service.DaoFileStore2Service.ArchiveFundDao;
+import cz.aron.customizations.lapnp.DaoFileStore2Service.ArchiveFundDao;
+import cz.aron.transfagent.elza.dao.ArchDescLevelDaoImporter;
+import cz.aron.transfagent.elza.dao.DaoRefRegistration;
 import cz.aron.transfagent.transformation.ContextDataProvider;
 import cz.tacr.elza.schema.v2.DescriptionItem;
 import cz.tacr.elza.schema.v2.DescriptionItemString;
@@ -23,10 +24,10 @@ import cz.tacr.elza.schema.v2.Level;
 @Service
 public class LevelDaoImporterFileStore2  implements ArchDescLevelDaoImporter {
 	
-	private final DaoFileStore2Service fileStore2;
+	private final DaoFileStore2Service fileStore;
 
-    public LevelDaoImporterFileStore2(DaoFileStore2Service fileStore2) {
-        this.fileStore2 = fileStore2;
+    public LevelDaoImporterFileStore2(DaoFileStore2Service fileStore) {
+        this.fileStore = fileStore;
 	}
 
 	@Override
@@ -40,7 +41,7 @@ public class LevelDaoImporterFileStore2  implements ArchDescLevelDaoImporter {
 					String id = ds.getV();
 					try {
 						ArchiveFundDao afd = new ArchiveFundDao(institutionCode, fundCode, id);
-						List<Path> paths = fileStore2.getDaos(afd);
+						List<Path> paths = fileStore.getDaos(afd);
 						if (CollectionUtils.isNotEmpty(paths)) {
 							// podivam se jestli uz dao neexistuje abych negeneroval nove uuid a neposlal ho
 							// opakovane
@@ -50,7 +51,7 @@ public class LevelDaoImporterFileStore2  implements ArchDescLevelDaoImporter {
 							if (uuid == null) {
 								uuid = UUID.randomUUID();
 							}
-							daoRefReg.registerDao(fileStore2.getName(), afd.toString(), uuid);
+							daoRefReg.registerDao(fileStore.getName(), afd.toString(), uuid);
 							ApuSourceBuilder.addDao(apu, uuid);
 							numDaos++;
 						}

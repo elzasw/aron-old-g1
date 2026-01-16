@@ -1,10 +1,8 @@
-package cz.aron.transfagent.service;
+package cz.aron.customizations.lapnp;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,21 +19,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import cz.aron.transfagent.config.ConfigDaoFileStore2;
-import cz.aron.transfagent.domain.Dao;
-import cz.aron.transfagent.domain.DaoState;
-import cz.aron.transfagent.service.DaoImportService.DaoImporter;
-import cz.aron.transfagent.service.importfromdir.TransformService;
-
 @ConditionalOnProperty(value="filestore2.path")
 @Service
-public class DaoFileStore2Service  implements DaoImporter {
+public class DaoFileStore2Service {
 	
 	private final static Logger log = LoggerFactory.getLogger(DaoFileStore2Service.class);
 
 	private final ConfigDaoFileStore2 config;
-	
-	private final TransformService transformService;
 	
 	/**
 	 * Mapovani (archiv,fond,daoId)->seznam souboru k daoId, plna cesta k souborum
@@ -49,36 +39,12 @@ public class DaoFileStore2Service  implements DaoImporter {
 	
 	private long lastCheck = 0L;
 	
-	public DaoFileStore2Service(ConfigDaoFileStore2 config, TransformService transformService) throws IOException {
+	public DaoFileStore2Service(ConfigDaoFileStore2 config) throws IOException {
 		this.config = config;
-		this.transformService = transformService;
 	}
-
-	@Override
+	
 	public String getName() {
 		return "file2";
-	}
-
-	@Override
-	public void importDaoFile(Dao dao, Path daoDir) {
-		ArchiveFundDao afd = ArchiveFundDao.fromString(dao.getHandle());
-		List<Path> daoPaths;
-		try {
-			daoPaths = getDaos(afd);
-		} catch (IOException e1) {
-			throw new UncheckedIOException(e1);
-		}
-		try {
-			for (Path daoPath : daoPaths) {
-				Files.copy(daoPath, daoDir.resolve(daoPath.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-			}
-			if (!transformService.transform(daoDir, null)) {
-				// delete empty dir
-			}
-			dao.setState(DaoState.READY);
-		} catch (Exception e) {
-			log.error("Fail to import dao {}", dao.getUuid(), e);
-		}
 	}
 	
 	public List<Path> getDaos(ArchiveFundDao archiveFundDao) throws IOException {

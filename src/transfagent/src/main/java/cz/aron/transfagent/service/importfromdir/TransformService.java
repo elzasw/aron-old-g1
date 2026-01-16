@@ -396,7 +396,7 @@ public class TransformService {
 		}
 	}
 
-	private static class FileTransformKey {
+	public static class FileTransformKey {
 		private final String fileName;
 		private final String transformation;
 

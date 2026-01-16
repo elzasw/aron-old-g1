@@ -1,4 +1,4 @@
-package cz.aron.transfagent.config;
+package cz.aron.customizations.lapnp;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,6 +18,10 @@ public class ConfigDaoFileStore2 {
 	// interval znovunacteni v minutach
 	private int refresh = 10;
 
+	private Path daoPath;
+	
+	private String daoUrlPrefix;
+	
 	public Path getPath() {
 		return path;
 	}
@@ -40,6 +44,22 @@ public class ConfigDaoFileStore2 {
 
 	public void setRefresh(int refresh) {
 		this.refresh = refresh;
+	}
+
+	public Path getDaoPath() {
+		return daoPath;
+	}
+
+	public void setDaoPath(String daoPath) {
+		this.daoPath = Paths.get(daoPath);
+	}
+
+	public String getDaoUrlPrefix() {
+		return daoUrlPrefix;
+	}
+
+	public void setDaoUrlPrefix(String daoUrlPrefix) {
+		this.daoUrlPrefix = daoUrlPrefix;
 	}
 
 }
