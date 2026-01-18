@@ -66,10 +66,11 @@ public class DaoPresentationBuilderService {
 		this.transactionTemplate = transactionTemplate;
 	}
 	
-	public JAXBElement<Dao> buildDaoPresentation(List<Path> sourceFiles, String daoUuid, Path daosDir, String urlPrefix) {
+	public JAXBElement<Dao> buildDaoPresentation(List<Path> sourceFiles, String daoUuid, Path daosDir, String urlPrefix, String license) {
 		
-		var daoBuilder = new DaoBuilder();
+		var daoBuilder = new DaoBuilder();		
         daoBuilder.setUuid(daoUuid);
+		daoBuilder.selLicense(license);
         var hiResView = daoBuilder.createDaoBundle(DaoBundleType.HIGH_RES_VIEW);
         var thumbnailView  = daoBuilder.createDaoBundle(DaoBundleType.THUMBNAIL);
 		

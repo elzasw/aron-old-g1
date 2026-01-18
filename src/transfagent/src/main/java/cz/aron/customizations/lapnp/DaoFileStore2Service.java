@@ -1,6 +1,9 @@
 package cz.aron.customizations.lapnp;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -13,11 +16,16 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.map.LRUMap;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+
+import cz.aron.transfagent.common.MonitoredFileResource;
 
 @ConditionalOnProperty(value="filestore2.path")
 @Service
@@ -37,10 +45,13 @@ public class DaoFileStore2Service {
 	 */
 	private Map<ArchiveFundKey, List<Path>> fundDaoPaths = new HashMap<>();
 	
+	private Licenses licenses;
+	
 	private long lastCheck = 0L;
 	
 	public DaoFileStore2Service(ConfigDaoFileStore2 config) throws IOException {
 		this.config = config;
+		licenses = new Licenses(config.getPath().resolve("licence.csv"));
 	}
 	
 	public String getName() {
@@ -52,6 +63,14 @@ public class DaoFileStore2Service {
 		return daos.get(archiveFundDao.getDaoId());
 	}
 
+	public String getLicense(ArchiveFundDao archiveFundDao) {
+		var lics = licenses.getResource();
+		if (lics != null) {
+			return lics.get(new ArchiveFundKey(archiveFundDao.getArchive(), archiveFundDao.getFund()));
+		}
+		return null;
+	}
+	
 	private synchronized Map<ArchiveFundKey, List<Path>> getFundDaoPaths() throws IOException {
 		long currentTime = System.currentTimeMillis();
 		if ((currentTime-lastCheck) > config.getRefresh()*1000*60) {
@@ -279,6 +298,36 @@ public class DaoFileStore2Service {
 			} else {
 				throw new IllegalArgumentException("");
 			}
+		}
+
+	}
+
+	private static class Licenses extends MonitoredFileResource<Map<ArchiveFundKey, String>> {
+				
+		public Licenses(Path path) {
+			super(path);			
+		}
+		
+		@Override
+		public Map<ArchiveFundKey, String> reloadResources() {			
+			var ret = new HashMap<ArchiveFundKey, String>();
+			try (var is = new FileInputStream(monitoredPath.toFile());
+					var bis = new BOMInputStream(is);
+					var in = new InputStreamReader(bis);) {
+					var records = CSVFormat.DEFAULT.builder().setDelimiter(';').setTrim(true).build()
+						.parse(in);
+					for (CSVRecord record : records) {
+						var archive = record.get(0);
+						var fund = Integer.parseInt(record.get(1));
+						var code = record.get(2); 						
+						ret.put(new ArchiveFundKey(archive, fund), code);
+					}
+			} catch (FileNotFoundException e) {
+				// ignore
+			} catch (Exception e) {
+				log.error("Fail to read licenses {}", monitoredPath);
+			} 						
+			return ret;
 		}
 
 	}

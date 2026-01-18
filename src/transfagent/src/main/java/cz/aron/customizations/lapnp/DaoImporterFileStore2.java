@@ -96,9 +96,12 @@ public class DaoImporterFileStore2 implements DaoImporter {
 		} catch (IOException e1) {
 			throw new UncheckedIOException(e1);
 		}
+		
+		var licence = fileStore.getLicense(afd);
+		
 		daoPaths.sort((p1, p2) -> p1.getFileName().compareTo(p2.getFileName()));
 		var daoElement = presentationBuilder.buildDaoPresentation(daoPaths, dao.getUuid().toString(),
-				config.getDaoPath(), config.getDaoUrlPrefix());
+				config.getDaoPath(), config.getDaoUrlPrefix(), licence);
 		try {
 			var marshaller = ApuxFactory.createMarshaller();
 			try (var os = Files.newOutputStream(daoUuidXmlFile)) {

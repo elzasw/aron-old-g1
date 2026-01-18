@@ -18,6 +18,10 @@ public class DaoBuilder {
     public void setUuid(String daoUuid) {
         dao.setUuid(daoUuid);
     }
+    
+    public void selLicense(String license) {
+	    dao.setLicense(license);
+    }
 
     public DaoBundle createDaoBundle(DaoBundleType bundleType) {
         var daoBundle = ApuxFactory.getObjFactory().createDaoBundle();
@@ -98,6 +102,6 @@ public class DaoBuilder {
         addMimeType(daoFile, mimetype);
 
         return daoFile;
-    }
+    } 
 
 }

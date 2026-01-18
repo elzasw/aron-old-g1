@@ -122,6 +122,7 @@ Identifikátor může být UUID verze 1 nebo verze 4.</xs:documentation>
 			<xs:element name="name" type="s1:LongString" minOccurs="0" maxOccurs="1"/>
 			<xs:element name="prmLnk" type="s1:LongString" minOccurs="0" maxOccurs="1"/>
 			<xs:element name="bndl" type="s1:DaoBundle" minOccurs="1" maxOccurs="unbounded"/>
+			<xs:element name="license" type="s1:String250" minOccurs="0" maxOccurs="1"/>
 		</xs:sequence>
 		<xs:attribute name="uuid" use="required" type="s1:Uuid">
 			<xs:annotation>
