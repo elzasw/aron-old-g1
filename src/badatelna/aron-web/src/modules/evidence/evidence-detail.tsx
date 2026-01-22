@@ -447,16 +447,17 @@ export function EvidenceDetail({
                           );
                         }}
                       />
-                      <AddToOrderButton
-                        apuId={item?.id}
-                        className={classNames(
-                          classes.findRelatedButton,
-                          classes.citationButton
-                        )}
-                        // label={'Test order info'}
-                        outlined={true}
-                        size="small"
-                      />
+                      {configuration.showOrders &&
+                        <AddToOrderButton
+                          apuId={item?.id}
+                          className={classNames(
+                            classes.findRelatedButton,
+                            classes.citationButton
+                          )}
+                          // label={'Test order info'}
+                          outlined={true}
+                          size="small"
+                        />}
                     </div>
                     {item.description && canShowDescription ? (
                       path === ModulePath.ARCH_DESC ||

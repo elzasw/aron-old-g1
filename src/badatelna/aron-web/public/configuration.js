@@ -128,4 +128,5 @@ var _configuration = {
   // ENTITY: '#fdad3c',
   // },
   // hideDescriptionFor: ['ARCH_DESC'],
+  // showOrders: false,
 };

@@ -76,6 +76,7 @@ export interface ConfigurationType {
   attachmentsOnTop?: boolean;
   refsOnTop?: string[];
   hideDescriptionFor?: string[];
+  showOrders?: boolean;
 }
 
 const defaultConfiguration: ConfigurationType = {
@@ -209,6 +210,7 @@ const defaultConfiguration: ConfigurationType = {
   hideDescriptionFor: [
     // 'ARCH_DESC'
   ],
+  showOrders: true,
 };
 
 const ConfigurationContext =

@@ -14,12 +14,18 @@ export interface ArchivalieInfo {
 
 export interface InstitutionInfo {
   name: string;
-  number: number;
+  code: string;
+}
+
+export interface BadatelnaInfo {
+  name: string;
+  code: string;
 }
 
 export interface OrderItemInfo {
   archivalie: ArchivalieInfo;
   institution: InstitutionInfo;
+  badatelna?: BadatelnaInfo;
 }
 
 export enum ZpusobZpristupneni {

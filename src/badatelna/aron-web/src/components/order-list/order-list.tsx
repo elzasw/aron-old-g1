@@ -1,11 +1,12 @@
 // import { Button } from '../button';
 import MUIButton from '@material-ui/core/Button';
 import DeleteOutline from '@material-ui/icons/DeleteOutline';
-import { useOrders } from './orders-provider';
-import { messages } from './messages';
+import { useOrders, getGroupName } from './orders-provider';
 import { Link } from 'react-router-dom';
 import { ModulePath } from '../../enums';
 import makeStyles from '@material-ui/core/styles/makeStyles';
+import { ZpusobZpristupneni, OrderItemInfoEx } from './types';
+import { AccessTypeSelect } from './access-type-select';
 
 export interface Props {
   apuId: string;
@@ -34,19 +35,30 @@ export const useStyles = makeStyles(() => {
 });
 
 export function OrderList() {
-  const { orderItems: _orderItems, institutions, removeItem } = useOrders();
+  const { orderItems: _orderItems, groups, removeItem, changeItemType } = useOrders();
   const classes = useStyles();
 
   if (_orderItems.length === 0) {
     return <></>
   }
 
-  const groupsByInstitution = institutions.map((institution) => {
+  const groupsByInstitution = groups.map((groupName) => {
+    const filteredItems = _orderItems.filter(({
+      institution: _institution,
+      badatelna: _badatelna
+    }) => getGroupName(_institution, _badatelna) === groupName);
+    const {institution: _institution, badatelna: _badatelna} = filteredItems[0]
     return {
-      institution,
-      orderItems: _orderItems.filter(({institution: _institution}) => _institution.number === institution.number),
+      institution: _institution,
+      badatelna: _badatelna,
+      // orderItems: _orderItems.filter(({institution: _institution, }) => _institution.code === institution.code),
+      orderItems: filteredItems,
     }
   })
+
+  function handleChangeType(item:OrderItemInfoEx, type: ZpusobZpristupneni) {
+    changeItemType(item.apuId, type);
+  }
 
   return <div style={{
     position: "absolute",
@@ -62,7 +74,7 @@ export function OrderList() {
       maxHeight: "600px",
       overflow: "auto",
     }}>
-      {groupsByInstitution.map(({institution, orderItems}) => {
+      {groupsByInstitution.map(({institution, badatelna, orderItems}) => {
         return <div style={{
           padding: "8px",
           margin: "8px",
@@ -71,6 +83,7 @@ export function OrderList() {
           border: "1px solid #ddd",
         }}>
           <div style={{marginBottom: "4px"}}><b>{institution.name}</b></div>
+          {badatelna && <div style={{ marginBottom: "4px" }}><i>{badatelna.name}</i></div>}
           <div style={{margin: "8px 0"}}>
             {orderItems.map((item, index) => {
               const isLast = index === orderItems.length - 1
@@ -96,7 +109,9 @@ export function OrderList() {
                     {item.archivalie.popis}
                   </Link>
                 </div>
-                <div style={{margin: "0 4px", whiteSpace: "nowrap"}}>{messages[item.type]}</div>
+                <div>
+                  <AccessTypeSelect value={item.type} onChange={(type) => handleChangeType(item, type)}/>
+                </div>
                 <div style={{ flexShrink: 0 }}>
                   <MUIButton size="small" onClick={() => removeItem(item.apuId)} ><DeleteOutline/></MUIButton>
                 </div>
