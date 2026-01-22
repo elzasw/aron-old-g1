@@ -210,7 +210,7 @@ const defaultConfiguration: ConfigurationType = {
   hideDescriptionFor: [
     // 'ARCH_DESC'
   ],
-  showOrders: true,
+  showOrders: false,
 };
 
 const ConfigurationContext =
