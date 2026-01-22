@@ -4,7 +4,6 @@ import { InstitutionInfo, OrderItemInfoEx, ZpusobZpristupneni, BadatelnaInfo } f
 
 export interface OrdersContextType {
   orderItems: OrderItemInfoEx[];
-  institutions: InstitutionInfo[];
   groups: string[];
   addItem: (itemInfo: OrderItemInfoEx) => void;
   removeItem: (apuId: string) => void;
@@ -13,7 +12,6 @@ export interface OrdersContextType {
 
 const OrdersContext = createContext<OrdersContextType>({
   orderItems: [],
-  institutions: [],
   groups: [],
   addItem: () => { return; },
   removeItem: () => { return;},
@@ -54,25 +52,17 @@ export function getGroupName(institution: InstitutionInfo, badatelna?: Badatelna
 }
 
 export function OrdersProvider({children}:PropsWithChildren<{}>) {
-  const { store, load } = useLocalStorage<{ orderItems: OrderItemInfoEx[], institutions: InstitutionInfo[], groups: string[] }>("orderItems");
+  const { store, load } = useLocalStorage<{ orderItems: OrderItemInfoEx[], groups: string[] }>("orderItems");
   const loadedState = load();
 
   const [orderItems, setOrderItems] = useState<OrderItemInfoEx[]>(loadedState?.orderItems || []);
-  const [institutions, setInstitutions] = useState<InstitutionInfo[]>(loadedState?.institutions || []);
   const [groups, setGroups] = useState<string[]>(loadedState?.groups || []);
 
   function addItem(itemInfo: OrderItemInfoEx) {
     const _orderItems = [...orderItems, itemInfo];
-    let _institutions = institutions;
     let _groups = groups;
 
     setOrderItems(_orderItems);
-
-    const existingInstitution = institutions.find(({ code }) => { return code === itemInfo.institution.code });
-    if (!existingInstitution) {
-      _institutions = [...institutions, itemInfo.institution]
-      setInstitutions(_institutions);
-    }
 
     const groupName = getGroupName(itemInfo.institution, itemInfo.badatelna);
     const existingGroup = groups.find((_groupName) => _groupName === groupName);
@@ -81,7 +71,7 @@ export function OrdersProvider({children}:PropsWithChildren<{}>) {
       setGroups(_groups);
     }
 
-    store({orderItems: _orderItems, institutions: _institutions, groups: _groups})
+    store({orderItems: _orderItems, groups: _groups})
   }
 
   function removeItem(apuId: string) {
@@ -90,30 +80,21 @@ export function OrdersProvider({children}:PropsWithChildren<{}>) {
 
     const _orderItems = orderItems.filter(({apuId: _apuId}) => _apuId !== apuId);
 
-    let _institutions = institutions;
     let _groups = groups;
 
     setOrderItems(_orderItems);
 
-    const itemsFromInstitution = orderItems.filter(({ institution }) =>
-      institution.code === item?.institution.code
-    )
-    if (itemsFromInstitution.length === 1) {
-      _institutions = institutions.filter(({ code: _code}) => _code !== item?.institution.code)
-      setInstitutions(_institutions);
-    }
-
     const groupName = getGroupName(item.institution, item.badatelna)
-    const itemsFromGroup = orderItems.filter(({ institution, badatelna }) =>
+    const itemsFromGroup = _orderItems.filter(({ institution, badatelna }) =>
       getGroupName(institution, badatelna) === groupName
     )
-    if (itemsFromGroup.length === 1) {
-      _groups = groups.filter((_groupName) => _groupName !== item?.institution.code)
-      setInstitutions(_institutions);
+    console.log("remove item", _orderItems, groupName, itemsFromGroup);
+    if (itemsFromGroup.length === 0) {
+      _groups = groups.filter((_groupName) => _groupName !== groupName);
     }
+    setGroups(_groups);
 
-
-    store({orderItems: _orderItems, institutions: _institutions, groups: _groups})
+    store({orderItems: _orderItems, groups: _groups})
   }
 
   function changeItemType(apuId: string, type: ZpusobZpristupneni) {
@@ -122,10 +103,10 @@ export function OrdersProvider({children}:PropsWithChildren<{}>) {
     const newItems = [...orderItems.slice(0, itemIndex), {...item, type}, ...orderItems.slice(itemIndex + 1)]
     setOrderItems(newItems)
 
-    store({orderItems: newItems, institutions, groups})
+    store({orderItems: newItems, groups})
   }
 
-  return <OrdersContext.Provider value={{orderItems, addItem, removeItem, changeItemType, institutions, groups}}>
+  return <OrdersContext.Provider value={{orderItems, addItem, removeItem, changeItemType, groups}}>
     {children}
   </OrdersContext.Provider>
 }
