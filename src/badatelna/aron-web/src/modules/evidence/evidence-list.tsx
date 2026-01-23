@@ -1,23 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import classNames from 'classnames';
-import Pagination from '@material-ui/lab/Pagination';
 import { FormattedMessage } from 'react-intl';
 import { get } from 'lodash';
-import { KeyboardArrowLeft, KeyboardArrowRight, WarningRounded } from "@material-ui/icons";
+import { WarningRounded } from "@material-ui/icons";
 
 import { useStyles } from './styles';
-import { useLayoutStyles } from '../../styles/layout';
 import { useSpacingStyles, colorYellow, colorYellowDark, colorYellowLight } from '../../styles';
-import { ModulePath, pageSizeOptions, Message } from '../../enums';
-import { Select, Loading, useConfiguration, Button } from '../../components';
-import { useWindowSize, useApiListSimple } from '../../common-utils';
+import { ModulePath, Message } from '../../enums';
+import { Loading, useConfiguration, PaginationEx } from '../../components';
+import { useApiListSimple } from '../../common-utils';
 import { useFilters } from './evidence-filters';
 import { ApuEntitySimplified } from '../../types';
 import { Link } from 'react-router-dom';
 
 function ItemsList() {
   const classes = useStyles();
-  const layoutClasses = useLayoutStyles();
   const spacingClasses = useSpacingStyles();
 
   const { orderResultsByScore } = useConfiguration();
@@ -55,8 +52,6 @@ function ItemsList() {
   });
 
   const [infoEnabled, setInfoEnabled] = useState(false);
-
-  const { width } = useWindowSize();
 
   useEffect(() => {
     if (loading) {
@@ -112,64 +107,13 @@ function ItemsList() {
               <WarningRounded />&nbsp; <i><FormattedMessage id={Message.SEARCH_SHORTENED_RESULT_MESSAGE} /></i>
             </div>}
             {items.length ? (
-              <div
-                className={classNames(
-                  layoutClasses.flexSpaceBetween,
-                  layoutClasses.flexColumnPhone,
-                  spacingClasses.paddingTopSmall
-                )}
-              >
-                <div style={{ display: "flex" }}>
-                  <Button
-                    className={width > 600 ? classes.paginationButton : classes.paginationButton_small}
-                    label={<><KeyboardArrowLeft style={{ height: "0.8em" }} /><KeyboardArrowLeft style={{ marginLeft: "-17px", height: "0.8em" }} /></>}
-                    onClick={() => {
-                      const newPage = page - 10;
-                      updatePage(newPage >= 0 ? newPage : 0);
-                    }}
-                    disabled={page <= 1}
-                  />
-                  <Pagination
-                    count={
-                      count ? Math.ceil(Math.min(count, 9999) / pageSize) : 0
-                    }
-                    size={width > 600 ? 'medium' : 'small'}
-                    siblingCount={width < 600 ? 0 : 1}
-                    color="primary"
-                    page={page}
-                    onChange={(_, page) => updatePage(page)}
-                    className={spacingClasses.marginBottomSmall}
-                  />
-                  <Button
-                    className={width > 600 ? classes.paginationButton : classes.paginationButton_small}
-                    label={<><KeyboardArrowRight style={{ height: "0.8em" }} /><KeyboardArrowRight style={{ marginLeft: "-17px", height: "0.8em" }} /></>}
-                    onClick={() => {
-                      const newPage = page + 10;
-                      updatePage(newPage <= maxPage ? newPage : maxPage);
-                    }}
-                    disabled={page >= maxPage}
-                  />
-                </div>
-                <div
-                  className={classNames(
-                    classes.listPageNumber,
-                    spacingClasses.marginBottomSmall
-                  )}
-                >
-                  <span>
-                    <FormattedMessage id={Message.PER_PAGE} />
-                    :&nbsp;&nbsp;&nbsp;
-                  </span>
-                  <div className={classes.pageSizeSelect}>
-                    <Select
-                      value={{ id: pageSize.toString(), name: pageSize }}
-                      options={pageSizeOptions}
-                      onChange={({ id }) => updatePageSize(id)}
-                      clearable={false}
-                    />
-                  </div>
-                </div>
-              </div>
+              <PaginationEx
+              page={page}
+              pageSize={pageSize}
+              onUpdatePageSize={updatePageSize}
+              onUpdatePage={updatePage}
+              count={count}
+              />
             ) : (
                 <></>
               )}

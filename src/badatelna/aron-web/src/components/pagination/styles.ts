@@ -8,12 +8,13 @@ export const useStyles = makeStyles(() => {
       alignItems: 'center',
     },
     pageSizeSelect: {
-      '& > div': {
-        minWidth: 40,
-      },
-      '& div.MuiSelect-select.MuiSelect-select': {
-        paddingRight: 2,
-      },
+      // '& > div': {
+      //   minWidth: 40,
+      // },
+      // '& div.MuiSelect-select.MuiSelect-select': {
+      //   paddingRight: 2,
+      // },
+      borderRadius: 5,
     },
     paginationButton: {
       width: '32px',

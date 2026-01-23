@@ -247,19 +247,19 @@ function ItemsList() {
         <>
           <Loading {...{ loading }} />
           <div ref={firstElementRef} />
-          <PaginationEx
-            page={page}
-            pageSize={pageSize}
-            count={count}
-            onUpdatePage={updatePage}
-            onUpdatePageSize={updatePageSize}
-          />
           <div
             className={classNames(
               spacingClasses.paddingSmall,
               spacingClasses.paddingBottomSmall
             )}
           >
+            <PaginationEx
+              page={page}
+              pageSize={pageSize}
+              count={count}
+              onUpdatePage={updatePage}
+              onUpdatePageSize={updatePageSize}
+            />
             {items.map((item) => renderItem(item))}
             {page === maxPage && count && count > 9999 && (
               <div

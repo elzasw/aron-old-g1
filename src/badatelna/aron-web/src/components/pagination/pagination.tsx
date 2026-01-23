@@ -1,14 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classNames from 'classnames';
 import Pagination from '@material-ui/lab/Pagination';
 import { FormattedMessage } from 'react-intl';
 import { KeyboardArrowLeft, KeyboardArrowRight } from '@material-ui/icons';
+import MUIButton from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 
 import { useStyles } from './styles';
 import { useLayoutStyles } from '../../styles/layout';
 import { useSpacingStyles } from '../../styles';
 import { pageSizeOptions, Message } from '../../enums';
-import { Select, Button } from '../../components';
+import { Button } from '../../components';
 import { useWindowSize } from '../../common-utils';
 
 interface Props {
@@ -31,9 +35,15 @@ export function PaginationEx({
   const spacingClasses = useSpacingStyles();
   const { width } = useWindowSize();
   const maxPage = count ? Math.ceil(Math.min(count, 9999) / pageSize) : 0;
+  const [anchorElement, setAnchorElement] = useState<HTMLButtonElement | null>(null);
 
   if (!count) {
     return <></>;
+  }
+
+  function handleUpdatePageSize(size: number){
+    onUpdatePageSize(size);
+    setAnchorElement(null);
   }
 
   return (
@@ -41,7 +51,7 @@ export function PaginationEx({
       className={classNames(
         layoutClasses.flexSpaceBetween,
         layoutClasses.flexColumnPhone,
-        spacingClasses.paddingTopSmall
+        spacingClasses.paddingSmall
       )}
     >
       <div style={{ display: 'flex' }}>
@@ -105,13 +115,25 @@ export function PaginationEx({
           <FormattedMessage id={Message.PER_PAGE} />
           :&nbsp;&nbsp;&nbsp;
         </span>
-        <div className={classes.pageSizeSelect}>
-          <Select
-            value={{ id: pageSize.toString(), name: pageSize }}
-            options={pageSizeOptions}
-            onChange={({ id }) => onUpdatePageSize(id)}
-            clearable={false}
-          />
+        <div >
+              <MUIButton
+              onClick={({currentTarget}) => setAnchorElement(currentTarget)}
+              variant="outlined"
+              size="small"
+              className={classes.pageSizeSelect}
+              endIcon={<ArrowDropDownIcon/>}
+              ><span style={{whiteSpace: "nowrap"}}>{pageSize.toString()}</span></MUIButton>
+              <Menu
+                open={Boolean(anchorElement)}
+                anchorEl={anchorElement}
+                onClose={() => setAnchorElement(null)}
+                anchorOrigin={{vertical: "bottom", horizontal: "left"}}
+                transformOrigin={{vertical: "top", horizontal: "left"}}
+              >
+                {pageSizeOptions.map(({name}) => {
+                  return <MenuItem onClick={() => handleUpdatePageSize(name)} disableRipple={false}>{name}</MenuItem>
+                })}
+              </Menu>
         </div>
       </div>
     </div>
