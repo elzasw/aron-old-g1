@@ -104,6 +104,8 @@ export const TextField = forwardRef<HTMLDivElement, TextFieldProps>(
         lang="cs"
         type={type}
         autoComplete={autocomplete}
+        variant="outlined"
+        size="small"
       />
     );
 
