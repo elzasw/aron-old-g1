@@ -21,7 +21,7 @@
     "typescript": "3.9.3"
   },
   "scripts": {
-    "watch": "yarn workspace @eas/common-web build_incremental && yarn workspaces foreach -piv run watch",
+    "watch": "yarn workspace @eas/common-web build_incremental && yarn workspaces foreach -Apiv run watch",
     "buildProd": "yarn workspace @eas/common-web build_incremental && yarn workspace @eas/aron-web build",
     "extract": "formatjs extract",
     "buildAll": "docker-compose build",
