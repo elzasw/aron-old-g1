@@ -61,6 +61,13 @@ export interface FavouriteQuery {
   filters?: FilterConfig[];
 }
 
+export interface FavouriteQueryEx extends FavouriteQuery {
+  imageUrl?: string;
+  backgroundColor?: string;
+  columnSpan?: number;
+  rowSpan?: number;
+}
+
 interface FacetInterval {
   from: string;
   fromText: string;

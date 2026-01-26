@@ -1,6 +1,7 @@
 import React, { FC, useContext, createContext } from 'react';
 import { AppHeaderItemCode, SearchOption, Message, ApuType } from '../../enums';
 import { DaoNamePlacement } from '../../enums/dao-name-placement';
+import { FavouritesStyle } from './enums';
 
 interface LicensePart {
   link?: string;
@@ -31,6 +32,7 @@ interface OtherSource {
   label?: string;
   tooltip?: string;
   icon?: IconDef;
+  imageUrl?: string;
 }
 
 interface IconDef {
@@ -73,6 +75,9 @@ export interface ConfigurationType {
   otherSourcesIcon?: IconDef;
   useStructuredResults?: boolean;
   alternativeFavouritesStyle?: boolean;
+  alternativeSearchType?: boolean;
+  favouritesStyle?: FavouritesStyle;
+  devMode?: boolean;
   attachmentsOnTop?: boolean;
   refsOnTop?: string[];
   hideDescriptionFor?: string[];
@@ -168,14 +173,15 @@ const defaultConfiguration: ConfigurationType = {
   orderResultsByScore: true,
   otherSources: [
     {
-      icon: {
-        icon: `charter.png`,
-        background: '#609ED8',
-        // radius: 8,
-        // color: 'white',
-        // padding: 5,
-        // size: 25,
-      },
+      // icon: {
+      //   icon: `charter.png`,
+      //   background: '#609ED8',
+      //   // radius: 8,
+      //   // color: 'white',
+      //   // padding: 5,
+      //   // size: 25,
+      // },
+      imageUrl:'https://fastly.picsum.photos/id/998/500/754.jpg?hmac=pIA45S-7hqp_DWSpHfMewgs5Nhj_8S4E8xprYQB-rxk' ,
       label: 'Porta fontium',
       url: 'http://www.portafontium.eu',
       tooltip: 'Porta fontium',
@@ -186,12 +192,24 @@ const defaultConfiguration: ConfigurationType = {
     //   url: 'http://www.portafontium.eu',
     //   tooltip: 'Porta fontium',
     // },
+    {
+      icon: { icon: 'fas fa-building' },
+      label: 'Google',
+      url: 'http://www.google.com',
+      tooltip: 'Vyhledavac google',
+    },
     // {
-    //   icon: 'fas fa-file',
+    //   icon: { icon: 'fas fa-house-user' },
     //   label: 'Google',
     //   url: 'http://www.google.com',
     //   tooltip: 'Vyhledavac google',
     // },
+    {
+      icon: { icon: 'far fa-map' },
+      label: 'Google mapy',
+      url: 'http://maps.google.com',
+      tooltip: 'Mapove zdroje',
+    },
   ],
   // otherSourcesIcon: {
   //   icon: 'https://www.portafontium.eu/sites/default/files/logo.png',
@@ -201,8 +219,11 @@ const defaultConfiguration: ConfigurationType = {
   //   padding: 5,
   //   size: 20,
   // },
-  useStructuredResults: false,
+  useStructuredResults: true,
   alternativeFavouritesStyle: false,
+  alternativeSearchType: false,
+  favouritesStyle: FavouritesStyle.TEXT,
+  devMode: false,
   attachmentsOnTop: false,
   refsOnTop: [
     // 'FINDINGAID~REF'
