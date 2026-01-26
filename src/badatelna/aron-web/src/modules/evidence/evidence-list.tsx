@@ -75,6 +75,15 @@ function ItemsList() {
               spacingClasses.paddingBottomSmall
             )}
           >
+            {items.length &&
+              <PaginationEx
+              page={page}
+              pageSize={pageSize}
+              onUpdatePageSize={updatePageSize}
+              onUpdatePage={updatePage}
+              count={count}
+              />
+             }
             {items.map(({ id, name, description }) => (
               <Link key={id} to={`${ModulePath.APU}/${id}`}
                 className={classNames(
@@ -106,7 +115,7 @@ function ItemsList() {
             >
               <WarningRounded />&nbsp; <i><FormattedMessage id={Message.SEARCH_SHORTENED_RESULT_MESSAGE} /></i>
             </div>}
-            {items.length ? (
+            {items.length &&
               <PaginationEx
               page={page}
               pageSize={pageSize}
@@ -114,9 +123,7 @@ function ItemsList() {
               onUpdatePage={updatePage}
               count={count}
               />
-            ) : (
-                <></>
-              )}
+             }
           </div>
         </>
       ) : infoEnabled ? (
