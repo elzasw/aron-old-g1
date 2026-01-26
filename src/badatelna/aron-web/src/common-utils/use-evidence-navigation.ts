@@ -10,6 +10,21 @@ import {
 import { createUrlParams, createFiltersParam } from './navigation';
 import { Message } from '../enums';
 
+export function createEvidenceUrl(
+  path: string,
+  p: number | undefined, // page
+  s: number | undefined, // pageSize
+  q: string | undefined, // query
+  f: any[] | undefined // filters
+) {
+  return `${path}${createUrlParams({
+          p,
+          s,
+          q,
+          f: createFiltersParam(f),
+        })}`
+}
+
 export function useEvidenceNavigation() {
   const { formatMessage } = useIntl();
 
