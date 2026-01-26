@@ -129,4 +129,7 @@ var _configuration = {
   // },
   // hideDescriptionFor: ['ARCH_DESC'],
   // showOrders: false,
+  // alternativeSearchType: false,
+  // favouritesStyle: "TEXT",
+  // devMode: false,
 };

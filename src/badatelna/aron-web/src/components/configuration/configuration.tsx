@@ -172,7 +172,7 @@ const defaultConfiguration: ConfigurationType = {
   // helpUrl: 'https://www.google.cz',
   orderResultsByScore: true,
   otherSources: [
-    {
+    // {
       // icon: {
       //   icon: `charter.png`,
       //   background: '#609ED8',
@@ -181,35 +181,35 @@ const defaultConfiguration: ConfigurationType = {
       //   // padding: 5,
       //   // size: 25,
       // },
-      imageUrl:'https://fastly.picsum.photos/id/998/500/754.jpg?hmac=pIA45S-7hqp_DWSpHfMewgs5Nhj_8S4E8xprYQB-rxk' ,
-      label: 'Porta fontium',
-      url: 'http://www.portafontium.eu',
-      tooltip: 'Porta fontium',
-    },
+    //   imageUrl:'https://fastly.picsum.photos/id/998/500/754.jpg?hmac=pIA45S-7hqp_DWSpHfMewgs5Nhj_8S4E8xprYQB-rxk' ,
+    //   label: 'Porta fontium',
+    //   url: 'http://www.portafontium.eu',
+    //   tooltip: 'Porta fontium',
+    // },
     // {
     //   icon: `https://www.portafontium.eu/sites/default/files/logo.png`,
     //   label: 'Porta fontium',
     //   url: 'http://www.portafontium.eu',
     //   tooltip: 'Porta fontium',
     // },
-    {
-      icon: { icon: 'fas fa-building' },
-      label: 'Google',
-      url: 'http://www.google.com',
-      tooltip: 'Vyhledavac google',
-    },
+    // {
+    //   icon: { icon: 'fas fa-building' },
+    //   label: 'Google',
+    //   url: 'http://www.google.com',
+    //   tooltip: 'Vyhledavac google',
+    // },
     // {
     //   icon: { icon: 'fas fa-house-user' },
     //   label: 'Google',
     //   url: 'http://www.google.com',
     //   tooltip: 'Vyhledavac google',
     // },
-    {
-      icon: { icon: 'far fa-map' },
-      label: 'Google mapy',
-      url: 'http://maps.google.com',
-      tooltip: 'Mapove zdroje',
-    },
+  //   {
+  //     icon: { icon: 'far fa-map' },
+  //     label: 'Google mapy',
+  //     url: 'http://maps.google.com',
+  //     tooltip: 'Mapove zdroje',
+  //   },
   ],
   // otherSourcesIcon: {
   //   icon: 'https://www.portafontium.eu/sites/default/files/logo.png',
@@ -219,7 +219,7 @@ const defaultConfiguration: ConfigurationType = {
   //   padding: 5,
   //   size: 20,
   // },
-  useStructuredResults: true,
+  useStructuredResults: false,
   alternativeFavouritesStyle: false,
   alternativeSearchType: false,
   favouritesStyle: FavouritesStyle.TEXT,
