@@ -33,12 +33,20 @@ export const useStyles = makeStyles((theme) => {
         height: 60,
       },
     },
+    searchAdvancedContainer: {
+      display: 'flex',
+      [theme.breakpoints.down('md')]: {
+        flexDirection: 'column-reverse',
+      },
+    },
     searchAdvanced: {
       fontSize: '0.7rem',
       fontWeight: 600,
-      color: theme.palette.primary.dark,
+      color: theme.palette.primary.main,
       cursor: 'pointer',
       zIndex: 1,
+      textDecoration: 'none',
+      textTransform: 'uppercase',
     },
     searchIcon: {
       fontSize: '1.8rem',
