@@ -19,3 +19,4 @@ export * from './table';
 export * from './configuration';
 export * from './pagination';
 export * from './order-list';
+export * from './home-tile';
