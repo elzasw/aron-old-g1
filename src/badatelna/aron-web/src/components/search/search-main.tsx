@@ -151,7 +151,7 @@ export function SearchMain() {
             spacingClasses.paddingTopSmall
           )}
         >
-          <div>
+          <div style={{flexGrow: 1}}>
             <h3 className={appClasses.screenReaderHidden}>
               <FormattedMessage id={Message.SEARCH_CHANGE_TYPE} />
             </h3>
