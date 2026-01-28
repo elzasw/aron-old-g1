@@ -213,11 +213,12 @@ const defaultConfiguration: ConfigurationType = {
   //   padding: 5,
   //   size: 20,
   // },
-  useStructuredResults: true,
+  useStructuredResults: false,
   alternativeFavouritesStyle: false,
-  alternativeSearchType: true,
+  alternativeSearchType: false,
   favouritesStyle: FavouritesStyle.GRID,
-  devMode: true,
+  widerHomePage: false,
+  devMode: false,
   attachmentsOnTop: false,
   refsOnTop: [
     // 'FINDINGAID~REF'

@@ -199,4 +199,5 @@ var _configuration = {
   //     ],
   //     style: "GRID",
   //   }],
+  // widerHomePage: false,
 };

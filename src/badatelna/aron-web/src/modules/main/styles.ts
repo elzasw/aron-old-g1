@@ -43,7 +43,7 @@ export const useStyles = (configuration?: StyleConfiguration) =>
         maxWidth: 'calc(800px - 1rem)',
         padding: '0 0.5rem',
       },
-      mainBodyInnerGrid: {
+      mainBodyInnerWide: {
         width: '100%',
         maxWidth: 'calc(800px - 1rem)',
         padding: '0 1rem',

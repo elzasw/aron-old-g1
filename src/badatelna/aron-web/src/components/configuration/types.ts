@@ -95,4 +95,5 @@ export interface ConfigurationType {
   hideDescriptionFor?: string[];
   showOrders?: boolean;
   favouritesSections?: FavouritesSection[];
+  widerHomePage?: boolean;
 }
