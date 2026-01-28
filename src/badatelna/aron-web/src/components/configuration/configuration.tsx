@@ -1,5 +1,5 @@
-import React, { FC, useContext, createContext } from 'react';
-import { AppHeaderItemCode, SearchOption, ApuType } from '../../enums';
+import React, { createContext, FC, useContext } from 'react';
+import { AppHeaderItemCode, SearchOption } from '../../enums';
 import { DaoNamePlacement } from '../../enums/dao-name-placement';
 import { FavouritesStyle } from './enums';
 import { ConfigurationType } from './types';
