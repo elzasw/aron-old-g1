@@ -139,7 +139,7 @@ var _configuration = {
   //       imageUrl: `tiles/pozemkove_knihy.jpg`,
   //       label: 'Pozemkové knihy',
   //       // url: 'http://www.portafontium.eu',
-  //       type: ApuType.ARCH_DESC,
+  //       type: "ARCH_DESC",
   //       filters: [{
   //         source: "UNIT_TYPE",
   //         value: ["pozemková kniha"]
@@ -151,7 +151,7 @@ var _configuration = {
   //       imageUrl: `tiles/pozemkove_katastry.jpg`,
   //       label: 'Pozemkové katastry',
   //       // url: 'http://www.portafontium.eu',
-  //       type: ApuType.ARCH_DESC,
+  //       type: "ARCH_DESC",
   //       filters: [{
   //         source: "REGISTRY_TYPE",
   //         value: ["rejstřík obecných pojmů"]
@@ -166,7 +166,7 @@ var _configuration = {
   //       // rowSpan: 2,
   //     },
   //   ],
-  //   style: FavouritesStyle.GRID,
+  //   style: "GRID",
   // }, {
   //     label: "Jiné zdroje",
   //     items: [
@@ -197,6 +197,6 @@ var _configuration = {
   //         columnSpan: 2,
   //       },
   //     ],
-  //     style: FavouritesStyle.GRID,
+  //     style: "GRID",
   //   }],
 };
