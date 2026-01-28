@@ -168,30 +168,17 @@ export function SearchMain() {
             />}
           </div>
           <div style={{flexShrink: 0, display: "flex", justifyContent: "flex-end"}} >
-            <Link
-              to={createEvidenceUrl(ModulePath.ARCH_DESC)}
-              // className={classes.searchAdvanced}
-              // style={{borderRadius: "4px", margin: "4px"}}
-            >
+          <div>
               <MUIButton
-                // onClick={() => navigate(ModulePath.ARCH_DESC)}
                 className={classes.searchAdvanced}
-                // label={formatMessage({ id: Message.ADVANCED_SEARCH })}
-                size="medium"
+                size="small"
                 style={{borderRadius: "4px", margin: "4px"}}
+                component={Link}
+                to={createEvidenceUrl(ModulePath.ARCH_DESC)}
               >
                 {formatMessage({ id: Message.ADVANCED_SEARCH })}
               </MUIButton>
-            </Link>
-            {/*<MUIButton
-              onClick={() => navigate(ModulePath.ARCH_DESC)}
-              className={classes.searchAdvanced}
-              // label={formatMessage({ id: Message.ADVANCED_SEARCH })}
-              size="medium"
-              style={{borderRadius: "4px", margin: "4px"}}
-            >
-              {formatMessage({ id: Message.ADVANCED_SEARCH })}
-            </MUIButton>*/}
+            </div>
           </div>
         </div>
     </div>

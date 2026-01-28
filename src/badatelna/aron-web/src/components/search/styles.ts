@@ -40,13 +40,8 @@ export const useStyles = makeStyles((theme) => {
       },
     },
     searchAdvanced: {
-      fontSize: '0.7rem',
       fontWeight: 600,
       color: theme.palette.primary.main,
-      cursor: 'pointer',
-      zIndex: 1,
-      textDecoration: 'none',
-      textTransform: 'uppercase',
     },
     searchIcon: {
       fontSize: '1.8rem',
