@@ -89,7 +89,7 @@ export function HomeTile({
     }
     }[favouritesStyle]
 
-  return <Tooltip title={tooltip}>
+  return <Tooltip title={favouritesStyle !== FavouritesStyle.GRID ? tooltip : undefined}>
     <UniversalLink
       url={url}
       style={{
