@@ -14,8 +14,8 @@ export const useStyles = makeStyles((theme) => {
         },
         containerAlt: {
           display: "flex",
-          flexWrap: "wrap-reverse",
-          margin: `0 ${theme.spacing(0.5)}`,
+          flexWrap: "wrap",
+          margin: `0 ${-theme.spacing(0.5)}px`,
         },
         optionAlt: {
           cursor: 'pointer',
@@ -25,14 +25,17 @@ export const useStyles = makeStyles((theme) => {
           background: "transparent",
           borderRadius: theme.shape.borderRadius,
           margin: `${theme.spacing(0.5)}px !important`,
-          padding: `${theme.spacing(0.5)}px ${theme.spacing(1)}px`,
+          whiteSpace: 'nowrap',
+          // padding: `${theme.spacing(0.5)}px ${theme.spacing(1)}px`,
         },
         selected: {
           borderStyle: "solid",
           borderColor: "transparent",
           background: theme.palette.primary.main,
           color: theme.palette.primary.contrastText,
-          fontWeight: "bold",
+          '&:hover':{
+            background: theme.palette.primary.light,
+          }
         },
         radioOption: {
             margin: 0,

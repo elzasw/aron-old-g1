@@ -1,6 +1,5 @@
 import React, { ReactElement, useState } from 'react';
-import { Checkbox } from '@eas/common-web';
-import Radio from '@material-ui/core/Radio';
+import MUIButton from '@material-ui/core/Button';
 
 import { useStyles } from './styles';
 import classNames from 'classnames';
@@ -33,39 +32,20 @@ export function ClickableSelectionAlt({
   return (
     <div className={classes.containerAlt}>
       {options.map((option, index) => (
-        <button
+        <MUIButton
           key={index}
           className={
             classNames(
               classes.optionAlt,
               selectedOptions.includes(index) && classes.selected,
-              radio && classes.radioOption,
             )}
           onClick={() =>
             handleOptionsChange(!selectedOptions.includes(index), index)
           }
+          size="small"
         >
-          {radio ? (
-            <Radio
-              size="small"
-              color="primary"
-              style={{display: "none"}}
-              checked={selectedOptions.includes(index)}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                handleOptionsChange(e.target.checked, index)
-              }
-            />
-          ) : (
-            <Checkbox
-              value={selectedOptions.includes(index)}
-              onChange={(isChecked: null | boolean) =>
-                handleOptionsChange(isChecked || false, index)
-              }
-            />
-          )}
-
-          <span>{option.name}</span>
-        </button>
+          {option.name}
+        </MUIButton>
       ))}
     </div>
   );
