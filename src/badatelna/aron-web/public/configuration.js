@@ -132,4 +132,71 @@ var _configuration = {
   // alternativeSearchType: false,
   // favouritesStyle: "TEXT",
   // devMode: false,
+  // favouritesSections: [{
+  //   label: "Často hledáte",
+  //   items: [
+  //     {
+  //       imageUrl: `tiles/pozemkove_knihy.jpg`,
+  //       label: 'Pozemkové knihy',
+  //       // url: 'http://www.portafontium.eu',
+  //       type: ApuType.ARCH_DESC,
+  //       filters: [{
+  //         source: "UNIT_TYPE",
+  //         value: ["pozemková kniha"]
+  //       }],
+  //       columnSpan: 2,
+  //       rowSpan: 2,
+  //     },
+  //     {
+  //       imageUrl: `tiles/pozemkove_katastry.jpg`,
+  //       label: 'Pozemkové katastry',
+  //       // url: 'http://www.portafontium.eu',
+  //       type: ApuType.ARCH_DESC,
+  //       filters: [{
+  //         source: "REGISTRY_TYPE",
+  //         value: ["rejstřík obecných pojmů"]
+  //       },{
+  //         source: "REG_TERM~REF",
+  //           value: [{
+  //             id: "e6d9e04c-dcb2-430e-94fb-1d3448e16640",
+  //             name: "pozemkové katastry (soupisy pozemkového majetku)"
+  //           }]
+  //       }],
+  //       columnSpan: 2,
+  //       // rowSpan: 2,
+  //     },
+  //   ],
+  //   style: FavouritesStyle.GRID,
+  // }, {
+  //     label: "Jiné zdroje",
+  //     items: [
+  //       {
+  //         imageUrl: `tiles/matrika.jpg`,
+  //         label: 'Matriky',
+  //         url: 'https://www.mza.cz/actapublica/matrika/hledani',
+  //         tooltip: 'Matriky',
+  //         columnSpan: 2,
+  //         rowSpan: 2,
+  //       },
+  //       {
+  //         imageUrl: `tiles/scitani_operat.jpg`,
+  //         label: 'Sčítací operáty',
+  //         url: 'https://www.mza.cz/scitacioperaty/',
+  //         columnSpan: 2,
+  //       },
+  //       {
+  //         imageUrl: `tiles/indikacni_skica_kromeriz.jpg`,
+  //         label: 'Indikační skici',
+  //         url: 'https://www.mza.cz/indikacniskici/skica',
+  //         columnSpan: 2,
+  //       },
+  //       {
+  //         imageUrl: `tiles/urbar.jpg`,
+  //         label: 'Urbáře',
+  //         url: 'https://www.mza.cz/urbare/',
+  //         columnSpan: 2,
+  //       },
+  //     ],
+  //     style: FavouritesStyle.GRID,
+  //   }],
 };
