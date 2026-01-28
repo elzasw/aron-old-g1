@@ -1,88 +1,8 @@
 import React, { FC, useContext, createContext } from 'react';
-import { AppHeaderItemCode, SearchOption, Message, ApuType } from '../../enums';
+import { AppHeaderItemCode, SearchOption, ApuType } from '../../enums';
 import { DaoNamePlacement } from '../../enums/dao-name-placement';
 import { FavouritesStyle } from './enums';
-
-interface LicensePart {
-  link?: string;
-  name?: string;
-  iconUrl?: string;
-  separator?: boolean;
-}
-
-interface License {
-  parts: LicensePart[];
-  code: string;
-  description?: string;
-}
-
-interface DaoFooterDef {
-  copyrightText?: string;
-  links?: DaoFooterLinkDef[];
-  licenses?: License[];
-}
-
-interface DaoFooterLinkDef {
-  text?: string;
-  url?: string;
-}
-
-interface OtherSource {
-  url?: string;
-  label?: string;
-  tooltip?: string;
-  icon?: IconDef;
-  imageUrl?: string;
-}
-
-interface IconDef {
-  icon?: string;
-  background?: string;
-  radius?: number;
-  color?: string;
-  padding?: number;
-  size?: number;
-}
-
-export interface ConfigurationType {
-  allowDetailExpand?: boolean;
-  alternativeItemLabel?: boolean;
-  compactAppHeader?: boolean;
-  showAppLogo?: boolean;
-  showAppTopImage?: boolean;
-  showHeader?: boolean;
-  showShareButtons?: boolean;
-  showStandalonePartName?: boolean;
-  showMainPageBreadcrumb?: boolean;
-  showFindRecordsInFundButton?: boolean;
-  showCitationFor?: ApuType[];
-  headerItems?: AppHeaderItemCode[];
-  headerItemColors?: Partial<Record<AppHeaderItemCode, string>>;
-  searchOptions?: SearchOption[];
-  localeCookieName?: string;
-  localeOverride?: Record<string, Partial<Record<Message, string>>>;
-  showMetadataInImageViewer?: boolean;
-  disableDownloads?: boolean;
-  daoFooter?: DaoFooterDef;
-  treeHorizontalScroll?: boolean;
-  daoNamePlacement?: DaoNamePlacement;
-  hideThumbnails?: boolean;
-  newsUrl?: string;
-  helpUrl?: string;
-  orderResultsByScore?: boolean;
-  showIncrementalTree?: boolean;
-  otherSources?: OtherSource[];
-  otherSourcesIcon?: IconDef;
-  useStructuredResults?: boolean;
-  alternativeFavouritesStyle?: boolean;
-  alternativeSearchType?: boolean;
-  favouritesStyle?: FavouritesStyle;
-  devMode?: boolean;
-  attachmentsOnTop?: boolean;
-  refsOnTop?: string[];
-  hideDescriptionFor?: string[];
-  showOrders?: boolean;
-}
+import { ConfigurationType } from './types';
 
 const defaultConfiguration: ConfigurationType = {
   allowDetailExpand: true,
@@ -171,20 +91,94 @@ const defaultConfiguration: ConfigurationType = {
   // newsUrl: 'https://www.seznam.cz',
   // helpUrl: 'https://www.google.cz',
   orderResultsByScore: true,
+  // favouritesSections: [{
+  //   label: "Často hledáte",
+  //   items: [
+  //     {
+  //       imageUrl: `http://10.2.0.28/app/tiles/pozemkove_knihy.jpg`,
+  //       label: 'Pozemkové knihy',
+  //       // url: 'http://www.portafontium.eu',
+  //       type: ApuType.ARCH_DESC,
+  //       filters: [{
+  //         source: "UNIT_TYPE",
+  //         value: ["pozemková kniha"]
+  //       }],
+  //       columnSpan: 2,
+  //       rowSpan: 2,
+  //     },
+  //     {
+  //       imageUrl: `http://10.2.0.28/app/tiles/pozemkove_katastry.jpg`,
+  //       label: 'Pozemkové katastry',
+  //       // url: 'http://www.portafontium.eu',
+  //       type: ApuType.ARCH_DESC,
+  //       filters: [{
+  //         source: "REGISTRY_TYPE",
+  //         value: ["rejstřík obecných pojmů"]
+  //       },{
+  //         source: "REG_TERM~REF",
+  //           value: [{
+  //             id: "e6d9e04c-dcb2-430e-94fb-1d3448e16640",
+  //             name: "pozemkové katastry (soupisy pozemkového majetku)"
+  //           }]
+  //       }],
+  //       columnSpan: 2,
+  //       // rowSpan: 2,
+  //     },
+  //   ],
+  //   style: FavouritesStyle.GRID,
+  // }, {
+  //     label: "Jiné zdroje",
+  //     items: [
+  //       {
+  //         imageUrl: `http://10.2.0.28/app/tiles/matrika.jpg`,
+  //         label: 'Matriky',
+  //         url: 'https://www.mza.cz/actapublica/matrika/hledani',
+  //         tooltip: 'Matriky',
+  //         columnSpan: 2,
+  //         rowSpan: 2,
+  //       },
+  //       {
+  //         imageUrl: `http://10.2.0.28/app/tiles/scitani_operat.jpg`,
+  //         label: 'Sčítací operáty',
+  //         url: 'https://www.mza.cz/scitacioperaty/',
+  //         columnSpan: 2,
+  //       },
+  //       {
+  //         imageUrl: `http://10.2.0.28/app/tiles/indikacni_skica_kromeriz.jpg`,
+  //         label: 'Indikační skici',
+  //         url: 'https://www.mza.cz/indikacniskici/skica',
+  //         columnSpan: 2,
+  //       },
+  //       {
+  //         imageUrl: `http://10.2.0.28/app/tiles/urbar.jpg`,
+  //         label: 'Urbáře',
+  //         url: 'https://www.mza.cz/urbare/',
+  //         columnSpan: 2,
+  //       },
+  //     ],
+  //     style: FavouritesStyle.GRID,
+  //   }],
   otherSources: [
     // {
-      // icon: {
-      //   icon: `charter.png`,
-      //   background: '#609ED8',
-      //   // radius: 8,
-      //   // color: 'white',
-      //   // padding: 5,
-      //   // size: 25,
-      // },
-    //   imageUrl:'https://fastly.picsum.photos/id/998/500/754.jpg?hmac=pIA45S-7hqp_DWSpHfMewgs5Nhj_8S4E8xprYQB-rxk' ,
+    //   // icon: {
+    //   //   icon: `icon.svg`,
+    //   //   background: '#609ED8',
+    //   //   // radius: 8,
+    //   //   // color: 'white',
+    //   //   // padding: 5,
+    //   //   // size: 25,
+    //   // },
+    //   icon: `icon.svg`,
+    //   imageUrl: `logo.png`,
+    //   // imageUrl:'https://fastly.picsum.photos/id/998/500/754.jpg?hmac=pIA45S-7hqp_DWSpHfMewgs5Nhj_8S4E8xprYQB-rxk' ,
     //   label: 'Porta fontium',
-    //   url: 'http://www.portafontium.eu',
+    //   // url: 'http://www.portafontium.eu',
     //   tooltip: 'Porta fontium',
+    //   type: ApuType.ARCH_DESC,
+    //   filters: [{
+    //     source: "UNIT~TYPE",
+    //     value: ["index"]
+    //   }]
     // },
     // {
     //   icon: `https://www.portafontium.eu/sites/default/files/logo.png`,
@@ -219,11 +213,11 @@ const defaultConfiguration: ConfigurationType = {
   //   padding: 5,
   //   size: 20,
   // },
-  useStructuredResults: false,
+  useStructuredResults: true,
   alternativeFavouritesStyle: false,
-  alternativeSearchType: false,
-  favouritesStyle: FavouritesStyle.TEXT,
-  devMode: false,
+  alternativeSearchType: true,
+  favouritesStyle: FavouritesStyle.GRID,
+  devMode: true,
   attachmentsOnTop: false,
   refsOnTop: [
     // 'FINDINGAID~REF'

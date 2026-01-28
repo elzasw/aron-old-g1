@@ -12,10 +12,10 @@ import { Message } from '../enums';
 
 export function createEvidenceUrl(
   path: string,
-  p: number | undefined, // page
-  s: number | undefined, // pageSize
-  q: string | undefined, // query
-  f: any[] | undefined // filters
+  p?: number | undefined, // page
+  s?: number | undefined, // pageSize
+  q?: string | undefined, // query
+  f?: any[] | undefined // filters
 ) {
   return `${path}${createUrlParams({
           p,
