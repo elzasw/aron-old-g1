@@ -32,21 +32,21 @@ interface UniversalLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElemen
 const UniversalLink = forwardRef<HTMLAnchorElement, PropsWithChildren<UniversalLinkProps>>(
   ({ url, isLocal, ...otherProps }: PropsWithChildren<UniversalLinkProps>, ref) => {
   if (!url) {
-    return <a {...otherProps}/>
+    return <a {...otherProps} target="blank"/>
   }
 
   const isAbsoluteUrl = /(http|https):\/\//g.test(url || '');
   // const _isLocal = isLocal || /.\.[\w\d,\-,_]+$/g.test(url || '');
 
   if (isAbsoluteUrl) {
-    return <a ref={ref} {...otherProps} href={url}>{otherProps.children}</a>
+    return <a ref={ref} {...otherProps} href={url} target="blank">{otherProps.children}</a>
   }
   else if (!isAbsoluteUrl) {
     return <Link ref={ref} {...otherProps} to={url}>{otherProps.children}</Link>
   }
 
   console.error(`Incorrect url: ${url}`)
-  return <a {...otherProps}>{url}</a>
+  return <a {...otherProps} target="blank">{url}</a>
 })
 
 export function HomeTile({
