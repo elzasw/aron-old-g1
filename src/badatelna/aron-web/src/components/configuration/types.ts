@@ -96,4 +96,5 @@ export interface ConfigurationType {
   showOrders?: boolean;
   favouritesSections?: FavouritesSection[];
   widerHomePage?: boolean;
+  alternativeSearchStyle?: boolean;
 }

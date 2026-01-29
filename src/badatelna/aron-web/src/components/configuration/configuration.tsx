@@ -227,6 +227,7 @@ const defaultConfiguration: ConfigurationType = {
     // 'ARCH_DESC'
   ],
   showOrders: false,
+  alternativeSearchStyle: false,
 };
 
 const ConfigurationContext =

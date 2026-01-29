@@ -22,6 +22,7 @@ export function SearchMain() {
   const appClasses = useAppStyles();
   const { alternativeSearchType } = useConfiguration();
   const navigateTo = useEvidenceNavigation();
+  const { alternativeSearchStyle } = useConfiguration()
 
   const { formatMessage } = useIntl();
 
@@ -97,7 +98,10 @@ export function SearchMain() {
   };
 
   return (
-    <div className={classes.search}>
+    <div className={classNames(
+      classes.search,
+      alternativeSearchStyle && classes.searchMain,
+    )}>
       <div
         className={classNames(
           classes.searchInner,
@@ -167,7 +171,7 @@ export function SearchMain() {
               onChange={updateSelection}
             />}
           </div>
-          <div style={{flexShrink: 0, display: "flex", justifyContent: "flex-end"}} >
+          <div style={{flexShrink: 0, display: "flex", justifyContent: "flex-end", marginLeft: "20px"}} >
           <div>
               <MUIButton
                 className={classes.searchAdvanced}
