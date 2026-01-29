@@ -1,29 +1,33 @@
 import React from 'react';
 
 import { BASE_URL } from '../../enums';
+import { IconDef } from '..';
 
 interface Props {
-  size?: number;
-  color?: string;
   className?: string;
-  icon?: string;
-  background?: string;
-  radius?: number;
-  padding?: number;
+  icon?: IconDef | string;
+}
+
+function isIconDef(icon: IconDef | string): icon is IconDef {
+  return typeof icon !== "string";
 }
 
 export function Icon({
-  size,
-  color, // supported only by className icons
-  icon,
-  background,
-  radius,
-  padding = 0,
+  icon: _icon,
   className,
 }: Props) {
-  if (!icon) {
-    return <></>;
-  }
+  if (!_icon) { return <></>; }
+
+  const {
+    icon,
+    size,
+    color,
+    background,
+    radius,
+    padding = 0
+  } = isIconDef(_icon) ? _icon : ({ icon: _icon } as IconDef);
+
+  if (!icon) { return <></>; }
 
   const isAbsoluteUrl = /(http|https):\/\//g.test(icon || '');
   const isFileName = /.\.[\w\d,\-,_]+$/g.test(icon || '');
