@@ -126,6 +126,7 @@ function ItemsList() {
       >
         {typeIcon && (
           <div
+            className={classNames(classes.listItemIconBackground)}
             style={{
               flexGrow: 0,
               flexShrink: 0,
@@ -133,7 +134,6 @@ function ItemsList() {
               // borderRight: '1px solid #ddd',
               paddingRight: '0px',
               marginRight: `${typeIconSize / 2}px`,
-              background: 'hsl(210, 20%, 30%)',
             }}
           >
             <img

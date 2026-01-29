@@ -153,6 +153,9 @@ export const useStyles = makeStyles((theme) => {
         whiteSpace: 'pre-wrap',
       },
     },
+    listItemIconBackground: {
+      background: theme.palette.primary.main,
+    },
     listItemTitleOnly: {
       '& h4': {
         margin: 0,
