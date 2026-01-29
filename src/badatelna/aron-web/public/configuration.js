@@ -129,14 +129,16 @@ var _configuration = {
   // },
   // hideDescriptionFor: ['ARCH_DESC'],
   // showOrders: false,
-  // alternativeSearchType: false,
   // favouritesStyle: "TEXT",
   // devMode: false,
+  // alternativeSearchType: true,
   // favouritesSections: [{
   //   label: "Často hledáte",
   //   items: [
   //     {
-  //       imageUrl: `tiles/pozemkove_knihy.jpg`,
+  //       backgroundImage: {
+  //         url: `http://10.2.0.28/app/tiles/pozemkove_knihy.jpg`,
+  //       },
   //       label: 'Pozemkové knihy',
   //       // url: 'http://www.portafontium.eu',
   //       type: "ARCH_DESC",
@@ -144,11 +146,14 @@ var _configuration = {
   //         source: "UNIT_TYPE",
   //         value: ["pozemková kniha"]
   //       }],
-  //       columnSpan: 2,
+  //       columnSpan: 1,
   //       rowSpan: 2,
   //     },
   //     {
-  //       imageUrl: `tiles/pozemkove_katastry.jpg`,
+  //       backgroundImage: {
+  //         url: `http://10.2.0.28/app/tiles/pozemkove_katastry.jpg`,
+  //         positionY: '0',
+  //       },
   //       label: 'Pozemkové katastry',
   //       // url: 'http://www.portafontium.eu',
   //       type: "ARCH_DESC",
@@ -171,27 +176,34 @@ var _configuration = {
   //     label: "Jiné zdroje",
   //     items: [
   //       {
-  //         imageUrl: `tiles/matrika.jpg`,
+  //         backgroundImage: {
+  //           url: `http://10.2.0.28/app/tiles/matrika.jpg`,
+  //         },
   //         label: 'Matriky',
   //         url: 'https://www.mza.cz/actapublica/matrika/hledani',
-  //         tooltip: 'Matriky',
   //         columnSpan: 2,
   //         rowSpan: 2,
   //       },
   //       {
-  //         imageUrl: `tiles/scitani_operat.jpg`,
+  //         backgroundImage: {
+  //           url: `http://10.2.0.28/app/tiles/scitani_operat.jpg`,
+  //         },
   //         label: 'Sčítací operáty',
   //         url: 'https://www.mza.cz/scitacioperaty/',
-  //         columnSpan: 2,
+  //         columnSpan: 1,
   //       },
   //       {
-  //         imageUrl: `tiles/indikacni_skica_kromeriz.jpg`,
+  //         backgroundImage: {
+  //           url: `http://10.2.0.28/app/tiles/indikacni_skica_kromeriz.jpg`,
+  //         },
   //         label: 'Indikační skici',
   //         url: 'https://www.mza.cz/indikacniskici/skica',
   //         columnSpan: 2,
   //       },
   //       {
-  //         imageUrl: `tiles/urbar.jpg`,
+  //         backgroundImage: {
+  //           url: `http://10.2.0.28/app/tiles/urbar.jpg`,
+  //         },
   //         label: 'Urbáře',
   //         url: 'https://www.mza.cz/urbare/',
   //         columnSpan: 2,
@@ -199,5 +211,6 @@ var _configuration = {
   //     ],
   //     style: "GRID",
   //   }],
-  // widerHomePage: false,
+  // widerHomePage: true,
+  // alternativeSearchStyle: true,
 };

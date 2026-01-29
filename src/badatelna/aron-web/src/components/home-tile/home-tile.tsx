@@ -10,6 +10,7 @@ import { Icon } from "../icon";
 import { FavouritesStyle, BASE_URL } from "../../enums";
 import { IconDef } from "../configuration";
 import { forwardRef, PropsWithChildren } from "react";
+import { BackgroundImageDef } from "../configuration/types";
 
 export interface Props{
   icon?: IconDef | string;
@@ -17,7 +18,7 @@ export interface Props{
   tooltip?: string;
   url?: string;
   localUrl?: string;
-  imageUrl?: string;
+  backgroundImage?: BackgroundImageDef;
   columnSpan?: number;
   rowSpan?: number;
   backgroundColor?: string;
@@ -53,7 +54,7 @@ export function HomeTile({
   label,
   tooltip,
   url,
-  imageUrl,
+  backgroundImage,
   columnSpan,
   rowSpan,
   backgroundColor,
@@ -64,6 +65,7 @@ export function HomeTile({
   const spacingClasses = useSpacingStyles();
   // const hasImage = imageUrl != undefined;
 
+  const imageUrl = backgroundImage?.url
 
   const isAbsoluteImageUrl = /(http|https):\/\//g.test(imageUrl || '');
   const _imageUrl = isAbsoluteImageUrl
@@ -106,6 +108,8 @@ export function HomeTile({
         style={{
           backgroundImage: _imageUrl && `url('${_imageUrl}')`,
           backgroundColor: backgroundColor,
+          backgroundPositionX: backgroundImage?.positionX,
+          backgroundPositionY: backgroundImage?.positionY,
         }}
         className={favouritesClasses.background}
       ></div>}

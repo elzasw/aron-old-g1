@@ -31,13 +31,19 @@ export interface OtherSource {
   label?: string;
   tooltip?: string;
   icon?: IconDef | string;
-  imageUrl?: string;
+  backgroundImage?: BackgroundImageDef;
   backgroundColor?: string;
   columnSpan?: number;
   rowSpan?: number;
   query?: string;
   type?: ApuType;
   filters?: FilterConfig[];
+}
+
+export interface BackgroundImageDef {
+  url: string;
+  positionX: string;
+  positionY: string;
 }
 
 export interface IconDef {
