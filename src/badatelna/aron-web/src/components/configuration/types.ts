@@ -62,6 +62,12 @@ interface FavouritesSection{
   icon?: IconDef | string;
 }
 
+type PrimaryColor = {
+  main: string;
+  dark: string;
+  light: string;
+}
+
 export interface ConfigurationType {
   allowDetailExpand?: boolean;
   alternativeItemLabel?: boolean;
@@ -103,4 +109,5 @@ export interface ConfigurationType {
   favouritesSections?: FavouritesSection[];
   widerHomePage?: boolean;
   alternativeSearchStyle?: boolean;
+  primaryColor?: PrimaryColor;
 }

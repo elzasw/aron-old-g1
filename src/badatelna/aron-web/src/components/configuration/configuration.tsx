@@ -228,6 +228,11 @@ const defaultConfiguration: ConfigurationType = {
   ],
   showOrders: false,
   alternativeSearchStyle: false,
+  primaryColor: {
+    light: 'hsl(210, 20%, 50%)',
+    main: 'hsl(210, 20%, 30%)',
+    dark: 'hsl(210, 20%, 20%)',
+  }
 };
 
 const ConfigurationContext =

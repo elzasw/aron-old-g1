@@ -193,7 +193,7 @@ function AppWithConfiguration() {
   const configuration = useConfiguration();
 
   return (
-    <ThemeProvider {...{ primary, editing, highlight, fontSize, fontFamily }}>
+    <ThemeProvider {...{ primary: configuration?.primaryColor || primary, editing, highlight, fontSize, fontFamily }}>
       <LocaleProvider
         defaultLocale={
           getLocaleFromCookie(configuration.localeCookieName) || LocaleName.cs
