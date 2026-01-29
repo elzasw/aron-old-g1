@@ -19,7 +19,7 @@ export const useStyles = makeStyles((theme) => {
       marginTop: '50px',
     },
     searchMainAlt: {
-      marginTop: '100px',
+      marginTop: '40px',
       background: theme.palette.background.default,
       padding: theme.spacing(2),
       borderRadius: `${theme.shape.borderRadius * 2}px`,
