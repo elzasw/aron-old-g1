@@ -16,6 +16,9 @@ export const useStyles = makeStyles((theme) => {
       },
     },
     searchMain: {
+      marginTop: '50px',
+    },
+    searchMainAlt: {
       marginTop: '100px',
       background: theme.palette.background.default,
       padding: theme.spacing(2),

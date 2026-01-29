@@ -100,7 +100,7 @@ export function SearchMain() {
   return (
     <div className={classNames(
       classes.search,
-      alternativeSearchStyle && classes.searchMain,
+      alternativeSearchStyle ? classes.searchMainAlt : classes.searchMain,
     )}>
       <div
         className={classNames(

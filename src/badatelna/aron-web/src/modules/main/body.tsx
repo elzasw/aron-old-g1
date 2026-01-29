@@ -35,11 +35,9 @@ export const Body: React.FC = () => {
       )}
     >
       <div className={widerHomePage ? classes.mainBodyInnerWide : classes.mainBodyInner}>
-        <div className={spacingClasses.paddingBottomBig} />
         <h2 className={appClasses.screenReaderHidden}>
           <FormattedMessage id={Message.SEARCH} />
         </h2>
-        <div className={spacingClasses.paddingBottomBig} />
         <SearchMain />
         <div className={spacingClasses.paddingBottomBig} />
         <FavouritesSection
