@@ -32,8 +32,8 @@ const fetchApus = async (items: EvidenceDetailItem[], currentApus: ApuEntitySimp
 
   const apuList = [...items].slice(start, end).map((item) => item.value);
   const segmentedApuList = splitArrayIntoChunks(apuList, 100);
-  const newApus = apuList.length > 0 
-    && await Promise.all(segmentedApuList.map((listSegment) => getApus(listSegment))) 
+  const newApus = apuList.length > 0
+    && await Promise.all(segmentedApuList.map((listSegment) => getApus(listSegment)))
     || [];
   return currentApus.concat(...compact(newApus));
 }
@@ -61,9 +61,9 @@ export function EvidenceDetailItemGroup({
 
   const [apus, setApus] = useState<ApuEntitySimplified[]>();
   const [apusLoading, setApusLoading] = useState(false);
-  const [apusAllLoaded, setApusAllLoaded] = useState(false);
+  const [apusAllLoaded, setApusAllLoaded] = useState(!hasApus);
   const [showAllItems, setShowAllItems] = useState(false);
-  
+
   useEffect(()=>{
     if(!hasApus || apus || apusLoading){return;}
     setApusLoading(true);
@@ -75,8 +75,8 @@ export function EvidenceDetailItemGroup({
   }, [apuId])
 
   const handleShowAllItems = () => {
-    if(apusAllLoaded){ 
-      setShowAllItems(!showAllItems); 
+    if(apusAllLoaded){
+      setShowAllItems(!showAllItems);
       return;
     }
     if(!apusAllLoaded && apus && !showAllItems){
@@ -100,7 +100,7 @@ export function EvidenceDetailItemGroup({
 
   // hide the whole group when no apus in apu_ref
   if(hasApus && apus?.length === 0){
-    return <></>; 
+    return <></>;
   }
 
   return <div key={`${code}`} className={layoutClasses.flex}>
@@ -119,7 +119,7 @@ export function EvidenceDetailItemGroup({
         spacingClasses.paddingTopSmall
       )}
     >
-      {(!hasApus || apus) && items.slice(0, showAllItems && apusAllLoaded ? items.length : initialItemLimit).map((item, i) => 
+      {(!hasApus || apus) && items.slice(0, showAllItems && apusAllLoaded ? items.length : initialItemLimit).map((item, i) =>
       {
           if(!hasApus){return <EvidenceDetailItemValue key={`${item.value}-${i}`} {...item}/>}
           const apu = apus?.find((apu)=> apu.id === item.value);
@@ -129,14 +129,14 @@ export function EvidenceDetailItemGroup({
       )}
 
       {apusLoading && `${formatMessage({id: Message.LOADING})}...`}
-      {items.length > initialItemLimit && 
+      {items.length > initialItemLimit &&
         <div className={classes.evidenceDetailItemExpandButtonWrapper}>
-        <button 
+        <button
           onClick={handleShowAllItems}
           className={classes.evidenceDetailItemExpandButton}
         >
-          {showAllItems 
-              ? formatMessage({id: Message.APU_HIDE}) 
+          {showAllItems
+              ? formatMessage({id: Message.APU_HIDE})
               : `${formatMessage({id: Message.APU_SHOW_ALL})} (${items.length})`}
         </button>
         </div>
