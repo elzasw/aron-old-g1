@@ -213,4 +213,9 @@ var _configuration = {
   //   }],
   // widerHomePage: true,
   // alternativeSearchStyle: true,
+  // primaryColor: {
+  //   light: 'hsl(207, 55%, 50%)',
+  //   main: 'hsl(207, 55%, 30%)',
+  //   dark: 'hsl(207, 55%, 20%)',
+  // }
 };
