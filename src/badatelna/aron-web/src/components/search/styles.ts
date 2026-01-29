@@ -47,7 +47,7 @@ export const useStyles = makeStyles((theme) => {
     },
     searchAdvancedContainer: {
       display: 'flex',
-      [theme.breakpoints.down('md')]: {
+      [theme.breakpoints.down('xs')]: {
         flexDirection: 'column-reverse',
       },
     },
