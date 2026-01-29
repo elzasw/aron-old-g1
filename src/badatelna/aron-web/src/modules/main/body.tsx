@@ -52,8 +52,9 @@ export const Body: React.FC = () => {
           items={otherSources}
           style={favouritesStyle}
         />
-        {(favouritesSections || []).map((favouritesSection) => {
+        {(favouritesSections || []).map((favouritesSection, index) => {
           return <FavouritesSection
+          key={index}
           {...favouritesSection}
           />
         })}
