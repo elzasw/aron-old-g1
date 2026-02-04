@@ -52,6 +52,9 @@ public class ArchivalEntity {
     
     @Column(name="entity_class", nullable = true)
     private String entityClass;
+    
+    @Column(nullable = true)
+    private UUID camUuid;
 
     public String getEntityClass() {
         return entityClass;
@@ -124,5 +127,13 @@ public class ArchivalEntity {
     public void setDownload(boolean download) {
         this.download = download;
     }
+
+	public UUID getCamUuid() {
+		return camUuid;
+	}
+
+	public void setCamUuid(UUID camUuid) {
+		this.camUuid = camUuid;
+	}
 
 }

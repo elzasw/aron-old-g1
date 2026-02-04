@@ -607,4 +607,22 @@
     <addNotNullConstraint tableName="arch_desc"
       columnDataType="int" columnName="num_levels" />     
  </changeSet>
+ <changeSet author="karel.zacek@lightcomp.cz" id="20">
+ 	<addColumn tableName="dao">
+ 		<column name="last_modified" type="bigint" />
+ 	</addColumn>
+ 	<sql>
+      update dao set last_modified=0;
+    </sql>
+    <addNotNullConstraint tableName="dao"
+      columnDataType="boolean" columnName="last_modified" />
+ </changeSet>
+ <changeSet author="karel.zacek@lightcomp.cz" id="21">
+    <addColumn tableName="archival_entity">
+       <column name="cam_uuid" type="uuid" />
+    </addColumn>
+    <createIndex indexName="idx_archival_entity_cam_uuid" tableName="archival_entity">
+      <column name="cam_uuid" />
+    </createIndex>
+ </changeSet>
 </databaseChangeLog>

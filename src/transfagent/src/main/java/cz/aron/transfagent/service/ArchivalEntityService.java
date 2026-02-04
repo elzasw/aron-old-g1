@@ -69,12 +69,12 @@ public class ArchivalEntityService {
 	}
 	
 	@Transactional
-	public void createOrUpdateArchivalEntity(Path dataDir, Path origDir, UUID uuid, String entityClass, boolean insertToCoreQueue) {		
+	public void createOrUpdateArchivalEntity(Path dataDir, Path origDir, UUID uuid, UUID camUuid, String entityClass, boolean insertToCoreQueue) {		
 		Optional<ArchivalEntity> ae = archivalEntityRepository.findByUuid(uuid);
 		if (ae.isPresent()) {
-			updateArchivalEntity(ae.get(), dataDir, origDir, uuid, insertToCoreQueue);
+			updateArchivalEntity(ae.get(), dataDir, origDir, uuid, camUuid, insertToCoreQueue);
 		} else {								
-			createArchivalEntity(dataDir, origDir, uuid, entityClass, insertToCoreQueue);
+			createArchivalEntity(dataDir, origDir, uuid, camUuid, entityClass, insertToCoreQueue);
 		}
 	}
 
@@ -86,7 +86,7 @@ public class ArchivalEntityService {
 	 * @param origDir       puvodni cesta k adresari/zipu s daty
 	 * @param apusrcBuilder apu builder
 	 */
-	private void createArchivalEntity(Path dataDir, Path origDir, UUID apuSourceUuid, String entityClass, boolean insertToCoreQueue) {		
+	private void createArchivalEntity(Path dataDir, Path origDir, UUID apuSourceUuid, UUID camUuid, String entityClass, boolean insertToCoreQueue) {		
 		var apuSource = apuSourceService.createApuSource(apuSourceUuid, SourceType.ARCH_ENTITY, dataDir,
 				origDir.getFileName().toString(), 0, 0);
 		
@@ -96,7 +96,8 @@ public class ArchivalEntityService {
 		archivalEntity.setEntityClass(entityClass);
 		archivalEntity.setStatus(EntityStatus.AVAILABLE);
 		archivalEntity.setLastUpdate(ZonedDateTime.now());
-		archivalEntity.setUuid(apuSourceUuid);		
+		archivalEntity.setUuid(apuSourceUuid);
+		archivalEntity.setCamUuid(camUuid);
 		archivalEntity = archivalEntityRepository.save(archivalEntity);		
 		if (insertToCoreQueue) {
 			insertToCoreQueue(apuSource);
@@ -113,7 +114,7 @@ public class ArchivalEntityService {
 	 * @param dataDir adresar/zip s daty
 	 * @param origDir puvodni adresar/zip s daty
 	 */
-	private void updateArchivalEntity(ArchivalEntity archivalEntity, Path dataDir, Path origDir, UUID apuSourceUuid, boolean insertToCoreQueue) {		
+	private void updateArchivalEntity(ArchivalEntity archivalEntity, Path dataDir, Path origDir, UUID apuSourceUuid, UUID camUuid, boolean insertToCoreQueue) {		
 		var apuSource = archivalEntity.getApuSource();
 		if (apuSource!=null) {
 			// aktualizace apusource
@@ -125,6 +126,7 @@ public class ArchivalEntityService {
 			archivalEntity.setApuSource(apuSource);
 		}
 		archivalEntity.setStatus(EntityStatus.AVAILABLE);
+		archivalEntity.setCamUuid(camUuid);
 		if (insertToCoreQueue) {
 			insertToCoreQueue(apuSource);
 		}

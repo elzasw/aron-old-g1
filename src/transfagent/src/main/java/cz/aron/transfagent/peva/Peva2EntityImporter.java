@@ -93,15 +93,19 @@ public class Peva2EntityImporter implements ArchivalEntityImporter {
 			tempDir = storageService.createTempDir(ImportPevaOriginator.PREFIX_DASH + uuid.toString());
 			var goResp = downloadEntity(uuid, tempDir);
 			ApuSourceBuilder apuSourceBuilder = null;
-			var ipfi = new ImportPevaOriginatorInfo(apTypeService, codeListProvider);
+			var ipoi = new ImportPevaOriginatorInfo(apTypeService, codeListProvider);
 			try {
-				apuSourceBuilder = ipfi.importOriginator(goResp, databaseDataProvider);
+				apuSourceBuilder = ipoi.importOriginator(goResp, databaseDataProvider);
 				try (var os = Files.newOutputStream(tempDir.resolve("apusrc.xml"))) {
 					apuSourceBuilder.build(os, new ApuValidator(configurationLoader.getConfig()));
 				}
 				var dataDir = storageService.moveToDataDir(tempDir);
+				UUID camUuid = null;
+				if (ipoi.getCamUUID()!=null) {
+					camUuid = UUID.fromString(ipoi.getCamUUID());
+				}
 				archivalEntityService.createOrUpdateArchivalEntity(dataDir, tempDir,
-						UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), ImportPevaOriginator.ENTITY_CLASS,
+						UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), camUuid, ImportPevaOriginator.ENTITY_CLASS,
 						true);
 			} catch (Exception e) {
 				log.error("Fail to import originator", e);

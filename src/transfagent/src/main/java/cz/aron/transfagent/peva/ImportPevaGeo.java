@@ -120,7 +120,7 @@ public class ImportPevaGeo implements GeoImporter {
 			var dataDir = storageService.moveToDataDir(dir);
 			boolean send = sendToAron;
 			archivalEntityService.createOrUpdateArchivalEntity(dataDir, dir,
-					UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), ENTITY_CLASS, send);
+					UUID.fromString(apuSourceBuilder.getMainApu().getUuid()),null, ENTITY_CLASS, send);
 		} catch (Exception e) {
 			log.error("Fail to import originator", e);
 			throw new IllegalStateException(e);

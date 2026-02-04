@@ -111,7 +111,7 @@ public class Peva2GeoEntityImporter implements ArchivalEntityImporter {
 				}
 				var dataDir = storageService.moveToDataDir(tempDir);
 				archivalEntityService.createOrUpdateArchivalEntity(dataDir, tempDir,
-						UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), ImportPevaGeo.ENTITY_CLASS, insertToCoreQueue);
+						UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), null, ImportPevaGeo.ENTITY_CLASS, insertToCoreQueue);
 			} catch (SOAPFaultException sfEx) {
 				deleteTempDir(tempDir);
 				if (Peva2Constants.DELETED_OBJECT.equals(sfEx.getMessage())) {

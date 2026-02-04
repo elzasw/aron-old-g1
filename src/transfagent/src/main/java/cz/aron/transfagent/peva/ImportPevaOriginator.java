@@ -109,17 +109,20 @@ public class ImportPevaOriginator implements OriginatorImporter {
 
 	private boolean processOriginator(Path dir, Path originatorXml) {
 		ApuSourceBuilder apuSourceBuilder = null;
-		var ipfi = new ImportPevaOriginatorInfo(apTypeService, codeLists);
+		var ipoi = new ImportPevaOriginatorInfo(apTypeService, codeLists);
 		try {
-			apuSourceBuilder = ipfi.importOriginator(originatorXml, contextDataProvider);
+			apuSourceBuilder = ipoi.importOriginator(originatorXml, contextDataProvider);
 			try (var os = Files.newOutputStream(dir.resolve("apusrc.xml"))) {
 				apuSourceBuilder.build(os, new ApuValidator(configurationLoader.getConfig()));
 			}
-			var dataDir = storageService.moveToDataDir(dir);
-			
+			var dataDir = storageService.moveToDataDir(dir);			
+			UUID camUuid = null;
+			if (ipoi.getCamUUID()!=null) {
+				camUuid = UUID.fromString(ipoi.getCamUUID());
+			}			
 			boolean send = sendToAron;			
 			archivalEntityService.createOrUpdateArchivalEntity(dataDir, dir,
-					UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), ENTITY_CLASS, send);
+					UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), camUuid, ENTITY_CLASS, send);
 		} catch (Exception e) {
 			log.error("Fail to import originator", e);
 			throw new IllegalStateException(e);
@@ -139,7 +142,8 @@ public class ImportPevaOriginator implements OriginatorImporter {
 		var apuDir = storageService.getApuDataDir(apuSource.getDataDir());
 		ApuSourceBuilder apuSourceBuilder;
 		var ipoi = new ImportPevaOriginatorInfo(apTypeService, codeLists);
-		var send = sendToAron;
+		var send = sendToAron && !apuSource.isDisableSend();
+		var force = apuSource.isForce();
 		try {			
 			apuSourceBuilder = ipoi.importOriginator(apuPath.resolve(fileName), contextDataProvider);
 			
@@ -148,12 +152,16 @@ public class ImportPevaOriginator implements OriginatorImporter {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			apuSourceBuilder.build(baos, new ApuValidator(configurationLoader.getConfig()));
 			byte [] newContent = baos.toByteArray();
-			if (StorageService.isContentEqual(apuSrcXmlPath, newContent)) {
+			if (!force && StorageService.isContentEqual(apuSrcXmlPath, newContent)) {
 				return ReimportProcessor.Result.NOCHANGES;
 			}
+			UUID camUuid = null;
+			if (ipoi.getCamUUID() != null) {
+				camUuid = UUID.fromString(ipoi.getCamUUID());
+			}						
 			Files.write(apuSrcXmlPath, newContent);			
 			archivalEntityService.createOrUpdateArchivalEntity(apuPath, apuPath,
-					UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), ENTITY_CLASS, send);
+					UUID.fromString(apuSourceBuilder.getMainApu().getUuid()), camUuid, ENTITY_CLASS, send);
 		} catch (Exception e) {
 			log.error("Fail to reimport {}, dir={}", fileName, apuDir, e);
 			return ReimportProcessor.Result.FAILED;
