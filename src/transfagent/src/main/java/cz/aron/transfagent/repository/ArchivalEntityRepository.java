@@ -36,6 +36,8 @@ public interface ArchivalEntityRepository extends JpaRepository<ArchivalEntity, 
 	List<ArchivalEntity> findAllByParentEntity(ArchivalEntity archivalEntity);
 	
 	List<ArchivalEntity> findAllByUuid(UUID uuid);
+	
+	List<ArchivalEntity> findAllByCamUuid(UUID uuid);
 
 	@EntityGraph(attributePaths = {"parentEntity"})
 	ArchivalEntity findByApuSource(ApuSource apuSource);

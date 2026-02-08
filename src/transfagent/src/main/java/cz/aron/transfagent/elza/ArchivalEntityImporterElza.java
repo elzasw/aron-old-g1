@@ -166,7 +166,7 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
 	
 	private void importEntityTrans(TransactionStatus t, final Path tmpDir, final ArchivalEntity ae) {
 		ApuSourceBuilder apuSourceBuilder;
-		final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService), resultBuilder);
+		final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService), resultBuilder, configElza.isOriginatorFlag());
 		Path dataDir;
 
 		boolean deleteTmpDirectory = true;
@@ -544,7 +544,7 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
 					ae.getElzaId(), ae.getUuid(), ere.getMessage());
 			throw new NotAvailableException(ae);
 		} catch (SOAPFaultException sfEx) {
-			if (StringUtils.contains(sfEx.getMessage(), "Entity has been deleted")) {
+			if (StringUtils.contains(sfEx.getMessage(), "Entity has been deleted") || StringUtils.contains(sfEx.getMessage(), "Entity not found")) {
 				log.info("Entity is deleted in the Elza, id={}, elzaId={}, uuid={}", ae.getId(), ae.getElzaId(),
 						ae.getUuid());
 				throw new NotAvailableException(ae);
@@ -657,7 +657,7 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
         }
 
 		ApuSourceBuilder apuSourceBuilder;
-		final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService), resultBuilder);
+		final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService), resultBuilder, configElza.isOriginatorFlag());
 		try {
 			apuSourceBuilder = importAp.importAp(apuDir.resolve("ap.xml"), archEntity.getUuid(), databaseDataProvider);
 			apuSourceBuilder.setUuid(apuSource.getUuid());
@@ -709,7 +709,12 @@ public class ArchivalEntityImporterElza implements ArchivalEntityImporter {
 			log.error("Fail to process downloaded ap.xml, dir={}", apuDir, e);
 			return Result.FAILED;
 		}
-		return Result.REIMPORTED;
+		
+		if (apuSource.isDisableSend()) {
+			return ReimportProcessor.Result.REIMPORTED_NO_SEND;
+		} else {				
+			return Result.REIMPORTED;
+		}
 	}
 	
 	@Override

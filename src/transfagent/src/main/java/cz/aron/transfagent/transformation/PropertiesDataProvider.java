@@ -86,4 +86,10 @@ public class PropertiesDataProvider implements ContextDataProvider {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	@Override
+	public List<ArchivalEntity> getArchivalEntitiesByCamUuid(UUID uuid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

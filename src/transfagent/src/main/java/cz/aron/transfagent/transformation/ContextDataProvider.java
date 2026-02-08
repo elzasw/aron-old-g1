@@ -46,4 +46,12 @@ public interface ContextDataProvider {
      */
     List<ArchivalEntity> getArchivalEntitiesByUuid(UUID uuid);
     
+	/**
+	 * Get all archival entities with same ccam UUID
+	 * @param uuid
+	 * @return list of entities
+	 */
+    List<ArchivalEntity> getArchivalEntitiesByCamUuid(UUID uuid);
+    
+    
 }

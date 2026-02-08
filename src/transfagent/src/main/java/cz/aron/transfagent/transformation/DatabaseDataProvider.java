@@ -161,5 +161,10 @@ public class DatabaseDataProvider implements ContextDataProvider {
 	public List<ArchivalEntity> getArchivalEntitiesByUuid(UUID uuid) {		
 		return entityRepository.findAllByUuid(uuid);
 	}
+	
+	@Override
+	public List<ArchivalEntity> getArchivalEntitiesByCamUuid(UUID uuid) {
+		return entityRepository.findAllByCamUuid(uuid);
+	}
 
 }

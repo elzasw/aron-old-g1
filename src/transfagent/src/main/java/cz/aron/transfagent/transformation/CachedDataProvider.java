@@ -77,4 +77,9 @@ public class CachedDataProvider implements ContextDataProvider {
 		return provider.getArchivalEntitiesByUuid(uuid);
 	}
 
+	@Override
+	public List<ArchivalEntity> getArchivalEntitiesByCamUuid(UUID uuid) {
+		return provider.getArchivalEntitiesByCamUuid(uuid);
+	}
+	
 }

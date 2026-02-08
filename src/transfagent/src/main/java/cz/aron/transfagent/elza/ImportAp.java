@@ -31,14 +31,15 @@ import cz.aron.transfagent.elza.convertor.EdxItemConvertor;
 import cz.aron.transfagent.elza.convertor.EdxItemCovertContext;
 import cz.aron.transfagent.elza.convertor.EdxStringConvertor;
 import cz.aron.transfagent.elza.convertor.EdxUnitDateConvertor;
+import cz.aron.transfagent.peva.ImportPevaOriginator;
 import cz.aron.transfagent.transformation.ArchEntityInfo;
 import cz.aron.transfagent.transformation.ContextDataProvider;
 import cz.aron.transfagent.transformation.CoreTypes;
 import cz.aron.transfagent.transformation.PropertiesDataProvider;
 import cz.tacr.elza.schema.v2.AccessPoint;
 import cz.tacr.elza.schema.v2.DescriptionItemAPRef;
-import cz.tacr.elza.schema.v2.DescriptionItemUriRef;
 import cz.tacr.elza.schema.v2.DescriptionItemUnitDate;
+import cz.tacr.elza.schema.v2.DescriptionItemUriRef;
 import cz.tacr.elza.schema.v2.Fragment;
 import cz.tacr.elza.schema.v2.Fragments;
 import cz.tacr.elza.schema.v2.Level;
@@ -54,6 +55,8 @@ public class ImportAp implements EdxItemCovertContext {
     private final ElzaNameBuilder nameBuilder;
     
 	private final ImportApResultBuilder resultBuilder;
+	
+	private final boolean originatorFlag;
 
     private ContextDataProvider dataProvider;
 
@@ -74,10 +77,11 @@ public class ImportAp implements EdxItemCovertContext {
 
     private Apu apu;
 
-    public ImportAp(ApTypeService apTypeService, ElzaNameBuilder nameBuilder, ImportApResultBuilder resultBuilder) {
+    public ImportAp(ApTypeService apTypeService, ElzaNameBuilder nameBuilder, ImportApResultBuilder resultBuilder, boolean originatorFlag) {
         this.apTypeService = apTypeService;
         this.nameBuilder = nameBuilder;
 		this.resultBuilder = resultBuilder;
+		this.originatorFlag = originatorFlag;
     }
 
     public UUID getApUuid() {
@@ -96,7 +100,7 @@ public class ImportAp implements EdxItemCovertContext {
         Path inputFile = Path.of(args[0]);        
         ApTypeService apTypeService = new ApTypeService();
         ElzaNameBuilder nameBuilder = new ElzaNameBuilder(apTypeService);        
-        ImportAp iap = new ImportAp(apTypeService, nameBuilder, null);
+        ImportAp iap = new ImportAp(apTypeService, nameBuilder, null, false);
         try {
             ApuSourceBuilder apusrcBuilder = iap.importAp(inputFile, args[1]);
             Path ouputPath = Paths.get(args[2]);
@@ -158,14 +162,24 @@ public class ImportAp implements EdxItemCovertContext {
         String entityClass = ap.getApe().getT();
         String ecName = apTypeService.getTypeName(entityClass);
         Validate.notNull(ecName, "Entity class name not found, code: %s", entityClass);
-        Part aeInfoPart = apusBuilder.addPart(apu, CoreTypes.PT_AE_INFO);
-        apusBuilder.addEnum(aeInfoPart, CoreTypes.AE_SUBCLASS, ecName, true);
+        Part aeInfoPart = ApuSourceBuilder.addPart(apu, CoreTypes.PT_AE_INFO);
+        ApuSourceBuilder.addEnum(aeInfoPart, CoreTypes.AE_SUBCLASS, ecName, true);
 
         String parentEcName = apTypeService.getParentName(entityClass);
         if(parentEcName!=null) {
-            apusBuilder.addEnum(aeInfoPart, CoreTypes.AE_CLASS, parentEcName, false);
+        	ApuSourceBuilder.addEnum(aeInfoPart, CoreTypes.AE_CLASS, parentEcName, false);
         }
-
+                
+        if (originatorFlag) {
+            var camEntities = dataProvider.getArchivalEntitiesByCamUuid(expUuid);        
+            for(var camEntity: camEntities) {
+    	        if (ImportPevaOriginator.ENTITY_CLASS.equals(camEntity.getEntityClass())) {
+    	        	ApuSourceBuilder.addEnum(aeInfoPart, "AE_ORIGINATOR", "ANO", false);
+    	        	break;
+    	        }
+            }   
+        }    
+        
         // oznaceni
         Fragments frgs = ap.getFrgs();
         if(frgs==null) {        	

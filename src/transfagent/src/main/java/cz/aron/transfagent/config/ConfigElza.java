@@ -21,6 +21,8 @@ public class ConfigElza {
     
     private boolean archdescFlag = false;
     
+    private boolean originatorFlag = false;
+    
     private boolean trustAll = false;
 
     public boolean isDisabled() {
@@ -77,7 +79,15 @@ public class ConfigElza {
 
 	public void setArchdescFlag(boolean archdescFlag) {
 		this.archdescFlag = archdescFlag;
-	}    
+	}
+
+	public boolean isOriginatorFlag() {
+		return originatorFlag;
+	}
+
+	public void setOriginatorFlag(boolean originatorFlag) {
+		this.originatorFlag = originatorFlag;
+	}
 
 	public boolean isTrustAll() {
 		return trustAll;

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.apux.ApuValidator;
+import cz.aron.transfagent.config.ConfigElza;
 import cz.aron.transfagent.config.ConfigurationLoader;
 import cz.aron.transfagent.repository.ArchDescRepository;
 import cz.aron.transfagent.repository.ArchivalEntityRepository;
@@ -47,12 +48,14 @@ public class ImportArchDescRefreshEntitiesCommand implements CommandProcessor {
 	
 	private final ConfigurationLoader configurationLoader;
 	
+	private final ConfigElza configElza;
+	
 	private final ImportApResultBuilder resultBuilder;
 
 	public ImportArchDescRefreshEntitiesCommand(ArchDescRepository archDescRepository,
 			ArchivalEntityRepository archivalEntityRepository, ArchivalEntityService archivalEntityService,
 			StorageService storageService, DatabaseDataProvider databaseDataProvider, ApTypeService apTypeService,
-			ConfigurationLoader configurationLoader, @Nullable ImportApResultBuilder resultBuilder) {
+			ConfigElza configElze, ConfigurationLoader configurationLoader, @Nullable ImportApResultBuilder resultBuilder) {
 		this.archDescRepository = archDescRepository;
 		this.archivalEntityRepository = archivalEntityRepository;
 		this.archivalEntityService = archivalEntityService;
@@ -60,6 +63,7 @@ public class ImportArchDescRefreshEntitiesCommand implements CommandProcessor {
 		this.databaseDataProvider = databaseDataProvider;
 		this.apTypeService = apTypeService;
 		this.configurationLoader = configurationLoader;
+		this.configElza = configElze;
 		this.resultBuilder = resultBuilder;
 	}
 	
@@ -125,7 +129,7 @@ public class ImportArchDescRefreshEntitiesCommand implements CommandProcessor {
 				var accessPoint = elzaXmlReader.findAccessPointByUUID(uuid);
 				if (accessPoint!=null) {
 					ApuSourceBuilder apuSourceBuilder;
-					final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService), resultBuilder);
+					final var importAp = new ImportAp(apTypeService, new ElzaNameBuilder(apTypeService), resultBuilder, configElza.isOriginatorFlag());
 					try {
 						apuSourceBuilder = importAp.importAp(elzaXmlReader, relatedEntity.getUuid(), databaseDataProvider);
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
