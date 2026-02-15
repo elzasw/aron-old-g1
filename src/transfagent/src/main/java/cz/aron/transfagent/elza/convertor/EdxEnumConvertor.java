@@ -17,7 +17,7 @@ public class EdxEnumConvertor implements EdxItemConvertor {
 			final Map<String, String> enumMap) {
 		this.targetType = targetType;
 		this.enumMap = enumMap;
-		this.visible = false;
+		this.visible = true;
 	}
 	
 	public EdxEnumConvertor(String targetType,
