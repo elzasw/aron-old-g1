@@ -57,7 +57,7 @@ public class ConfigElzaArchDesc {
     
     private boolean entityRoleText;
     
-    private Integer extportFilterId;
+    private Integer exportFilterId;
 
     public boolean isAddDateToName() {
         return addDateToName;
@@ -221,12 +221,12 @@ public class ConfigElzaArchDesc {
 		this.entityRoleText = entityRoleText;
 	}
 
-	public Integer getExtportFilterId() {
-		return extportFilterId;
+	public Integer getExportFilterId() {
+		return exportFilterId;
 	}
 
-	public void setExtportFilterId(Integer extportFilterId) {
-		this.extportFilterId = extportFilterId;
+	public void setExportFilterId(Integer extportFilterId) {
+		this.exportFilterId = extportFilterId;
 	}
 	
 }

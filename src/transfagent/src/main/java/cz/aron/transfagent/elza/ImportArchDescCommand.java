@@ -59,12 +59,14 @@ public class ImportArchDescCommand implements CommandProcessor {
 	
 	private final Integer exportFilterId;
 
-	public ImportArchDescCommand(StorageService storageService, ConfigElza configElza, ConfigElzaArchDesc configElzaArchDesc) {
-		var elzaUrl = configElza.getUrl().substring(0, configElza.getUrl().indexOf("/services/ExportService"));		
-		this.storageService = storageService;		
-		this.apiClient = new ApiClientEx(configElza.getUsername(), configElza.getPassword(),elzaUrl+"/login",elzaUrl+"/api/v1");
+	public ImportArchDescCommand(StorageService storageService, ConfigElza configElza,
+			ConfigElzaArchDesc configElzaArchDesc) {
+		var elzaUrl = configElza.getUrl().substring(0, configElza.getUrl().indexOf("/services/ExportService"));
+		this.storageService = storageService;
+		this.apiClient = new ApiClientEx(configElza.getUsername(), configElza.getPassword(), elzaUrl + "/login",
+				elzaUrl + "/api/v1");
 		this.ioApi = new IoApi(apiClient);
-		this.exportFilterId = configElzaArchDesc.getExtportFilterId();
+		this.exportFilterId = configElzaArchDesc.getExportFilterId();
 	}
 
 	@Override
