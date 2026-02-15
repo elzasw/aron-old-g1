@@ -5,14 +5,22 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UncheckedIOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
@@ -115,6 +123,58 @@ public class DaoFileStore5Service implements DaoImporter, PermalinkGenerator {
 			links.put(ifKey, resource);
 		}
 		return resource.getResource();
+	}
+	
+	
+	public Map<InstitutionFindingAidKey, Long> getKeyLastModified() throws Exception {		
+		var p1 = Pattern.compile("^ap(\\d{4})\\.csv$");
+		var p2 = Pattern.compile("^ap(\\d{4})-(\\d{3})\\.csv$");
+		var opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+		
+		var ret = new HashMap<InstitutionFindingAidKey, Long>();
+		
+		var csvDir = path.resolve("web").resolve("aron").resolve("ap-csv");		
+		try (var stream = Files.list(csvDir)) {			
+			stream.forEach(instDir->{				
+				// get institution code from directory name
+				var dirName = instDir.getFileName().toString();
+				String instCode = null;
+				for (var inst : config.getInstitutions()) {
+					if (Objects.equals(dirName, inst.getShortcut())) {
+						instCode = inst.getInstitutionCode();
+						break;
+					}
+				}
+				
+				// read csvs
+				if (instCode != null) {
+					var ic = instCode;
+					try {
+						Files.walkFileTree(instDir, opts, 1, new SimpleFileVisitor<Path>() {
+							@Override
+							public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {								
+								var fileName = file.getFileName().toString();								
+								var m1 = p1.matcher(fileName);
+								if (m1.matches()) {									
+									var key = new InstitutionFindingAidKey(ic, Integer.parseInt(m1.group(1)), null);
+									ret.put(key, attrs.lastModifiedTime().toMillis());									
+								} else {
+									var m2 = p2.matcher(fileName);
+									if (m2.matches()) {
+										var key = new InstitutionFindingAidKey(ic, Integer.parseInt(m2.group(1)), ""+Integer.parseInt(m2.group(2)));
+										ret.put(key, attrs.lastModifiedTime().toMillis());
+									}
+								}								
+								return FileVisitResult.CONTINUE;
+							}							
+						});
+					} catch (IOException e) {
+						throw new UncheckedIOException(e);
+					}										
+				}								
+			});												
+		};
+		return ret;
 	}
 
 	public String getFindingAidDaoHandle(String archiveCode, String findingAidCode, String findingAidPartNumber) {

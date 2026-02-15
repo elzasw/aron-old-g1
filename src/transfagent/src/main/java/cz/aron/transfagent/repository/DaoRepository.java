@@ -38,6 +38,8 @@ public interface DaoRepository extends JpaRepository<Dao, Integer> {
     List<Dao> findAllByUuidIn(List<UUID> uuids);
 
     List<Dao> findByApuSource(ApuSource apuSource);
+    
+    Optional<Dao> findByHandleAndSource(String handle, String source);
 
     List<Dao> findTop1000ByStateOrderById(DaoState state);
     

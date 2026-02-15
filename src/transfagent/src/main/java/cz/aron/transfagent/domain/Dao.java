@@ -48,6 +48,9 @@ public class Dao {
     
     @Column(nullable = false)
     private String source;
+    
+    @Column
+    private long lastModified;
 
     public Integer getId() {
         return id;
@@ -119,6 +122,14 @@ public class Dao {
 
 	public void setSource(String source) {
 		this.source = source;
+	}
+
+	public long getLastModified() {
+		return lastModified;
+	}
+
+	public void setLastModified(long lastModified) {
+		this.lastModified = lastModified;
 	}
 
 }

@@ -189,7 +189,6 @@ public class DaoImportService implements ImportProcessor  {
 		private final Set<DaoSourceRef> daoRefs;
 
 		public DaoSource(String name, Set<DaoSourceRef> daoRefs) {
-			super();
 			this.name = name;
 			this.daoRefs = daoRefs;
 		}
@@ -271,13 +270,14 @@ public class DaoImportService implements ImportProcessor  {
         			// store new dao
                     dao = new Dao();
                     dao.setHandle(daoRef.getHandle());
+                    dao.setLastModified(0l);
                     dao.setApuSource(apuSource);
                     dao.setTransferred(false);
                     dao.setSource(daoSource.getName());
-                    dao.setState(DaoState.ACCESSIBLE);                    
+                    dao.setState(DaoState.ACCESSIBLE);
                     dao.setUuid(daoRef.getUuid());
                     daoRepository.save(dao);
-        		}        		
+        		}
         	}
         }
 
