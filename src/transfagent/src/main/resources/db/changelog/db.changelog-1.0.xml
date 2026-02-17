@@ -624,5 +624,10 @@
     <createIndex indexName="idx_archival_entity_cam_uuid" tableName="archival_entity">
       <column name="cam_uuid" />
     </createIndex>
+ </changeSet> 
+ <changeSet author="karel.zacek@lightcomp.cz" id="22">
+     <createIndex indexName="idx_dao_handle" tableName="dao">
+      <column name="handle" />
+    </createIndex>
  </changeSet>
 </databaseChangeLog>

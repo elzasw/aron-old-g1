@@ -99,11 +99,11 @@ public class AttachmentImport implements ImportProcessor {
 				
 		var start = Instant.now();
 		var numReimports = importFindingAidAttachments(codeToId, keys.getFaAttachments());
-		log.info("Finding aid attachment changes check finished. Num reimported: {}, time: {}", numReimports, Duration.between(start, Instant.now()).toSeconds());
+		log.info("Finding aid attachment changes check finished. Num reimported: {}, time: {}s", numReimports, Duration.between(start, Instant.now()).toSeconds());
 		
 		start = Instant.now();
 		numReimports = importFundAttachments(codeToId, keys.getFundAttachments());
-		log.info("Fund attachment changes check finished. Num reimported: {}, time: {}", numReimports, Duration.between(start, Instant.now()).toSeconds());
+		log.info("Fund attachment changes check finished. Num reimported: {}, time: {}s", numReimports, Duration.between(start, Instant.now()).toSeconds());
 
 		nextRun = nowTime.plusSeconds(3600);
 	}
