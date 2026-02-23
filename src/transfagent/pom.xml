@@ -9,7 +9,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>transfagent</artifactId>
-	<version>0.0.58</version>
+	<version>0.0.59</version>
 	<name>Transformation agent</name>
 	<description>Transformation agent for ArchivOnline</description>
 

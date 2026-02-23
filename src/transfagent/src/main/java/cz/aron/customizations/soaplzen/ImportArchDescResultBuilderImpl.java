@@ -573,7 +573,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					title = ((DescriptionItemString) pp).getV();
 				} else if (parentTitle == null && "ZP2015_TITLE".equals(pp.getT())) {
 					parentTitle = ((DescriptionItemString) pp).getV();
-				} else if (unitDateText == null && unitDate == null) {
+				} else if (unitDateText == null && unitDate == null && ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())||ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT()))) {
 					if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
 						unitDateText = ((DescriptionItemString) pp).getV();
 					} else if (ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT())) {
