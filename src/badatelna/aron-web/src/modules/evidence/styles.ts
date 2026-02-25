@@ -146,6 +146,7 @@ export const useStyles = makeStyles((theme) => {
       '& h4': {
         margin: '0 0 0.5rem',
         color: theme.palette.primary.main,
+        fontSize: '1.2em',
       },
 
       '& p': {
