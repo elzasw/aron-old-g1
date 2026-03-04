@@ -626,6 +626,10 @@ itemTypes:
     name: Pomůcka
     type: ENUM
     indexed: true
+  - code: FA_AGG_FLAG
+    name: Pomůcka
+    type: ENUM
+    indexed: true
   - code: INST_REF
     name: Instituce
     type: APU_REF

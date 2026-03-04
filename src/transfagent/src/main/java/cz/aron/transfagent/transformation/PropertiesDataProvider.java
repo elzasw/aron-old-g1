@@ -10,6 +10,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import cz.aron.transfagent.domain.ArchivalEntity;
+import cz.aron.transfagent.domain.dto.UuidNumAttachmentsNumDaos;
 
 public class PropertiesDataProvider implements ContextDataProvider {
 
@@ -72,7 +73,7 @@ public class PropertiesDataProvider implements ContextDataProvider {
 	}
 
 	@Override
-	public List<UUID> getValidFindingAids(UUID fundUuid) {
+	public List<UuidNumAttachmentsNumDaos> getValidFindingAids(UUID fundUuid) {
 		return Collections.emptyList();
 	}
 

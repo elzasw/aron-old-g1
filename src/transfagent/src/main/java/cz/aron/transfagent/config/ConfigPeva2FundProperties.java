@@ -96,6 +96,8 @@ public class ConfigPeva2FundProperties {
     
     private boolean findingAidFlag = false;
     
+    private boolean findingAidAggregateFlag = false;
+    
     // posle odkazy na puvodce z CAM
     private boolean camOriginators = false;
     
@@ -408,6 +410,14 @@ public class ConfigPeva2FundProperties {
 
 	public void setFindingAidFlag(boolean findingAidFlag) {
 		this.findingAidFlag = findingAidFlag;
+	}
+
+	public boolean isFindingAidAggregateFlag() {
+		return findingAidAggregateFlag;
+	}
+
+	public void setFindingAidAggregateFlag(boolean findingAidAggregateFlag) {
+		this.findingAidAggregateFlag = findingAidAggregateFlag;
 	}
 
 	public boolean isPermalink() {

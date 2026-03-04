@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.ArchivalEntity;
 import cz.aron.transfagent.domain.Institution;
+import cz.aron.transfagent.domain.dto.UuidNumAttachmentsNumDaos;
 import cz.aron.transfagent.elza.ImportInstitution;
 import cz.aron.transfagent.peva.ImportPevaFindingAidInfo;
 import cz.aron.transfagent.repository.ArchivalEntityRepository;
@@ -139,7 +140,7 @@ public class DatabaseDataProvider implements ContextDataProvider {
 	}
 
 	@Override
-	public List<UUID> getValidFindingAids(UUID fundUuid) {
+	public List<UuidNumAttachmentsNumDaos> getValidFindingAids(UUID fundUuid) {
 		return this.findingAidRepository.findValidByFundUuid(fundUuid);
 	}
 

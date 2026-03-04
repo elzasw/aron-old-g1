@@ -88,6 +88,10 @@ public class ImportPevaFundInfo {
     
     private UUID archDescRoot;
     
+    private int numReferencedDaos = 0;
+    
+    private int numReferencedAttachments = 0;
+    
     private String primarySheetNumber;
     
     private Integer primarySheetNumberInt;
@@ -446,15 +450,17 @@ public class ImportPevaFundInfo {
 				this.findingAids.add(faUuid);
 			}
 			if (faReferenced) {								
-				if (fundProperties.isFindingAidFlag()||fundProperties.isNameSearch("ap.name")) {
+				if (fundProperties.isFindingAidFlag()||fundProperties.isFindingAidAggregateFlag()||fundProperties.isNameSearch("ap.name")) {
 					List<UUID> uuids = new ArrayList<>();
 					// get all valid referenced finding aid uuids
 					var faUuids = dataProvider.getValidFindingAids(UUID.fromString(nadSheet.getId()));					
 					for (var faUuidStr : findingAids.getFindingAid()) {
 						var faUuid = UUID.fromString(faUuidStr);
 						for (var validFaUuid : faUuids) {
-							if (faUuid.equals(validFaUuid)) {
+							if (faUuid.equals(validFaUuid.getUuid())) {
 								uuids.add(faUuid);								
+								numReferencedAttachments += validFaUuid.getNumAttachments();
+								numReferencedDaos += validFaUuid.getNumDaos();
 							}
 						}
 					}
@@ -1269,6 +1275,14 @@ public class ImportPevaFundInfo {
 
 	public String getFundName() {
 		return fundName;
+	}
+
+	public int getNumReferencedDaos() {
+		return numReferencedDaos;
+	}
+
+	public int getNumReferencedAttachments() {
+		return numReferencedAttachments;
 	}
 
 }

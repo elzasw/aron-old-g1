@@ -236,7 +236,13 @@ public class ImportPevaFund implements FundImporter, FundProvider {
         var daos = addDaos(apusrcBuilder, ifi.getInstitutionCode(), ifi.getNadNumber());
         addPermalink(apusrcBuilder, ifi.getInstitutionCode(), ifi.getPrimarySheetNumber(), ifi.getSubSheetNumber());
         
-        
+		if (configPeva2.getFundProperties().isFindingAidAggregateFlag()
+				&& (ifi.getNumReferencedAttachments() > 0 || ifi.getNumReferencedDaos() > 0 || !attachments.isEmpty()
+						|| !daos.isEmpty() || archDescRoot != null)) {
+			var part = ApuSourceBuilder.getFirstPart(apusrcBuilder.getMainApu(), CoreTypes.PT_FUND_INFO);
+			ApuSourceBuilder.addEnum(part, CoreTypes.FA_AGG_FLAG, "Ano", false);
+		}
+
         try (var fos = Files.newOutputStream(dir.resolve(StorageService.APUSRC_XML))) {
             apusrcBuilder.build(fos, new ApuValidator(configurationLoader.getConfig()));
         } catch (IOException ioEx) {
@@ -400,9 +406,10 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		var fileName = PREFIX + fund.getCode() + ".xml";		
 		ApuSourceBuilder apuSourceBuilder;
 		var ifi = new ImportPevaFundInfo(configPeva2.getFundProperties(), apTypeService, storageService, resultBuilder);
-		try {
+		try {			
+			var archDescRoot = getArchDescUUID(fund);			
 			apuSourceBuilder = ifi.importFundInfo(apuPath.resolve(fileName), fund.getUuid(), databaseDataProvider, this,
-					codeListProvider, entityDownloader, getArchDescUUID(fund));
+					codeListProvider, entityDownloader, archDescRoot);
 			apuSourceBuilder.setUuid(apuSource.getUuid());
 			
 			if (ifi.getState()==State.MOVED) {
@@ -415,7 +422,6 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 					return ReimportProcessor.Result.DELETED;
 				}				
 			}
-					
 			
 			var updateResult = tt.execute(t->{
 				var f = fundRepository.findById(fund.getId()).orElseThrow(() -> {
@@ -428,6 +434,13 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			var daos = addDaos(apuSourceBuilder, ifi.getInstitutionCode(), ifi.getNadNumber());
 			addPermalink(apuSourceBuilder, ifi.getInstitutionCode(), ifi.getPrimarySheetNumber(), ifi.getSubSheetNumber());
 			
+			if (configPeva2.getFundProperties().isFindingAidAggregateFlag()
+					&& (ifi.getNumReferencedAttachments() > 0 || ifi.getNumReferencedDaos() > 0
+							|| !attachments.isEmpty() || !daos.isEmpty() || archDescRoot != null)) {
+				var part = ApuSourceBuilder.getFirstPart(apuSourceBuilder.getMainApu(), CoreTypes.PT_FUND_INFO);
+				ApuSourceBuilder.addEnum(part, CoreTypes.FA_AGG_FLAG, "Ano", false);
+			}
+
 			boolean force = apuSource.isForce()||apuSource.isDeleted()||updateResult.isMetadataModified()||updateResult.isModified();
 			
 			// compare original apusrc.xml and newly generated

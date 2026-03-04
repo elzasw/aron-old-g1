@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.apache.commons.collections4.map.LRUMap;
 
 import cz.aron.transfagent.domain.ArchivalEntity;
+import cz.aron.transfagent.domain.dto.UuidNumAttachmentsNumDaos;
 
 
 /**
@@ -63,7 +64,7 @@ public class CachedDataProvider implements ContextDataProvider {
 	}
 
 	@Override
-	public List<UUID> getValidFindingAids(UUID fundUuid) {
+	public List<UuidNumAttachmentsNumDaos> getValidFindingAids(UUID fundUuid) {
 		return provider.getValidFindingAids(fundUuid);
 	}
 

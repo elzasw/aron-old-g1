@@ -107,5 +107,8 @@ public class CoreTypes {
 
     public static final String LEVEL_TYPE = "LEVEL_TYPE";
     public static final String LEVEL_TYPE_GROUP = "LEVEL_GROUP";
+    
+    // flags
+    public static final String FA_AGG_FLAG = "FA_AGG_FLAG";
 
 }

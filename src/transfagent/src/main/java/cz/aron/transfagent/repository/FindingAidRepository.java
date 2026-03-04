@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.FindingAid;
+import cz.aron.transfagent.domain.dto.UuidNumAttachmentsNumDaos;
 
 public interface FindingAidRepository extends JpaRepository<FindingAid, Integer> {
 
@@ -20,8 +21,8 @@ public interface FindingAidRepository extends JpaRepository<FindingAid, Integer>
     @EntityGraph(attributePaths = { "apuSource" })
 	FindingAid findByUuid(UUID uuid);
 	
-	@Query("SELECT fa.uuid FROM FindingAid fa INNER JOIN fa.funds f WHERE f.uuid = :fundUuid AND fa.apuSource.deleted = false")
-	List<UUID> findValidByFundUuid(UUID fundUuid);
+	@Query("SELECT new cz.aron.transfagent.domain.dto.UuidNumAttachmentsNumDaos(fa.uuid, aps.numAttachments, aps.numDaos) FROM FindingAid fa INNER JOIN fa.funds f INNER JOIN fa.apuSource aps WHERE f.uuid = :fundUuid AND fa.apuSource.deleted = false")
+	List<UuidNumAttachmentsNumDaos> findValidByFundUuid(UUID fundUuid);
 	
 	@EntityGraph(attributePaths = { "apuSource" })
 	FindingAid findByInstitutionIdAndEvidenceNumberAndPartNumberIsNull(int institutionId, int evidenceNumber);

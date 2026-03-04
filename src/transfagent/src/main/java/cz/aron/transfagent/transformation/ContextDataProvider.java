@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import cz.aron.transfagent.domain.ArchivalEntity;
+import cz.aron.transfagent.domain.dto.UuidNumAttachmentsNumDaos;
 
 /**
  * Interface for reading specific data 
@@ -28,9 +29,9 @@ public interface ContextDataProvider {
     /**
      * Get UUID of finding aids which exists and not in deleted state
      * @param fundUuid
-     * @return
+     * @return {@code UuidNumAttachmentsNumDaos}
      */
-    List<UUID> getValidFindingAids(UUID fundUuid);
+    List<UuidNumAttachmentsNumDaos> getValidFindingAids(UUID fundUuid);
 
     /**
      * Return basic information about finding aid
