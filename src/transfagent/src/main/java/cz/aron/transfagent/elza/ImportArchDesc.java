@@ -23,7 +23,6 @@ import java.util.UUID;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.tika.io.IOUtils;
 import org.slf4j.Logger;
@@ -65,7 +64,6 @@ import cz.aron.transfagent.peva.ArchiveFundId;
 import cz.aron.transfagent.peva.ImportPevaGeo;
 import cz.aron.transfagent.peva.ImportPevaOriginator;
 import cz.aron.transfagent.service.AttachmentSource.AttachmentDesc;
-import cz.aron.transfagent.service.DaoFileStoreService;
 import cz.aron.transfagent.service.LevelEnrichmentService;
 import cz.aron.transfagent.transformation.ArchEntityInfo;
 import cz.aron.transfagent.transformation.ContextDataProvider;
@@ -175,8 +173,6 @@ public class ImportArchDesc implements EdxItemCovertContext {
 
     private final ApTypeService apTypeService;
     
-    private final DaoFileStoreService daoFileStoreService;
-    
     private final LevelEnrichmentService levelEnrichmentService;
     
     private final List<ArchDescLevelDaoImporter> levelDaoImporters;
@@ -197,14 +193,13 @@ public class ImportArchDesc implements EdxItemCovertContext {
     
     private final Map<String,String> attachmentNameToUuid;
 
-    public ImportArchDesc(ApTypeService apTypeService, DaoFileStoreService daoFileStoreService,
+    public ImportArchDesc(ApTypeService apTypeService,
                           LevelEnrichmentService levelEnrichmentService,
                           ConfigElzaArchDesc configArchDesc, List<ArchDescLevelDaoImporter> levelDaoImporters,
                           TypesConfiguration typesConfig, @Nullable ImportArchDescResultBuilder resultBuilder,
                           ImportArchDescNameBuilder nameBuilder, ImportArchDescDescBuilder descBuilder,
                           Map<String,String> attachmentNameToUuid) {
         this.apTypeService = apTypeService;
-        this.daoFileStoreService = daoFileStoreService;
         this.levelEnrichmentService = levelEnrichmentService;
         this.configArchDesc = configArchDesc;
         this.levelDaoImporters = levelDaoImporters;
@@ -249,7 +244,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
 
 	public static void main(String[] args) {
 		Path inputFile = Path.of(args[0]);
-		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, null, new ConfigElzaArchDesc(),
+		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, new ConfigElzaArchDesc(),
 				Collections.emptyList(), null, null, null, null, null);
 		try {
 			ApuSourceBuilder apusrcBuilder = iad.importArchDesc(inputFile, args[1]);
@@ -539,15 +534,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
     }
     
 	private boolean processExternalDaos(Level lvl) {
-		boolean daoExist = false;
-		if (daoFileStoreService != null) {
-			if (daoFileStoreService.getDaoDir(lvl.getUuid()) != null) {
-				addDaoRef(daoFileStoreService.getName(), UUID.fromString(lvl.getUuid()), lvl.getUuid());
-				ApuSourceBuilder.addDao(activeApu, UUID.fromString(lvl.getUuid()));
-				daoExist = true;
-			}
-		}
-		
+		boolean daoExist = false;		
 		if (fundId != null) {
 			// TODO fond z elzy nemusi mit fundId, rozsirit i na moznost pouzit kod fondu
 			for (ArchDescLevelDaoImporter daoImporter : levelDaoImporters) {

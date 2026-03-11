@@ -17,15 +17,10 @@ import org.junit.jupiter.api.Test;
 import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.apux._2020.Apu;
 import cz.aron.apux._2020.ItemDateRange;
-import cz.aron.common.itemtypes.TypesConfiguration;
 import cz.aron.transfagent.config.ConfigElzaArchDesc;
 import cz.aron.transfagent.elza.ApTypeService;
 import cz.aron.transfagent.elza.ImportArchDesc;
-import cz.aron.transfagent.elza.ImportArchDescResultBuilder;
-import cz.aron.transfagent.elza.dao.ArchDescLevelDaoImporter;
 import cz.aron.transfagent.elza.datace.LocalDateTimeRange;
-import cz.aron.transfagent.service.DaoFileStoreService;
-import cz.aron.transfagent.service.LevelEnrichmentService;
 import cz.aron.transfagent.transformation.CoreTypes;
 
 //@Disabled
@@ -51,7 +46,7 @@ public class ImportArchDescTest {
     public void testImportArchDesc() throws IOException, JAXBException {
         Path inputFile = Path.of(ARCHDESC_DIR, ARCHDESC_FILE);
         
-		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, null, new ConfigElzaArchDesc(),
+		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, new ConfigElzaArchDesc(),
 				Collections.emptyList(), null, null, null, null, Collections.emptyMap());
 		ApuSourceBuilder builder = iad.importArchDesc(inputFile, ARCHDESC_DIR + "/" + PROPERTIES_FILE);
 

@@ -1,4 +1,4 @@
-package cz.aron.transfagent.service;
+package cz.aron.customizations.soahk;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -16,13 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
 
 import cz.aron.transfagent.config.ConfigDaoFileStore;
-import cz.aron.transfagent.domain.Dao;
-import cz.aron.transfagent.domain.DaoState;
-import cz.aron.transfagent.service.DaoImportService.DaoImporter;
-import cz.aron.transfagent.service.importfromdir.TransformService;
 
 
 /**
@@ -30,15 +25,15 @@ import cz.aron.transfagent.service.importfromdir.TransformService;
  */
 @ConditionalOnProperty(value="filestore.path")
 @Service
-public class DaoFileStoreService implements DaoImporter {
+public class DaoFileStoreService {
 	
 	private static final Logger log = LoggerFactory.getLogger(DaoFileStoreService.class);
+	
+	protected static final String SERVICE_NAME = "file";
 	
 	private static final String DAO_CSV = "dao.csv";
 	
 	private final ConfigDaoFileStore config;
-	
-	private final TransformService transformService;
 	
 	private final Map<String,Path> uuidToPath;
 	
@@ -46,9 +41,8 @@ public class DaoFileStoreService implements DaoImporter {
 	
 	private long lastCheck = 0;
 	
-	public DaoFileStoreService(ConfigDaoFileStore config, TransformService transformService) throws IOException {
+	public DaoFileStoreService(ConfigDaoFileStore config) throws IOException {
 		this.config = config;
-		this.transformService = transformService;
 		if (config.getMappingName()==null) {
 			config.setMappingName(DAO_CSV);
 		}
@@ -73,35 +67,6 @@ public class DaoFileStoreService implements DaoImporter {
 		} else {
 			return null;
 		}
-	}
-
-	@Override
-	public String getName() {
-		return "file";
-	}
-
-	@Override
-	public void importDaoFile(Dao dao, Path daoDir) {
-		Path dataDir = getDaoDir(dao.getUuid().toString());				
-		try {
-			FileSystemUtils.copyRecursively(dataDir, daoDir);
-			if (!transformService.transform(daoDir, dataDir)) {
-				// delete empty dir
-			}
-			dao.setState(DaoState.READY);
-		} catch (Exception e) {
-		    if (!config.isCheckExistency()&&!Files.isDirectory(dataDir)) {
-		        dao.setState(DaoState.INACCESSIBLE);
-		        try {
-                    FileSystemUtils.deleteRecursively(daoDir);
-                } catch (IOException e1) {
-                    log.warn("Fail to delete directory {}", daoDir);
-                }
-		        log.warn("Dao handle={} not exist.", dao.getHandle());
-		    } else {
-		        log.error("Fail to import dao {}", dao.getUuid(), e);
-		    }
-		}		
 	}
 	
 	private Map<String, Path> init() throws IOException {

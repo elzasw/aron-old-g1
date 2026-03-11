@@ -15,6 +15,10 @@ public class ConfigDaoFileStore {
 	private String mappingName;
 	
 	private boolean checkExistency = true;
+	
+	private Path daoPath;
+	
+	private String daoUrlPrefix;
 
 	public Path getPath() {
 		return path;
@@ -39,5 +43,21 @@ public class ConfigDaoFileStore {
     public void setCheckExistency(boolean checkExistency) {
         this.checkExistency = checkExistency;
     }
+
+	public Path getDaoPath() {
+		return daoPath;
+	}
+
+	public void setDaoPath(String daoPath) {
+		this.daoPath = Paths.get(daoPath);
+	}
+
+	public String getDaoUrlPrefix() {
+		return daoUrlPrefix;
+	}
+
+	public void setDaoUrlPrefix(String daoUrlPrefix) {
+		this.daoUrlPrefix = daoUrlPrefix;
+	}
 
 }
