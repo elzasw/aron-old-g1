@@ -766,7 +766,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		ArchDesc archDesc = null;
 		if (fund != null) {
 			archDesc = archDescRepository.findByFund(fund);
-			if (archDesc != null) {
+			if (archDesc != null && !archDesc.getApuSource().isDeleted()) {
 				var apuSrcPath = storageService.getApuDataDir(archDesc.getApuSource().getDataDir())
 						.resolve(StorageService.APUSRC_XML);
 				try {
