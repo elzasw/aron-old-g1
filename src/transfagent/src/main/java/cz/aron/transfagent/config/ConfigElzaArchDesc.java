@@ -58,6 +58,8 @@ public class ConfigElzaArchDesc {
     private boolean entityRoleText;
     
     private Integer exportFilterId;
+    
+    private boolean addExtensionToAttachment = false;
 
     public boolean isAddDateToName() {
         return addDateToName;
@@ -228,5 +230,13 @@ public class ConfigElzaArchDesc {
 	public void setExportFilterId(Integer extportFilterId) {
 		this.exportFilterId = extportFilterId;
 	}
-	
+
+	public boolean isAddExtensionToAttachment() {
+		return addExtensionToAttachment;
+	}
+
+	public void setAddExtensionToAttachment(boolean addExtensionToAttachment) {
+		this.addExtensionToAttachment = addExtensionToAttachment;
+	}
+
 }

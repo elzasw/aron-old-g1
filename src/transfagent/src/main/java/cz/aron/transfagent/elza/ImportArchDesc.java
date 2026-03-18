@@ -23,6 +23,8 @@ import java.util.UUID;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.tika.io.IOUtils;
 import org.slf4j.Logger;
@@ -358,20 +360,45 @@ public class ImportArchDesc implements EdxItemCovertContext {
                             throw new UncheckedIOException(e);
                         }
                         
-                        var attachmentUuid = attachmentNameToUuid.get(f.getFn());
-                        if (attachmentUuid != null) {
-                        	apusBuilder.addAttachment(apusBuilder.getMainApu(), f.getN(), f.getMt(), pos++, attachmentUuid);
-                        } else {
-                        	apusBuilder.addAttachment(apusBuilder.getMainApu(), f.getN(), f.getMt(), pos++);	
-                        }                        
-                        attachments.add(new AttachmentDesc(file, file.getFileName().toString(),lastModified));
+						var attachmentUuid = attachmentNameToUuid.get(f.getFn());
+						var attachmentName = getAttachmentName(f);
+						if (attachmentUuid != null) {
+							apusBuilder.addAttachment(apusBuilder.getMainApu(), attachmentName, f.getMt(), pos++,
+									attachmentUuid);
+						} else {
+							apusBuilder.addAttachment(apusBuilder.getMainApu(), attachmentName, f.getMt(), pos++);
+						}
+						attachments.add(new AttachmentDesc(file, file.getFileName().toString(), lastModified));
                     }
                 }
             }
         }
         return apusBuilder;
     }
-    
+        
+	private String getAttachmentName(File f) {
+		if (configArchDesc.isAddExtensionToAttachment()) {
+			var name = f.getN();
+			var fileName = f.getFn();
+			var mimeTypeExtension = MIME_TO_EXT.get(f.getMt());
+			if (mimeTypeExtension != null && StringUtils.isNotBlank(fileName) && StringUtils.isNotBlank(name)) {
+				var nameTrimmed = name.trim();
+				if (!nameTrimmed.toLowerCase().endsWith(mimeTypeExtension)) {
+					return nameTrimmed + mimeTypeExtension;
+				}
+			}
+		}
+		return f.getN();
+	}
+
+	private static final Map<String, String> MIME_TO_EXT = Map.of(
+			"application/pdf", ".pdf",
+			"application/rtf", ".rtf",
+			"application/msword", ".doc",
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".docx",
+			"application/vnd.ms-excel", ".xls",
+			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx");
+
 	private Map<String, Set<String>> computeLevelDuplicities(Levels lvls) {
 
 		var tmp = new HashMap<String, Map<String, Integer>>();
