@@ -15,6 +15,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "attachment")
 public class Attachment {
+	
+	public static final String JPA_APU_SOURCE = "apuSource";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

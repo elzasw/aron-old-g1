@@ -27,6 +27,7 @@ import cz.aron.api.rest.TransfagentApi;
 import cz.aron.api.rest.model.ApuSourceDef;
 import cz.aron.api.rest.model.ApuSourceResponse;
 import cz.aron.api.rest.model.ArchDescResponse;
+import cz.aron.api.rest.model.AttachmentsResponse;
 import cz.aron.api.rest.model.DaoDef;
 import cz.aron.api.rest.model.DaosResponse;
 import cz.aron.api.rest.model.EntitiesResponse;
@@ -42,6 +43,7 @@ import cz.aron.api.rest.model.UsersResponse;
 import cz.aron.transfagent.service.ApuSourceService;
 import cz.aron.transfagent.service.ArchDescService;
 import cz.aron.transfagent.service.ArchivalEntityService;
+import cz.aron.transfagent.service.AttachmentService;
 import cz.aron.transfagent.service.DaoImportService;
 import cz.aron.transfagent.service.FindingAidService;
 import cz.aron.transfagent.service.FundService;
@@ -81,6 +83,8 @@ public class TransformAgentController implements TransfagentApi {
 
     private final UserService userService;
     
+    private final AttachmentService attachmentService;
+    
     public TransformAgentController(ApuSourceService apuSourceService, 
     							    DaoImportService daoImportService,
                                     FundService fundService,
@@ -91,7 +95,8 @@ public class TransformAgentController implements TransfagentApi {
                                     ArchDescService archDescService,
                                     ArchDescReportService archDescReportService,
                                     InstitutionsService institutionsService,
-                                    UserService userService) {
+                                    UserService userService,
+                                    AttachmentService attachmentService) {
         this.apuSourceService = apuSourceService;
         this.daoImportService = daoImportService;
         this.fundService = fundService;
@@ -103,6 +108,7 @@ public class TransformAgentController implements TransfagentApi {
         this.archDescReportService = archDescReportService;
         this.institutionsService = institutionsService;
         this.userService = userService;
+        this.attachmentService = attachmentService;
         log.info("UI controller started");
     }
 
@@ -288,6 +294,19 @@ public class TransformAgentController implements TransfagentApi {
 	@FunctionalInterface
 	public interface ReportGenerator {
 	    Path generate() throws Exception;
+	}
+
+	@Override
+	public ResponseEntity<DaoDef> getDaoFiles(Long daoId, @Min(0) @Valid Integer page,
+			@Min(1) @Max(1000) @Valid Integer pageSize) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ResponseEntity<AttachmentsResponse> getAttchments(Long apuSourceId, @Min(0) @Valid Integer page,
+			@Min(1) @Max(1000) @Valid Integer pageSize) {		
+		return ResponseEntity.ok(attachmentService.getAttachments(apuSourceId, page, pageSize));
 	}
 
 }

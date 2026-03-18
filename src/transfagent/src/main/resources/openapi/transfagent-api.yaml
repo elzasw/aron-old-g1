@@ -177,6 +177,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DaoDef'
+
+  /daos/{daoId}/files:
+    get:
+      tags:
+        - Transfagent
+      operationId: getDaoFiles
+      description: Mark dao for reimport in database
+      parameters:
+        - $ref: '#/components/parameters/daoId'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'        
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DaoDef'
+
+
+
   /entities:
     get:
       tags:
@@ -365,6 +386,24 @@ paths:
                 type: string
                 format: binary
 
+  /attachments/{apuSourceId}:
+    get:
+      tags:
+        - Transfagent                
+      operationId: getAttchments
+      description: Return attachments related to apusource
+      parameters:
+        - $ref: '#/components/parameters/apuSourceId'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachmentsResponse'
+
   /users:
     get:
       tags:
@@ -450,6 +489,14 @@ components:
   parameters:
     apuId:
       name: apuId
+      in: path
+      required: true
+      description: id of apu
+      schema:
+        type: integer
+        format: int64
+    apuSourceId:
+      name: apuSourceId
       in: path
       required: true
       description: id of apu
@@ -847,6 +894,45 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/InstitutionDef'
+        totalCount:
+          type: integer
+          format: int32
+      description: Returned list of institutions
+    AttachmentDef:
+      type: object
+      required:
+        - attachmentId
+        - uuid
+        - fileName
+        - apusourceId
+        - lastModified
+      properties:
+        attachmentId:
+          type: integer
+          format: int64
+        uuid:
+          type: string
+        fileName:
+          type: string
+        apusourceId:
+          type: integer
+          format: int64
+        lastModified:
+          type: integer
+          format: int64
+        name:
+          type: string
+      description: Fund definition
+    AttachmentsResponse:
+      type: object
+      required:
+        - items
+        - totalCount
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttachmentDef'
         totalCount:
           type: integer
           format: int32

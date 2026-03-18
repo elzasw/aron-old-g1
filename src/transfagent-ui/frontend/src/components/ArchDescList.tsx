@@ -27,7 +27,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import { Api, ArchDescDef/* , ReimportType */ } from "../api";
-import { getFundsPath, getInstitutionsPath, getSourcesPath } from "../App";
+import { getAttachmentsPath, getDaosPath, getFundsPath, getInstitutionsPath, getSourcesPath } from "../App";
 import { archDescColumnInfo, ColumnInfo } from "./columnMap";
 import { downloadFile } from "../utils";
 
@@ -143,6 +143,19 @@ export const ArchDescList = () => {
             const institutionId = item[propCode];
             const institution = institutions.itemsMap[institutionId];
             return <Link to={getInstitutionsPath(institutionId)}>{institution?.name || institutionId}</Link>
+        } else if (propCode === "numAttachments") {
+            const numAttachments = item[propCode];
+            if (numAttachments > 0) {
+                const apuSourceId = item["apusourceId"];
+                console.log('Nazdar '+apuSourceId);
+                return <Link to={getAttachmentsPath(apuSourceId)}>{numAttachments}</Link>
+            }
+        } else if (propCode === "numDaos") {
+            const numDaos = item[propCode];
+            if (numDaos > 0 ) {
+                const apuSourceId = item["apusourceId"];
+                return <Link to={getDaosPath(apuSourceId)}>{numDaos}</Link>
+            }
         }
         return item[propCode];
     };

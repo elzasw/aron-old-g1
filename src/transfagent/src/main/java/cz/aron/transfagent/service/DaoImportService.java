@@ -334,14 +334,33 @@ public class DaoImportService implements ImportProcessor  {
         return new DaosResponse(items, totalItems.intValue());
     }
     
-    private <T> void addDaosPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<Dao> root, String uuid) {
-        if (uuid == null) {
+    private <T> void addDaosPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<Dao> root, String query) {
+        if (query == null) {
             // no filter
             return;
         }
         Predicate p = cb.conjunction();
-        if (uuid != null) {
-            p = cb.and(p, cb.equal(root.get("uuid"), UUID.fromString(uuid)));
+        if (query != null) {
+        	String uuid = null;
+        	Integer apuSourceId = null;
+        	try {
+                uuid = UUID.fromString(query).toString();
+            } catch (Exception e) {
+                // ignore
+            }
+            if (uuid == null) {
+            	try {
+            		apuSourceId = Integer.parseInt(query);
+            	} catch (NumberFormatException e) {
+					// ignore
+				}
+			}
+            if (uuid != null) {
+            	p = cb.and(p, cb.equal(root.get(Dao.JPA_UUID), UUID.fromString(uuid)));
+            }
+            if (apuSourceId != null) {
+            	p = cb.and(p, cb.equal(root.get(Dao.JPA_APUSOURCE).get(ApuSource.JPA_ID), apuSourceId));
+            }
         }
         cq.where(p);
     }

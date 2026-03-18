@@ -12,13 +12,26 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.NoResultException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import cz.aron.api.rest.model.ApuSourceDef;
+import cz.aron.api.rest.model.ApuSourceResponse;
+import cz.aron.api.rest.model.AttachmentDef;
+import cz.aron.api.rest.model.AttachmentsResponse;
 import cz.aron.apux.ApuSourceBuilder;
+import cz.aron.transfagent.controller.vo.AttachmentDefVO;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.Attachment;
 import cz.aron.transfagent.repository.AttachmentRepository;
@@ -30,10 +43,14 @@ public class AttachmentService {
 	private final AttachmentRepository attachmentRepository;
 	
 	private final StorageService storageService;
+	
+	private final EntityManager em;
 
-	public AttachmentService(AttachmentRepository attachmentRepository, StorageService storageService) {
+	public AttachmentService(AttachmentRepository attachmentRepository, StorageService storageService,
+			EntityManager em) {
 		this.attachmentRepository = attachmentRepository;
 		this.storageService = storageService;
+		this.em = em;
 	}
 	
 	/**
@@ -196,6 +213,42 @@ public class AttachmentService {
 			return new NameUUIDLastModifiedKey(attachment.getUuid(), attachment.getFileName(), attachment.getLastModified());
 		}
 
+	}
+
+	
+	@Transactional(readOnly = true)
+    public AttachmentsResponse getAttachments(long apuSourceId, int page, int pageSize) {
+        CriteriaBuilder cbCount = em.getCriteriaBuilder();
+        CriteriaQuery<Long> cqCount = cbCount.createQuery(Long.class);
+        Root<Attachment> rootCount = cqCount.from(Attachment.class);
+        cqCount.select(cbCount.count(rootCount));
+        addAttachmentPredicate(cqCount, cbCount, rootCount, apuSourceId);
+        Long totalItems = 0l;
+        try {
+            totalItems = em.createQuery(cqCount).getSingleResult();
+        } catch (NoResultException nrEx) {
+            // ignore
+        }
+        var items = new ArrayList<AttachmentDef>();
+        if (totalItems > 0) {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Attachment> cq = cb.createQuery(Attachment.class);
+            Root<Attachment> root = cq.from(Attachment.class);
+            addAttachmentPredicate(cq, cb, root, apuSourceId);
+            List<Attachment> rows = em.createQuery(cq).setFirstResult(page* pageSize)
+                    .setMaxResults(pageSize).getResultList();
+            rows.stream().forEach(apu -> {                
+                items.add(new AttachmentDefVO(apu));
+            });
+        }
+        return new AttachmentsResponse(items, totalItems.intValue());
+    }
+
+	private <T> void addAttachmentPredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<Attachment> root,
+			long apuSourceId) {
+		Predicate p = cb.conjunction();
+		p = cb.and(p, cb.equal(root.get(Attachment.JPA_APU_SOURCE).get(ApuSource.JPA_ID), apuSourceId));
+		cq.where(p);
 	}
 
 }

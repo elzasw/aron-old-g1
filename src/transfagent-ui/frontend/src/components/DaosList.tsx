@@ -23,7 +23,7 @@ import Upload from "rc-upload";
 import { useEffect, useState } from "react";
 import { FaCheck, FaFileImport, FaFilter, FaTrashAlt, FaUpload } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Api, DaoDef, DaoStateDef } from "../api";
 import { getSourcesPath } from "../App";
@@ -38,7 +38,10 @@ export const DaosList = () => {
     const pageSize = 200;
     const { formatMessage } = useIntl();
 
-    const [filterFulltext, setFilterFulltext] = useState("");
+    const [params] = useSearchParams();
+    const filter = params.get("filter") || "";
+
+    const [filterFulltext, setFilterFulltext] = useState(filter);
     const [filterFulltextInput, setFilterFulltextInput] = useState("");
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<DaoDef[]>([]);

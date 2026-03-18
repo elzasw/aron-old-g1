@@ -17,6 +17,9 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "dao")
 public class Dao {
+	
+	public static final String JPA_UUID = "uuid";
+	public static final String JPA_APUSOURCE = "apuSource";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

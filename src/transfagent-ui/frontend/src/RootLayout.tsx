@@ -2,7 +2,7 @@ import { FormattedMessage } from "react-intl";
 import { Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { getAidsPath, getArchDescsPath, getDaosPath, getEntitiesPath, getFundsPath, getInstitutionsPath, getSourcesPath, getUsersPath } from "./App";
+import { getAidsPath, getArchDescsPath, getAttachmentsPath, getDaosPath, getEntitiesPath, getFundsPath, getInstitutionsPath, getSourcesPath, getUsersPath } from "./App";
 import { GeneralContextProvider } from "./GeneralContext";
 import { LayoutWrapper, LogoutButton, NavButton, Navigation, PageWrapper, Spacer } from "./styles";
 
@@ -61,6 +61,11 @@ function renderNavigation() {
     navLeft.push(
         <NavButton key="users" to={getUsersPath()}>
             <FormattedMessage id="navigation.users" />
+        </NavButton>
+    );
+    navLeft.push(
+        <NavButton key="attachments" to={getAttachmentsPath()}>
+            <FormattedMessage id="navigation.attachments" />
         </NavButton>
     );
     navRight.push(

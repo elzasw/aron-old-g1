@@ -171,6 +171,16 @@ export default {
         "createuser.username.placeholder": "Uživatelské jméno",
         "createuser.hash.placeholder": "Hash",
 
+        "attachmentColumn.attachmentId" : "Id",
+        "attachmentColumn.uuid" : "UUID",
+        "attachmentColumn.fileName" : "Název souboru",
+        "attachmentColumn.apusourceId" : "Apusrc id",
+        "attachmentColumn.lastModified" : "Datum změny",
+        "attachmentColumn.name" : "Název",
+
+        "navigation.attachments" : "Přílohy",
+        "attachment.apuSourceId.placeholder" : "Id APU zdroje...",
+
         "reimport" : "Znovu odeslat",
         "reimport.success" : "Reimport úspěšně naplánován",
         "reimportAll" : "Znovu odeslat vše",
