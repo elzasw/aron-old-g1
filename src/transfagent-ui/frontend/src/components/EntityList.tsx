@@ -18,7 +18,7 @@ import {
     ResizableColumnsGrid,
 } from "jareco/dist/resizable-columns-grid";
 import { useEffect, useState } from "react";
-import { FaFileImport, FaFilter, FaRedo, FaSync, FaTrashAlt } from "react-icons/fa";
+import { FaFileImport, FaFilter, FaSync, FaTrashAlt } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -194,6 +194,13 @@ export const EntityList = () => {
         confirm(formatMessage({ id: "entity.reimportAll.confirm.title" }), formatMessage({ id: "entity.reimportAll.confirm.message" }), (result) => {
             if (result === ConfirmationDialogResult.OK) {
                 Api.transfagent.reimportAllApusOfType({ apuType: ReimportType.ArchEntity })
+                    .then(() => {
+                        toast.success(formatMessage({ id: "reimport.success" }));
+                    })
+                    .catch((err) => {
+                        toast.error(formatMessage({ id: "reimport.error" }));
+                        console.log("Došlo k chybě", err);
+                    });
             }
         });
     }

@@ -229,13 +229,15 @@ export const UsersList = () => {
                         }
                     })
                     .then((result) => {
+                        toast.success(formatMessage({ id: "users.create.success" }));
                         requestData();
                     })
                     .catch((err) => {
+                        toast.error(formatMessage({ id: "users.create.error" }));
                         console.log("Došlo k chybě", err);
                     });
             }
-            
+
         });
     };
 
@@ -263,8 +265,6 @@ export const UsersList = () => {
     };
 
     const handleCreateUserChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-
-        console.log("Field changed", event.target.name, event.target.value);
 
         setCreateFormData({
             ...createFormData,
@@ -365,6 +365,7 @@ export const UsersList = () => {
                             size={40}
                             id="username"
                             name="username"
+                            value={createFormData.username}
                             onChange={handleCreateUserChange}
                         />
                     <StyledInput
@@ -375,6 +376,7 @@ export const UsersList = () => {
                             size={40}
                             id="hash"
                             name="hash"
+                            value={createFormData.hash}
                             onChange={handleCreateUserChange}
                         />
                         <Button

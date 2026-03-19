@@ -139,7 +139,6 @@ export const AidsList = () => {
                     const numAttachments = item[propCode];
                     if (numAttachments > 0) {
                         const apuSourceId = item["apusourceId"];
-                        console.log('Nazdar '+apuSourceId);
                         return <Link to={getAttachmentsPath(apuSourceId)}>{numAttachments}</Link>
                     }
                 } else if (propCode === "numDaos") {
@@ -216,6 +215,13 @@ export const AidsList = () => {
         confirm(formatMessage({ id: "aid.reimportAll.confirm.title" }), formatMessage({ id: "aid.reimportAll.confirm.message" }), (result) => {
             if (result === ConfirmationDialogResult.OK) {
                 Api.transfagent.reimportAllApusOfType({ apuType: ReimportType.Findingaid })
+                    .then(() => {
+                        toast.success(formatMessage({ id: "reimport.success" }));
+                    })
+                    .catch((err) => {
+                        toast.error(formatMessage({ id: "reimport.error" }));
+                        console.log("Došlo k chybě", err);
+                    });
             }
         });
     }
@@ -305,7 +311,7 @@ export const AidsList = () => {
                         id="buttonDownloadXlsx"
                         onClick={handleDownloadXlsx}
                     >
-                        {formatMessage({ id: "fund.downloadFundsXlsx" })}
+                        {formatMessage({ id: "aid.downloadAidsXlsx" })}
                     </ActionButton>
                 </ActionsContainer>
             </ActionBar>

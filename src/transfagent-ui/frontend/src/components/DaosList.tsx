@@ -210,6 +210,7 @@ export const DaosList = () => {
                         .reimportApuSourceDaos({ apuSourceId: parseInt(filterFulltext, 10) })
                         .then(() => {
                             toast.success(formatMessage({ id: "reimport.success" }));
+                            requestData();
                         })
                         .catch((err) => {
                             toast.error(formatMessage({ id: "reimport.error" }));

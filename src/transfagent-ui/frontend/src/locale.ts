@@ -69,6 +69,7 @@ export default {
         "fund.reimportAll.confirm.title": "Znovu odeslat všechny archivní soubory",
         "fund.reimportAll.confirm.message": "Přejete si znovu odeslat všechny archivní soubory?",
         "fund.downloadFundsXlsx": "Stáhnout XLSX",
+        "aid.downloadAidsXlsx": "Stáhnout XLSX",
         "fundColumn.actions" : " ",
         "fundColumn.fundId" : "Id",
         "fundColumn.uuid" : "APU",
@@ -168,6 +169,8 @@ export default {
         "users.enable.confirm.message": "Přejete si aktivovat uživatele {id}?",
         "users.create.confirm.title": "Vytvoření uživatele",
         "users.create.confirm.message": "Přejete si vytvořit uživatele {id}?",
+        "users.create.success": "Uživatel úspěšně vytvořen",
+        "users.create.error": "Chyba při vytváření uživatele",
         "users.delete.confirm.title": "Vymazání uživatele",
         "users.delete.confirm.message": "Přejete si vymazat uživatele {id}?",
 

@@ -224,6 +224,13 @@ export const FundsList = () => {
         confirm(formatMessage({ id: "fund.reimportAll.confirm.title" }), formatMessage({ id: "fund.reimportAll.confirm.message" }), (result) => {
             if (result === ConfirmationDialogResult.OK) {
                 Api.transfagent.reimportAllApusOfType({ apuType: ReimportType.Fund })
+                    .then(() => {
+                        toast.success(formatMessage({ id: "reimport.success" }));
+                    })
+                    .catch((err) => {
+                        toast.error(formatMessage({ id: "reimport.error" }));
+                        console.log("Došlo k chybě", err);
+                    });
             }
         });
     }
