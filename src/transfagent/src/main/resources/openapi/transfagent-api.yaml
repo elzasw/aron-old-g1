@@ -937,8 +937,6 @@ components:
         lastModified:
           type: integer
           format: int64
-        name:
-          type: string
       description: Fund definition
     AttachmentsResponse:
       type: object

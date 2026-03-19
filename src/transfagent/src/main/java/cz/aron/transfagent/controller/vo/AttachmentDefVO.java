@@ -10,7 +10,6 @@ public class AttachmentDefVO extends AttachmentDef {
 		setAttachmentId(attachment.getId().longValue());
 		setFileName(attachment.getFileName());
 		setLastModified(attachment.getLastModified());
-		setName(attachment.getFileName());
 		setUuid(attachment.getUuid().toString());
 	}
 

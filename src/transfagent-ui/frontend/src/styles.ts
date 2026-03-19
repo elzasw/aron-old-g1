@@ -44,6 +44,12 @@ export const TableCell = styled.div`
     text-overflow: ellipsis;
 `;
 
+export const ClickableLink = styled.a`
+    color: ${(props) => props.theme.colors.accent};
+    text-decoration: underline;
+    cursor: pointer;
+`;
+
 export const Spacer = styled.div`
     flex: 1;
 `;

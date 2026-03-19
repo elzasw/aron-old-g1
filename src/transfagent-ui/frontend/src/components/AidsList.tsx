@@ -11,7 +11,7 @@ import {
     StyledInput,
     StyledSelect,
 } from "jareco/dist/common-ui-elements";
-import { confirm } from "jareco/dist/modal";
+import { confirm, open } from "jareco/dist/modal";
 import { ConfirmationDialogResult } from "jareco/dist/modal/ConfirmationDialog";
 import { Pagination } from "jareco/dist/pagination";
 import {
@@ -25,11 +25,13 @@ import { FormattedMessage, useIntl } from "react-intl";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import styled from "styled-components";
+import { ClickableLink } from "../styles";
 import { Api, FindingAidDef, ReimportType } from "../api";
-import { getAttachmentsPath, getDaosPath, getInstitutionsPath, getSourcesPath } from "../App";
+import { getDaosPath, getInstitutionsPath, getSourcesPath } from "../App";
 import { useGeneralContext } from "../GeneralContext";
 import { cInfoAids, ColumnInfo } from "./columnMap";
 import { downloadFile, } from "../utils";
+import { AttachmentsModal } from "./AttachmentsModal";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -136,11 +138,11 @@ export const AidsList = () => {
             const institution = institutions.itemsMap[institutionId];
             return <Link to={getInstitutionsPath(institutionId)}>{institution?.name|| institutionId}</Link>
         } else if (propCode === "numAttachments") {
-                    const numAttachments = item[propCode];
-                    if (numAttachments > 0) {
-                        const apuSourceId = item["apusourceId"];
-                        return <Link to={getAttachmentsPath(apuSourceId)}>{numAttachments}</Link>
-                    }
+            const numAttachments = item[propCode];
+            if (numAttachments > 0) {
+                const apuSourceId = item["apusourceId"];
+                return <ClickableLink onClick={() => open(({ onClose }) => <AttachmentsModal apuSourceId={apuSourceId} onClose={onClose} />)}>{numAttachments}</ClickableLink>
+            }
                 } else if (propCode === "numDaos") {
                     const numDaos = item[propCode];
                     if (numDaos > 0 ) {

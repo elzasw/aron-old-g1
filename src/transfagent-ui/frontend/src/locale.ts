@@ -194,6 +194,9 @@ export default {
         "createuser.username.placeholder": "Uživatelské jméno",
         "createuser.hash.placeholder": "Hash",
 
+        "attachmentsModal.title": "Přílohy APU zdroje: {apuSourceId}",
+        "attachmentsModal.close": "Zavřít",
+
         "attachmentColumn.attachmentId" : "Id",
         "attachmentColumn.uuid" : "UUID",
         "attachmentColumn.fileName" : "Název souboru",

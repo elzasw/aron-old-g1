@@ -26,12 +26,14 @@ import { FormattedMessage, useIntl } from "react-intl";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import styled from "styled-components";
+import { ClickableLink } from "../styles";
 import { Api, ArchDescDef/* , ReimportType */ } from "../api";
-import { getAttachmentsPath, getDaosPath, getFundsPath, getInstitutionsPath, getSourcesPath } from "../App";
+import { getDaosPath, getFundsPath, getInstitutionsPath, getSourcesPath } from "../App";
 import { archDescColumnInfo, ColumnInfo } from "./columnMap";
 import { downloadFile } from "../utils";
 
 import { ArchDescImport } from "./ArchDescImport";
+import { AttachmentsModal } from "./AttachmentsModal";
 import { useGeneralContext } from "../GeneralContext";
 
 const TableCell = styled.div`
@@ -147,7 +149,7 @@ export const ArchDescList = () => {
             const numAttachments = item[propCode];
             if (numAttachments > 0) {
                 const apuSourceId = item["apusourceId"];
-                return <Link to={getAttachmentsPath(apuSourceId)}>{numAttachments}</Link>
+                return <ClickableLink onClick={() => open(({ onClose }) => <AttachmentsModal apuSourceId={apuSourceId} onClose={onClose} />)}>{numAttachments}</ClickableLink>
             }
         } else if (propCode === "numDaos") {
             const numDaos = item[propCode];

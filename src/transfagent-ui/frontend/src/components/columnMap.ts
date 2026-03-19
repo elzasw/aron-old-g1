@@ -312,20 +312,12 @@ export const cInfoAttachments: ColumnInfo<AttachmentDef>[] = [
         width: 300,
     },
     {
-        code: "fileName",
-        width: 300,
-    },
-    {
-        code: "apusourceId",
-        width: 100,
-    },
-    {
         code: "lastModified",
         width: 170,
     },
     {
-        code: "name",
-        width: 200,
+        code: "fileName",
+        width: 300,
     },
 ]
 
