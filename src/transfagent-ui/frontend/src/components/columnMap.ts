@@ -46,7 +46,7 @@ export const cInfoDaos: ColumnInfo<DaoDef>[] = [
     {
         code: "actions",
         fixedWidth: true,
-        width: 80,
+        width: 120,
     },
     {
         code: "daoId",

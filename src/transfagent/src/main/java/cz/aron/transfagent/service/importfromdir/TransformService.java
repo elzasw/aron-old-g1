@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,12 @@ import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
 import javax.json.Json;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
@@ -32,16 +39,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.FileSystemUtils;
 
+import cz.aron.api.rest.model.AttachmentDef;
+import cz.aron.api.rest.model.AttachmentsResponse;
+import cz.aron.api.rest.model.DaoFileDef;
+import cz.aron.api.rest.model.DaoFileResponse;
 import cz.aron.apux.ApuxFactory;
 import cz.aron.apux.DaoBuilder;
 import cz.aron.apux._2020.DaoBundle;
 import cz.aron.apux._2020.DaoBundleType;
 import cz.aron.transfagent.config.ConfigDao;
 import cz.aron.transfagent.config.ConfigDao.SendType;
+import cz.aron.transfagent.controller.vo.AttachmentDefVO;
+import cz.aron.transfagent.controller.vo.DaoFileDefVO;
 import cz.aron.transfagent.config.ConfigDspace;
+import cz.aron.transfagent.domain.ApuSource;
+import cz.aron.transfagent.domain.Attachment;
 import cz.aron.transfagent.domain.Transform;
 import cz.aron.transfagent.domain.TransformState;
 import cz.aron.transfagent.repository.TransformRepository;
@@ -84,6 +100,8 @@ public class TransformService {
 	private final TransformRepository transformRepository;
 
 	private final TransactionTemplate transactionTemplate;
+	
+	private final EntityManager em;
 
 	@Value("${tile.folder:#{NULL}}")
 	private String tileFolder;
@@ -110,12 +128,14 @@ public class TransformService {
 	private boolean thumbnailAsync;
 
 	public TransformService(StorageService storageService, ConfigDspace configDspace, ConfigDao configDao,
-			TransformRepository transformRepository, TransactionTemplate transactionTemplate) {
+			TransformRepository transformRepository, TransactionTemplate transactionTemplate,
+			EntityManager em) {
 		this.storageService = storageService;
 		this.configDspace = configDspace;
 		this.configDao = configDao;
 		this.transformRepository = transformRepository;
 		this.transactionTemplate = transactionTemplate;
+		this.em = em;
 	}
 
 	/**
@@ -761,7 +781,40 @@ public class TransformService {
 		}
 		
 	}
-
+	
+	@Transactional(readOnly = true)
+    public DaoFileResponse getDaoFiles(UUID daoUuid, int page, int pageSize) {
+        CriteriaBuilder cbCount = em.getCriteriaBuilder();
+        CriteriaQuery<Long> cqCount = cbCount.createQuery(Long.class);
+        Root<Transform> rootCount = cqCount.from(Transform.class);
+        addFilePredicate(cqCount, cbCount, rootCount, daoUuid);
+        cqCount.select(cbCount.count(rootCount));
+        Long totalItems = 0l;
+        try {
+            totalItems = em.createQuery(cqCount).getSingleResult();
+        } catch (NoResultException nrEx) {
+            // ignore
+        }
+        var items = new ArrayList<DaoFileDef>();
+        if (totalItems > 0) {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Transform> cq = cb.createQuery(Transform.class);
+            Root<Transform> root = cq.from(Transform.class);
+            addFilePredicate(cq, cb, root, daoUuid);
+            List<Transform> rows = em.createQuery(cq).setFirstResult(page* pageSize)
+                    .setMaxResults(pageSize).getResultList();
+            rows.stream().forEach(tr -> {                
+                items.add(new DaoFileDefVO(tr));
+            });
+        }
+        return new DaoFileResponse(items, totalItems.intValue());
+    }
+	
+	private <T> void addFilePredicate(CriteriaQuery<T> cq, CriteriaBuilder cb, Root<Transform> root, UUID daoUuid) {						
+		Predicate p = cb.conjunction();
+		p = cb.and(p, cb.equal(root.get(Transform.JPA_DAO_UUID), daoUuid));
+		cq.where(p);
+	}
 	
     public static void main(String[] args) throws Exception {
         

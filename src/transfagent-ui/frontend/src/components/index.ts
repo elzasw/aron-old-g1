@@ -1,4 +1,5 @@
 export { AttachmentsList } from "./AttachmentsList";
+export { DaoFileList } from "./DaoFileList";
 export { SourcesList } from "./SourcesList";
 export { DaosList } from "./DaosList";
 export { FundsList } from "./FundsList";

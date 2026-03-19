@@ -21,6 +21,7 @@ import { Api, UserDef, UserStatus } from "../api";
 import { useEffect, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import { FaFilter, FaCheck, FaPlusCircle, FaMinusCircle, FaPlus, FaTrashAlt } from "react-icons/fa";
 import styled from "styled-components";
 import { userColumnInfo, ColumnInfo } from "./columnMap";
@@ -78,9 +79,9 @@ export const UsersList = () => {
 
     const requestStatus =async () => {
         Api.transfagent.getUser()
-        .then((result=> {
+        .then((result) => {
             setUserStatus(result);
-        }))
+        })
         .catch((err)=>{
             console.log("Došlo k chybě", err);
         });
@@ -192,9 +193,11 @@ export const UsersList = () => {
                         enabled: false}
                     })
                     .then((result) => {
+                        toast.success(formatMessage({ id: "users.disable.success" }));
                         requestData();
                     })
                     .catch((err) => {
+                        toast.error(formatMessage({ id: "users.disable.error" }));
                         console.log("Došlo k chybě", err);
                     });
             }
@@ -210,13 +213,15 @@ export const UsersList = () => {
                         enabled: true,}
                     })
                     .then((result) => {
+                        toast.success(formatMessage({ id: "users.enable.success" }));
                         requestData();
                     })
                     .catch((err) => {
+                        toast.error(formatMessage({ id: "users.enable.error" }));
                         console.log("Došlo k chybě", err);
                     });
             }
-            
+
         });
     };
 
@@ -229,11 +234,11 @@ export const UsersList = () => {
                         }
                     })
                     .then((result) => {
-                        toast.success(formatMessage({ id: "users.create.success" }));
+                        toast.success(formatMessage({ id: "users.delete.success" }));
                         requestData();
                     })
                     .catch((err) => {
-                        toast.error(formatMessage({ id: "users.create.error" }));
+                        toast.error(formatMessage({ id: "users.delete.error" }));
                         console.log("Došlo k chybě", err);
                     });
             }
@@ -289,9 +294,11 @@ export const UsersList = () => {
                         hash: hash,}
                     })
                     .then((result) => {
+                        toast.success(formatMessage({ id: "users.create.success" }));
                         requestData();
                     })
                     .catch((err) => {
+                        toast.error(formatMessage({ id: "users.create.error" }));
                         console.log("Došlo k chybě", err);
                     });
             }
@@ -382,7 +389,7 @@ export const UsersList = () => {
                         <Button
                             type="submit"
                             id="user.create"
-                            title={formatMessage({ id: "filter" })}
+                            title={formatMessage({ id: "users.create.button" })}
                         >
                             <FaPlus />
                         </Button>

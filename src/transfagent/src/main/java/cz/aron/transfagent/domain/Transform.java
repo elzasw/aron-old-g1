@@ -16,6 +16,8 @@ import javax.persistence.Table;
 @Table(name = "transform")
 public class Transform {
 	
+	public static final String JPA_DAO_UUID = "daoUuid";
+	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "transform_id")

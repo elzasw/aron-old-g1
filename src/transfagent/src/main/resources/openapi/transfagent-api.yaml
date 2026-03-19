@@ -191,14 +191,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/DaoDef'
 
-  /daos/{daoId}/files:
+  /daos/{daoUuid}/files:
     get:
       tags:
         - Transfagent
       operationId: getDaoFiles
       description: Mark dao for reimport in database
       parameters:
-        - $ref: '#/components/parameters/daoId'
+        - name: daoUuid
+          in: path
+          required: true
+          description: uuid of dao
+          schema:
+            type: string
+            format: uuid
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/pageSize'        
       responses:
@@ -207,9 +213,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DaoDef'
-
-
+                $ref: '#/components/schemas/DaoFileResponse'
 
   /entities:
     get:
@@ -949,7 +953,7 @@ components:
         totalCount:
           type: integer
           format: int32
-      description: Returned list of institutions
+      description: Returned list of attachments
     ReimportType:
       type: string
       enum:
@@ -957,6 +961,45 @@ components:
         - FINDINGAID
         - ARCH_ENTITY
       description: Reimport all type
+    DaoFileDef:
+      type: object
+      required:
+        - fileId
+        - uuid
+        - fileName
+        - state
+        - type
+        - lastModified
+      properties:
+        fileId:
+          type: integer
+          format: int64
+        uuid:
+          type: string
+        fileName:
+          type: string
+        state:
+          type: string
+        type:
+          type: string
+        lastModified:
+          type: integer
+          format: int64
+      description: Fund definition
+    DaoFileResponse:
+      type: object
+      required:
+        - items
+        - totalCount
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DaoFileDef'
+        totalCount:
+          type: integer
+          format: int32
+      description: Returned list of files
     UserDef:
       type: object
       required:

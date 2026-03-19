@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.UUID;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
@@ -29,6 +30,7 @@ import cz.aron.api.rest.model.ApuSourceResponse;
 import cz.aron.api.rest.model.ArchDescResponse;
 import cz.aron.api.rest.model.AttachmentsResponse;
 import cz.aron.api.rest.model.DaoDef;
+import cz.aron.api.rest.model.DaoFileResponse;
 import cz.aron.api.rest.model.DaosResponse;
 import cz.aron.api.rest.model.EntitiesResponse;
 import cz.aron.api.rest.model.FindingAidsResponse;
@@ -49,6 +51,7 @@ import cz.aron.transfagent.service.FindingAidService;
 import cz.aron.transfagent.service.FundService;
 import cz.aron.transfagent.service.InstitutionsService;
 import cz.aron.transfagent.service.UserService;
+import cz.aron.transfagent.service.importfromdir.TransformService;
 import cz.aron.transfagent.service.reports.ArchDescReportService;
 import cz.aron.transfagent.service.reports.FindingAidReportService;
 import cz.aron.transfagent.service.reports.FundReportService;
@@ -85,6 +88,8 @@ public class TransformAgentController implements TransfagentApi {
     
     private final AttachmentService attachmentService;
     
+    private final TransformService transformService;
+    
     public TransformAgentController(ApuSourceService apuSourceService, 
     							    DaoImportService daoImportService,
                                     FundService fundService,
@@ -96,7 +101,8 @@ public class TransformAgentController implements TransfagentApi {
                                     ArchDescReportService archDescReportService,
                                     InstitutionsService institutionsService,
                                     UserService userService,
-                                    AttachmentService attachmentService) {
+                                    AttachmentService attachmentService,
+                                    TransformService transformService) {
         this.apuSourceService = apuSourceService;
         this.daoImportService = daoImportService;
         this.fundService = fundService;
@@ -109,6 +115,7 @@ public class TransformAgentController implements TransfagentApi {
         this.institutionsService = institutionsService;
         this.userService = userService;
         this.attachmentService = attachmentService;
+        this.transformService = transformService;
         log.info("UI controller started");
     }
 
@@ -295,12 +302,11 @@ public class TransformAgentController implements TransfagentApi {
 	public interface ReportGenerator {
 	    Path generate() throws Exception;
 	}
-
+	
 	@Override
-	public ResponseEntity<DaoDef> getDaoFiles(Long daoId, @Min(0) @Valid Integer page,
+	public ResponseEntity<DaoFileResponse> getDaoFiles(UUID daoUuid, @Min(0) @Valid Integer page,
 			@Min(1) @Max(1000) @Valid Integer pageSize) {
-		// TODO Auto-generated method stub
-		return null;
+		return ResponseEntity.ok(transformService.getDaoFiles(daoUuid, page, pageSize));
 	}
 
 	@Override

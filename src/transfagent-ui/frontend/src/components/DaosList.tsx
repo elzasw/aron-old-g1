@@ -11,7 +11,7 @@ import {
     Spinner,
     StyledInput,
 } from "jareco/dist/common-ui-elements";
-import { confirm } from "jareco/dist/modal";
+import { confirm, open } from "jareco/dist/modal";
 import { ConfirmationDialogResult } from "jareco/dist/modal/ConfirmationDialog";
 import { Pagination } from "jareco/dist/pagination";
 import {
@@ -29,6 +29,8 @@ import { Api, DaoDef, DaoStateDef } from "../api";
 import { getSourcesPath } from "../App";
 import { TableCell } from "../styles";
 import { cInfoDaos, ColumnInfo } from "./columnMap";
+import { DaoFileList } from "./DaoFileList";
+import { FaList } from "react-icons/fa";
 
 export interface IRcFile extends File {
     uid: string;
@@ -144,6 +146,15 @@ export const DaosList = () => {
 
         return (
             <div style={{ display: "inline-flex" }}>
+                {item.uuid && (
+                    <Button
+                        onClick={() => handleShowFiles(item.uuid!)}
+                        iconOnly={true}
+                        title={formatMessage({ id: "daoFileList.open" })}
+                    >
+                        <FaList />
+                    </Button>
+                )}
                 {daoId && isReady && <>
                     <Button
                         onClick={() => handleReImport(daoId, item)}
@@ -165,6 +176,10 @@ export const DaosList = () => {
                 }
             </div>
         );
+    };
+
+    const handleShowFiles = (daoUuid: string) => {
+        open(({ onClose }) => <DaoFileList daoUuid={daoUuid} onClose={onClose} />);
     };
 
     const handleReImport = (daoId: number, item: DaoDef) => {
