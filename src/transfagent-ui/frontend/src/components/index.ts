@@ -7,4 +7,5 @@ export { FundsList } from "./FundsList";
 export { EntityList } from "./EntityList";
 export { AidsList } from "./AidsList";
 export { ArchDescList } from "./ArchDescList";
+export { InstitutionsList } from "./IntitutionsList";
 export { UsersList } from "./UsersList";

@@ -21,7 +21,7 @@ import {
 } from "jareco/dist/resizable-columns-grid";
 import Upload from "rc-upload";
 import { useEffect, useState } from "react";
-import { FaCheck, FaFileImport, FaFilter, FaSync, FaTrashAlt, FaUpload } from "react-icons/fa";
+import { FaCheck, FaFileImport, FaFilter, FaList, FaSync, FaTrashAlt, FaUpload } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";

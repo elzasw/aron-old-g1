@@ -276,7 +276,7 @@ export const FundsList = () => {
                     >
                         <StyledSelect onChange={handleChangeInstitution} value={institutionId}>
                             <option value={-1}>Všechny instituce</option>
-                            {institutions.items.map((inst)=>{return <option value={inst.institutionId}>{inst.name}</option>})}                        
+                            {institutions.items.map((inst)=>{return <option key={inst.institutionId} value={inst.institutionId}>{inst.name}</option>})}                        
                         </StyledSelect>
                         <StyledInput
                             color="dark"
