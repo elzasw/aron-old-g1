@@ -7,7 +7,7 @@ import {
     Params,
 } from "react-router-dom";
 import RootLayout from "./RootLayout";
-import { AttachmentsList, DaosList, FundsList, SourcesList, EntityList, AidsList, ArchDescList, UsersList } from "./components";
+import { DaosList, FundsList, SourcesList, EntityList, AidsList, ArchDescList, UsersList } from "./components";
 import { InstitutionsList } from "./components/IntitutionsList";
 
 //@ts-ignore

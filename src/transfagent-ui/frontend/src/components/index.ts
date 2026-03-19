@@ -1,4 +1,4 @@
-export { AttachmentsList } from "./AttachmentsList";
+export { LoadingOverlay } from "./LoadingOverlay";
 export { AttachmentsModal } from "./AttachmentsModal";
 export { DaoFileList } from "./DaoFileList";
 export { SourcesList } from "./SourcesList";

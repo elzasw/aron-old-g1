@@ -30,7 +30,6 @@ import { getSourcesPath } from "../App";
 import { TableCell } from "../styles";
 import { cInfoDaos, ColumnInfo } from "./columnMap";
 import { DaoFileList } from "./DaoFileList";
-import { FaList } from "react-icons/fa";
 
 export interface IRcFile extends File {
     uid: string;

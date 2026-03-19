@@ -32,6 +32,7 @@ import { useGeneralContext } from "../GeneralContext";
 import { cInfoAids, ColumnInfo } from "./columnMap";
 import { downloadFile, } from "../utils";
 import { AttachmentsModal } from "./AttachmentsModal";
+import { LoadingOverlay } from "./LoadingOverlay";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -48,6 +49,7 @@ export const AidsList = () => {
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<FindingAidDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
+    const [downloading, setDownloading] = useState(false);
 
     const { institutions, institutionId, setInstitutionId } = useGeneralContext();
 
@@ -238,14 +240,18 @@ export const AidsList = () => {
         setPage(1);
     }
 
-        const handleDownloadXlsx = () =>
-            downloadFile(
-                Api.transfagent.getFindingAidsXlsxRaw({code: filterFulltext || undefined,
-                        instId: institutionId,
-                        uuid: undefined,})
-            );
+    const handleDownloadXlsx = () => {
+        setDownloading(true);
+        downloadFile(
+            Api.transfagent.getFindingAidsXlsxRaw({code: filterFulltext || undefined,
+                    instId: institutionId,
+                    uuid: undefined,})
+        ).finally(() => setDownloading(false));
+    };
 
     return (
+        <>
+        {downloading && <LoadingOverlay messageId="operationInProgress" />}
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
@@ -331,5 +337,6 @@ export const AidsList = () => {
                 />
             </div>
         </ListContainer>
+        </>
     );
 };

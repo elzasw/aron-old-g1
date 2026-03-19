@@ -33,6 +33,7 @@ import { downloadFile } from "../utils";
 
 import { ArchDescImport } from "./ArchDescImport";
 import { AttachmentsModal } from "./AttachmentsModal";
+import { LoadingOverlay } from "./LoadingOverlay";
 import { useGeneralContext } from "../GeneralContext";
 
 const TableCell = styled.div`
@@ -50,6 +51,7 @@ export const ArchDescList = () => {
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<ArchDescDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
+    const [downloading, setDownloading] = useState(false);
 
     const { institutions, institutionId, setInstitutionId } = useGeneralContext();
 
@@ -247,14 +249,18 @@ export const ArchDescList = () => {
         setPage(1);
     }
 
-    const handleDownloadXlsx = () =>
-            downloadFile(
-                Api.transfagent.getArchDescsXlsxRaw({query: filterFulltext || undefined,
-                        instId: institutionId,
-                        uuid: undefined,})
-            );
+    const handleDownloadXlsx = () => {
+        setDownloading(true);
+        downloadFile(
+            Api.transfagent.getArchDescsXlsxRaw({query: filterFulltext || undefined,
+                    instId: institutionId,
+                    uuid: undefined,})
+        ).finally(() => setDownloading(false));
+    };
 
     return (
+        <>
+        {downloading && <LoadingOverlay messageId="operationInProgress" />}
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
@@ -347,5 +353,6 @@ export const ArchDescList = () => {
                 />
             </div>
         </ListContainer>
+        </>
     );
 };
