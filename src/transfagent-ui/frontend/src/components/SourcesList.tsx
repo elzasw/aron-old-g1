@@ -175,7 +175,7 @@ export const SourcesList = () => {
     };
 
     const handleReImport = (apuId: number, item: ApuSourceDef) => {
-        confirm(formatMessage({ id: "apu.reimport.confirm.title" }), formatMessage({ id: "entity.reimport.confirm.message" }, { id: item.apusourceId }), (result) => {
+        confirm(formatMessage({ id: "apu.reimport.confirm.title" }), formatMessage({ id: "apu.reimport.confirm.message" }, { id: item.apusourceId }), (result) => {
             if (result === ConfirmationDialogResult.OK) {
                 Api.transfagent
                     .reimportApu({ apuId })
@@ -192,7 +192,7 @@ export const SourcesList = () => {
     };
 
     const handleDelete = (apuId: number, item: ApuSourceDef) => {
-        confirm(formatMessage({ id: "apu.delete.confirm.title" }), formatMessage({ id: "entity.delete.confirm.message" }, { id: item.apusourceId }), (result) => {
+        confirm(formatMessage({ id: "apu.delete.confirm.title" }), formatMessage({ id: "apu.delete.confirm.message" }, { id: item.apusourceId }), (result) => {
             if (result === ConfirmationDialogResult.OK) {
                 Api.transfagent
                     .deleteApu({ apuId })

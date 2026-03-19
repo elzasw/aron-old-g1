@@ -68,7 +68,7 @@ export const ArchDescImport = ({onClose}:Props) => {
     return (<ModalBase
                 height={100}
                 width={350}
-                title="Import fondu z Elzyy"                
+                title="Import fondu z Elzy"                
                 onClose={handleClose}
             >
                 <div>

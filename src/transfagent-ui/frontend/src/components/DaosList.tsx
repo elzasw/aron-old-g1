@@ -42,7 +42,7 @@ export const DaosList = () => {
     const filter = params.get("filter") || "";
 
     const [filterFulltext, setFilterFulltext] = useState(filter);
-    const [filterFulltextInput, setFilterFulltextInput] = useState("");
+    const [filterFulltextInput, setFilterFulltextInput] = useState(filter);
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<DaoDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
@@ -202,20 +202,20 @@ export const DaosList = () => {
 
     const handleFileUpload = async (file: IRcFile, fileList: IRcFile[]) =>
         new Promise<void>((resolve, reject) => {
-            console.log(file, fileList);
             setOperationInProgress(true);
             Api.transfagent
                 .reimportDaos({ body: file })
                 .then(() => {
                     toast.success(formatMessage({ id: "uploadFile.success" }));
+                    resolve();
                 })
                 .catch((err) => {
                     console.log("Error:", err);
+                    reject(err);
                 })
                 .finally(() => setOperationInProgress(false));
-            reject();
         });
-
+        
     return (
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>

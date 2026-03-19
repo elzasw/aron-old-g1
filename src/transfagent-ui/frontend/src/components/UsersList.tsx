@@ -60,6 +60,7 @@ export const UsersList = () => {
         if (page >= 1) {
             Api.transfagent
                 .getUsers({
+                    query: filterFulltext || undefined,
                     page: page - 1,
                     pageSize: pageSize,
                 })

@@ -183,6 +183,9 @@ export default {
 
         "reimport" : "Znovu odeslat",
         "reimport.success" : "Reimport úspěšně naplánován",
+        "reimport.error" : "Chyba při plánování reimportu",
+        "delete.success" : "Smazání úspěšně provedeno",
+        "delete.error" : "Chyba při mazání",
         "reimportAll" : "Znovu odeslat vše",
         "delete" : "Smazat",
         "disable" : "Zakázat",

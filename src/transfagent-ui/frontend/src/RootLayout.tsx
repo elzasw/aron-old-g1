@@ -59,13 +59,13 @@ function renderNavigation() {
         </NavButton>
     );
     navLeft.push(
-        <NavButton key="users" to={getUsersPath()}>
-            <FormattedMessage id="navigation.users" />
+        <NavButton key="attachments" to={getAttachmentsPath()}>
+            <FormattedMessage id="navigation.attachments" />
         </NavButton>
     );
     navLeft.push(
-        <NavButton key="attachments" to={getAttachmentsPath()}>
-            <FormattedMessage id="navigation.attachments" />
+        <NavButton key="users" to={getUsersPath()}>
+            <FormattedMessage id="navigation.users" />
         </NavButton>
     );
     navRight.push(
