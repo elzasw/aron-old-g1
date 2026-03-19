@@ -59,6 +59,7 @@ export const FundsList = () => {
 
     const requestData = async () => {
         if (page >= 1) {
+            setDownloading(true);
             Api.transfagent
                 .getFunds({
                     code: filterFulltext || undefined,
@@ -75,7 +76,8 @@ export const FundsList = () => {
                 })
                 .catch((err) => {
                     console.log("Došlo k chybě", err);
-                });
+                })
+                .finally(() => setDownloading(false));
         }
     };
 

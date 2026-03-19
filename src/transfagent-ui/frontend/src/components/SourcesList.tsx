@@ -25,6 +25,7 @@ import styled from "styled-components";
 import { Api, ApuSourceDef } from "../api";
 import { getSourcesPath } from "../App";
 import { columnInfo } from "./columnMap";
+import { LoadingOverlay } from "./LoadingOverlay";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -44,9 +45,11 @@ export const SourcesList = () => {
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<ApuSourceDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
+    const [downloading, setDownloading] = useState(false);
 
     const requestData = async () => {
         if (page >= 1) {
+            setDownloading(true);
             Api.transfagent
                 .getApus({
                     datadir: filterFulltext || undefined,
@@ -62,7 +65,8 @@ export const SourcesList = () => {
                 })
                 .catch((err) => {
                     console.log("Došlo k chybě", err);
-                });
+                })
+                .finally(() => setDownloading(false));
         }
     };
 
@@ -209,6 +213,8 @@ export const SourcesList = () => {
     };
 
     return (
+        <>
+        {downloading && <LoadingOverlay messageId="operationInProgress" />}
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
@@ -274,5 +280,6 @@ export const SourcesList = () => {
                 />
             </div>
         </ListContainer>
+        </>
     );
 };

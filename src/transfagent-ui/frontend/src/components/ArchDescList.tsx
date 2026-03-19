@@ -57,6 +57,7 @@ export const ArchDescList = () => {
 
     const requestData = async () => {
         if (page >= 1) {
+            setDownloading(true);
             Api.transfagent
                 .getArchDescs({
                     query: filterFulltext || undefined,
@@ -73,7 +74,8 @@ export const ArchDescList = () => {
                 })
                 .catch((err) => {
                     console.log("Došlo k chybě", err);
-                });
+                })
+                .finally(() => setDownloading(false));
         }
     };
 

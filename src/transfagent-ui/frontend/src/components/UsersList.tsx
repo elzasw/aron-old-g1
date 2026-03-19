@@ -25,6 +25,7 @@ import { toast } from "react-toastify";
 import { FaFilter, FaCheck, FaPlusCircle, FaMinusCircle, FaPlus, FaTrashAlt } from "react-icons/fa";
 import styled from "styled-components";
 import { userColumnInfo, ColumnInfo } from "./columnMap";
+import { LoadingOverlay } from "./LoadingOverlay";
 import { getUsersPath } from "../App";
 import { useGeneralContext } from "../GeneralContext";
 
@@ -53,12 +54,14 @@ export const UsersList = () => {
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<UserDefExt[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
+    const [downloading, setDownloading] = useState(false);
     const [userStatus, setUserStatus] = useState<UserStatus>({username:"", admin: false});
     const [createFormData, setCreateFormData] = useState({ username: "", hash: "" });
 
 
     const requestData = async () => {
         if (page >= 1) {
+            setDownloading(true);
             Api.transfagent
                 .getUsers({
                     query: filterFulltext || undefined,
@@ -73,7 +76,8 @@ export const UsersList = () => {
                 })
                 .catch((err) => {
                     console.log("Došlo k chybě", err);
-                });
+                })
+                .finally(() => setDownloading(false));
         }
     };
 
@@ -307,6 +311,8 @@ export const UsersList = () => {
     };
 
     return (
+        <>
+        {downloading && <LoadingOverlay messageId="operationInProgress" />}
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
@@ -410,6 +416,7 @@ export const UsersList = () => {
                 />
             </div>
         </ListContainer>
+        </>
     );
 
 

@@ -30,6 +30,7 @@ import { getSourcesPath } from "../App";
 import { TableCell } from "../styles";
 import { cInfoDaos, ColumnInfo } from "./columnMap";
 import { DaoFileList } from "./DaoFileList";
+import { LoadingOverlay } from "./LoadingOverlay";
 
 export interface IRcFile extends File {
     uid: string;
@@ -49,9 +50,11 @@ export const DaosList = () => {
     const [totalCount, setTotalCount] = useState<number>(0);
     const [operationInProgress, setOperationInProgress] =
         useState<boolean>(false);
+    const [downloading, setDownloading] = useState(false);
 
     const requestData = async () => {
         if (page >= 1) {
+            setDownloading(true);
             Api.transfagent
                 .getDaos({
                     uuid: filterFulltext || undefined,
@@ -66,7 +69,8 @@ export const DaosList = () => {
                 })
                 .catch((err) => {
                     console.log("Došlo k chybě", err);
-                });
+                })
+                .finally(() => setDownloading(false));
         }
     };
 
@@ -252,6 +256,8 @@ export const DaosList = () => {
         });
         
     return (
+        <>
+        {downloading && <LoadingOverlay messageId="operationInProgress" />}
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
@@ -349,5 +355,6 @@ export const DaosList = () => {
                 />
             </div>
         </ListContainer>
+        </>
     );
 };

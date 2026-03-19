@@ -26,6 +26,7 @@ import styled from "styled-components";
 import { Api, InstitutionDef/* , ReimportType */ } from "../api";
 import { getInstitutionsPath, getSourcesPath } from "../App";
 import { ColumnInfo, institutionColumnInfo } from "./columnMap";
+import { LoadingOverlay } from "./LoadingOverlay";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -45,9 +46,11 @@ export const InstitutionsList = () => {
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<InstitutionDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
+    const [downloading, setDownloading] = useState(false);
 
     const requestData = async () => {
         if (page >= 1) {
+            setDownloading(true);
             Api.transfagent
                 .getInstitutions({
                     code: filterFulltext || undefined,
@@ -62,7 +65,8 @@ export const InstitutionsList = () => {
                 })
                 .catch((err) => {
                     console.log("Došlo k chybě", err);
-                });
+                })
+                .finally(() => setDownloading(false));
         }
     };
 
@@ -203,6 +207,8 @@ export const InstitutionsList = () => {
     // }
 
     return (
+        <>
+        {downloading && <LoadingOverlay messageId="operationInProgress" />}
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
@@ -275,5 +281,6 @@ export const InstitutionsList = () => {
                 />
             </div>
         </ListContainer>
+        </>
     );
 };

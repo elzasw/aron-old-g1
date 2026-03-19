@@ -26,6 +26,7 @@ import styled from "styled-components";
 import { Api, EntityDef, ReimportType } from "../api";
 import { getSourcesPath } from "../App";
 import { cInfoEntities, ColumnInfo } from "./columnMap";
+import { LoadingOverlay } from "./LoadingOverlay";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -42,9 +43,11 @@ export const EntityList = () => {
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<EntityDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
+    const [downloading, setDownloading] = useState(false);
 
     const requestData = async () => {
         if (page >= 1) {
+            setDownloading(true);
             Api.transfagent
                 .getEntities({
                     code: filterFulltext || undefined,
@@ -60,7 +63,8 @@ export const EntityList = () => {
                 })
                 .catch((err) => {
                     console.log("Došlo k chybě", err);
-                });
+                })
+                .finally(() => setDownloading(false));
         }
     };
 
@@ -206,6 +210,8 @@ export const EntityList = () => {
     }
 
     return (
+        <>
+        {downloading && <LoadingOverlay messageId="operationInProgress" />}
         <ListContainer style={{ height: "100%", marginRight: 0 }}>
             <ActionBar marginBottom={10}>
                 <ActionsContainer>
@@ -278,5 +284,6 @@ export const EntityList = () => {
                 />
             </div>
         </ListContainer>
+        </>
     );
 };

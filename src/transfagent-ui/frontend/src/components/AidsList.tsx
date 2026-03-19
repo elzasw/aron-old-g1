@@ -55,6 +55,7 @@ export const AidsList = () => {
 
     const requestData = async () => {
         if (page >= 1) {
+            setDownloading(true);
             Api.transfagent
                 .getFindingAids({
                     code: filterFulltext || undefined,
@@ -71,7 +72,8 @@ export const AidsList = () => {
                 })
                 .catch((err) => {
                     console.log("Došlo k chybě", err);
-                });
+                })
+                .finally(() => setDownloading(false));
         }
     };
 
