@@ -148,7 +148,6 @@ export const FundsList = () => {
             const numAttachments = item[propCode];
             if (numAttachments > 0) {
                 const apuSourceId = item["apusourceId"];
-                console.log('Nazdar '+apuSourceId);
                 return <Link to={getAttachmentsPath(apuSourceId)}>{numAttachments}</Link>
             }
         } else if (propCode === "numDaos") {

@@ -309,4 +309,10 @@ public class TransformAgentController implements TransfagentApi {
 		return ResponseEntity.ok(attachmentService.getAttachments(apuSourceId, page, pageSize));
 	}
 
+	@Override
+	public ResponseEntity<Void> reimportApuSourceDaos(Long apuSourceId) {
+		daoImportService.reimportApuSourceDaos(apuSourceId.intValue());
+		return ResponseEntity.ok().build();
+	}
+
 }

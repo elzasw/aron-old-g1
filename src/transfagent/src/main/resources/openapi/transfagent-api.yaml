@@ -150,6 +150,19 @@ paths:
             schema:
               type: string
               format: binary
+
+  /daos/reimport/{apuSourceId}:
+    post:
+      tags:
+        - Transfagent
+      operationId: reimportApuSourceDaos
+      description: Mark apu source daos for reimport in database
+      parameters:
+        - $ref: '#/components/parameters/apuSourceId'
+      responses:
+        '200':
+          description: The request has succeeded.
+
   /daos/{daoId}:
     delete:
       tags:

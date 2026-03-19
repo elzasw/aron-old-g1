@@ -389,12 +389,19 @@ public class DaoImportService implements ImportProcessor  {
     }
 
     @Transactional
+	public int reimportApuSourceDaos(int apuSourceId) {
+		var numMarked = daoRepository.markForReimportByApuSourceId(apuSourceId);
+		log.info("Daos from apu source id={}, marked for reimport, num marked {}", apuSourceId, numMarked);
+		return numMarked;
+	}
+
+    @Transactional
     public void deleteDao(int daoId) {
     	var dao = daoRepository.findById(daoId).orElseThrow(() -> {
             log.error("Fail to reimport dao id={}, not exist", daoId);
             return new EntityNotFoundException();
         });
     	dao.setState(DaoState.INACCESSIBLE);
-    }
-
+    }    
+    
 }

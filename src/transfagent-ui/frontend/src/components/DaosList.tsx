@@ -21,7 +21,7 @@ import {
 } from "jareco/dist/resizable-columns-grid";
 import Upload from "rc-upload";
 import { useEffect, useState } from "react";
-import { FaCheck, FaFileImport, FaFilter, FaTrashAlt, FaUpload } from "react-icons/fa";
+import { FaCheck, FaFileImport, FaFilter, FaSync, FaTrashAlt, FaUpload } from "react-icons/fa";
 import { FormattedMessage, useIntl } from "react-intl";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -200,6 +200,26 @@ export const DaosList = () => {
         });
     };
 
+    const handleReimportSelected = () => {
+        confirm(
+            formatMessage({ id: "dao.reimportSelected.confirm.title" }),
+            formatMessage({ id: "dao.reimportSelected.confirm.message" }),
+            (result) => {
+                if (result === ConfirmationDialogResult.OK) {
+                    Api.transfagent
+                        .reimportApuSourceDaos({ apuSourceId: parseInt(filterFulltext, 10) })
+                        .then(() => {
+                            toast.success(formatMessage({ id: "reimport.success" }));
+                        })
+                        .catch((err) => {
+                            toast.error(formatMessage({ id: "reimport.error" }));
+                            console.log("Došlo k chybě", err);
+                        });
+                }
+            }
+        );
+    };
+
     const handleFileUpload = async (file: IRcFile, fileList: IRcFile[]) =>
         new Promise<void>((resolve, reject) => {
             setOperationInProgress(true);
@@ -267,6 +287,18 @@ export const DaosList = () => {
                         )}
                     </form>
                 </ActionsContainer>
+                {isFilterActive() && items.length > 0 && /^\d+$/.test(filterFulltext) && (
+                    <ActionsContainer>
+                        <Button
+                            onClick={handleReimportSelected}
+                            title={formatMessage({ id: "dao.reimportSelected" })}
+                        >
+                            <FaSync />
+                            &nbsp;
+                            <FormattedMessage id="dao.reimportSelected" />
+                        </Button>
+                    </ActionsContainer>
+                )}
                 <ActionsContainer>
                     <Upload
                         component={ActionButton}

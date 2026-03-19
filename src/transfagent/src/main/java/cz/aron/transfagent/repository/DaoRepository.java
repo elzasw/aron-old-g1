@@ -47,4 +47,8 @@ public interface DaoRepository extends JpaRepository<Dao, Integer> {
     @Modifying
     int markForReimport(@Param("uuids") Collection<String> uuids);
 
+    @Query("UPDATE Dao d SET d.state='ACCESSIBLE', d.transferred=false WHERE d.apuSource.id=:apuSourceId")
+    @Modifying
+    int markForReimportByApuSourceId(int apuSourceId);
+
 }
