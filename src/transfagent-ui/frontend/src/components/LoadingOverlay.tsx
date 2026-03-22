@@ -1,5 +1,6 @@
-import styled from "styled-components";
+import { useEffect, useState } from "react";
 import { FormattedMessage } from "react-intl";
+import styled from "styled-components";
 
 const Backdrop = styled.div`
     position: fixed;
@@ -25,12 +26,25 @@ const MessageBox = styled.div`
 
 interface LoadingOverlayProps {
     messageId: string;
+    delay?: number;
 }
 
-export const LoadingOverlay = ({ messageId }: LoadingOverlayProps) => (
-    <Backdrop>
-        <MessageBox>
-            <FormattedMessage id={messageId} />
-        </MessageBox>
-    </Backdrop>
-);
+export const LoadingOverlay = ({ messageId, delay = 500 }: LoadingOverlayProps) => {
+    const [showMessage, setShowMessage] = useState(delay === 0);
+
+    useEffect(() => {
+        if (delay === 0) return;
+        const id = setTimeout(() => setShowMessage(true), delay);
+        return () => clearTimeout(id);
+    }, [delay]);
+
+    return (
+        <Backdrop>
+            {showMessage && (
+                <MessageBox>
+                    <FormattedMessage id={messageId} />
+                </MessageBox>
+            )}
+        </Backdrop>
+    );
+};
