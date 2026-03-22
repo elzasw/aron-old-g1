@@ -28,7 +28,7 @@ const columnInfo: ColumnInfo<DaoFileDef>[] = [
     { code: "state",        width: 150 },
     { code: "type",         width: 100 },
     { code: "lastModified", width: 150 },
-    { code: "fileName",     width: 250 },
+    { code: "fileName",     width: 1500 },
 ];
 
 interface Props {
