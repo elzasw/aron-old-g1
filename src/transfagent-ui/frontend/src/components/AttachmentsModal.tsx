@@ -15,6 +15,7 @@ import { useIntl } from "react-intl";
 import styled from "styled-components";
 import { Api, AttachmentDef } from "../api";
 import { cInfoAttachments } from "./columnMap";
+import { LoadingOverlay } from "./LoadingOverlay";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -34,8 +35,10 @@ export const AttachmentsModal = ({ apuSourceId, onClose }: Props) => {
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<AttachmentDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        setLoading(true);
         Api.transfagent
             .getAttchments({
                 apuSourceId,
@@ -50,7 +53,8 @@ export const AttachmentsModal = ({ apuSourceId, onClose }: Props) => {
             })
             .catch((err) => {
                 console.log("Došlo k chybě", err);
-            });
+            })
+            .finally(() => setLoading(false));
     }, [page, apuSourceId]);
 
     const getChildId = (index: number) => items[index].attachmentId;
@@ -81,6 +85,8 @@ export const AttachmentsModal = ({ apuSourceId, onClose }: Props) => {
 
     // @ts-ignore  v ModalBase props nejsou children
     return (
+        <>
+        {loading && <LoadingOverlay messageId="operationInProgress" />}
         <ModalBase
             height={Math.round(window.innerHeight * 0.9)}
             width={Math.round(window.innerWidth * 0.9)}
@@ -116,5 +122,6 @@ export const AttachmentsModal = ({ apuSourceId, onClose }: Props) => {
                 </div>
             </div>
         </ModalBase>
+        </>
     );
 };

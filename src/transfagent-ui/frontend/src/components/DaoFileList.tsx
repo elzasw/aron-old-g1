@@ -15,6 +15,7 @@ import { useIntl } from "react-intl";
 import styled from "styled-components";
 import { Api, DaoFileDef } from "../api";
 import { ColumnInfo } from "./columnMap";
+import { LoadingOverlay } from "./LoadingOverlay";
 
 const TableCell = styled.div`
     white-space: nowrap;
@@ -43,8 +44,10 @@ export const DaoFileList = ({ daoUuid, onClose }: Props) => {
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<DaoFileDef[]>([]);
     const [totalCount, setTotalCount] = useState<number>(0);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        setLoading(true);
         Api.transfagent
             .getDaoFiles({
                 daoUuid,
@@ -59,7 +62,8 @@ export const DaoFileList = ({ daoUuid, onClose }: Props) => {
             })
             .catch((err) => {
                 console.log("Došlo k chybě", err);
-            });
+            })
+            .finally(() => setLoading(false));
     }, [page, daoUuid]);
 
     const getChildId = (index: number) => items[index].fileId;
@@ -90,6 +94,8 @@ export const DaoFileList = ({ daoUuid, onClose }: Props) => {
 
     // @ts-ignore  v ModalBase props nejsou children
     return (
+        <>
+        {loading && <LoadingOverlay messageId="operationInProgress" />}
         <ModalBase
             height={Math.round(window.innerHeight * 0.9)}
             width={Math.round(window.innerWidth * 0.9)}
@@ -123,5 +129,6 @@ export const DaoFileList = ({ daoUuid, onClose }: Props) => {
                 </div>
             </div>
         </ModalBase>
+        </>
     );
 };
