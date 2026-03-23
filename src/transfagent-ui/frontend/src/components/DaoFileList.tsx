@@ -92,10 +92,10 @@ export const DaoFileList = ({ daoUuid, onClose }: Props) => {
         return item[propCode];
     };
 
-    // @ts-ignore  v ModalBase props nejsou children
     return (
         <>
         {loading && <LoadingOverlay messageId="operationInProgress" />}
+        {/* @ts-ignore  v ModalBase props nejsou children */}
         <ModalBase
             height={Math.round(window.innerHeight * 0.9)}
             width={Math.round(window.innerWidth * 0.9)}
