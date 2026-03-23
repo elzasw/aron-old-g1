@@ -1,5 +1,6 @@
 package cz.aron.transfagent.service.importfromdir;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -337,15 +338,23 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
             protocol.add("Missing institution: " + apuSource.getId());
             return Result.UNSUPPORTED;
         }
+        
+        boolean force = apuSource.isForce();
+        var apuSrcXmlPath = apuDir.resolve(StorageService.APUSRC_XML);
+        
         String fileName = "institution-"+institution.getCode()+".xml";        
         ApuSourceBuilder apuSourceBuilder;
         var ii = new ImportInstitution(resultBuilder);
         try {
             apuSourceBuilder = ii.importInstitution(apuDir.resolve(fileName), institution.getCode(), institution.getUuid());
             apuSourceBuilder.setUuid(apuSource.getUuid());
-            try (var os = Files.newOutputStream(apuDir.resolve("apusrc.xml"))) {
-                apuSourceBuilder.build(os, new ApuValidator(configurationLoader.getConfig()));
+            var baos = new ByteArrayOutputStream();
+            apuSourceBuilder.build(baos, new ApuValidator(configurationLoader.getConfig()));
+            var newContent = baos.toByteArray();
+            if (!force && StorageService.isContentEqual(apuSrcXmlPath, newContent)) {
+	            return Result.NOCHANGES;
             }
+            Files.write(apuSrcXmlPath, newContent);
             if (!Objects.equals(institution.getName(), ii.getShortName())) {
 				institution.setName(ii.getShortName());
 				transactionTemplate.executeWithoutResult(t->{
@@ -357,8 +366,14 @@ public class ImportInstitutionService extends ImportDirProcessor implements Reim
             protocol.add("Chyba " + e.getMessage());
             return Result.FAILED;
         }
-        protocol.add("Reimport byl úspěšně dokončen");
-        return Result.REIMPORTED;
+        protocol.add("Institution reimported.");
+        log.info("Institution {} reimported.", institution.getCode());
+        if (apuSource.isDisableSend()) {
+			return ReimportProcessor.Result.REIMPORTED_NO_SEND;
+		} else {
+			return ReimportProcessor.Result.REIMPORTED;
+		}
+
     }
 
 }
