@@ -235,10 +235,10 @@ public class ImportFindingAidElza implements FindingAidImporter {
         try {
             builder = ifai.importFindingAidInfo(apuPath.resolve(fileXml), findingAid.getUuid(), databaseDataProvider);
             builder.setUuid(apuSource.getUuid());
+            var attachments = readAttachments(apuPath, findingAid.getCode(), builder);
             try (var os = Files.newOutputStream(apuPath.resolve("apusrc.xml"))) {
                 builder.build(os, new ApuValidator(configurationLoader.getConfig()));
-            }            
-            var attachments = readAttachments(apuPath, findingAid.getCode(), builder);            
+            }                                    
             transactionTemplate.executeWithoutResult(t->{
             	attachmentService.updateAttachments(findingAid.getApuSource(), builder, attachments);
             });
