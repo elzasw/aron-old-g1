@@ -1,12 +1,14 @@
 // import { Button } from '../button';
+import { useState } from 'react';
 import MUIButton from '@material-ui/core/Button';
 import DeleteOutline from '@material-ui/icons/DeleteOutline';
 import { useOrders, getGroupName } from './orders-provider';
 import { Link } from 'react-router-dom';
 import { ModulePath } from '../../enums';
 import makeStyles from '@material-ui/core/styles/makeStyles';
-import { ZpusobZpristupneni, OrderItemInfoEx } from './types';
+import { ZpusobZpristupneni, OrderItemInfoEx, InstitutionInfo, BadatelnaInfo } from './types';
 import { AccessTypeSelect } from './access-type-select';
+import { OrderConfirmDialog } from './order-confirm-dialog';
 
 export interface Props {
   apuId: string;
@@ -34,9 +36,16 @@ export const useStyles = makeStyles(() => {
   };
 });
 
+interface DialogState {
+  institution: InstitutionInfo;
+  badatelna?: BadatelnaInfo;
+  orderItems: OrderItemInfoEx[];
+}
+
 export function OrderList() {
-  const { orderItems: _orderItems, groups, removeItem, changeItemType } = useOrders();
+  const { orderItems: _orderItems, groups, removeItem, changeItemType, clearAll } = useOrders();
   const classes = useStyles();
+  const [dialogState, setDialogState] = useState<DialogState | null>(null);
 
   if (_orderItems.length === 0) {
     return <></>
@@ -119,10 +128,28 @@ export function OrderList() {
             })}
           </div>
           <div style={{display: "flex", justifyContent: "flex-end"}}>
-            <MUIButton variant="contained" size="medium" color="primary" style={{borderRadius: "4px"}}>Objednat</MUIButton>
+            <MUIButton
+              variant="contained"
+              size="medium"
+              color="primary"
+              style={{borderRadius: "4px"}}
+              onClick={() => setDialogState({ institution, badatelna, orderItems })}
+            >Objednat</MUIButton>
           </div>
         </div>
       })}
     </div>
+    <div style={{ display: "flex", justifyContent: "flex-start", padding: "4px 8px 8px" }}>
+      <MUIButton size="small" onClick={clearAll}>Vyprázdnit košík</MUIButton>
+    </div>
+    {dialogState && (
+      <OrderConfirmDialog
+        open={true}
+        onClose={() => setDialogState(null)}
+        institution={dialogState.institution}
+        badatelna={dialogState.badatelna}
+        orderItems={dialogState.orderItems}
+      />
+    )}
   </div>;
 }

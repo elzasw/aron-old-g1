@@ -448,6 +448,12 @@ export function EvidenceDetail({
                         }}
                       />
                       {configuration.showOrders &&
+                        (!configuration.orderItemTypes?.length ||
+                          item.parts?.some((part: ApuPart) =>
+                            part.items.some((partItem: ApuPartItem) =>
+                              configuration.orderItemTypes!.includes(partItem.type)
+                            )
+                          )) &&
                         <AddToOrderButton
                           apuId={item?.id}
                           className={classNames(

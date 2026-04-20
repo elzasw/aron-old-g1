@@ -106,6 +106,7 @@ export interface ConfigurationType {
   refsOnTop?: string[];
   hideDescriptionFor?: string[];
   showOrders?: boolean;
+  orderItemTypes?: string[];
   favouritesSections?: FavouritesSection[];
   widerHomePage?: boolean;
   alternativeSearchStyle?: boolean;

@@ -8,6 +8,7 @@ export interface OrdersContextType {
   addItem: (itemInfo: OrderItemInfoEx) => void;
   removeItem: (apuId: string) => void;
   changeItemType: (apuId: string, type: ZpusobZpristupneni) => void;
+  clearAll: () => void;
 }
 
 const OrdersContext = createContext<OrdersContextType>({
@@ -15,7 +16,8 @@ const OrdersContext = createContext<OrdersContextType>({
   groups: [],
   addItem: () => { return; },
   removeItem: () => { return;},
-  changeItemType: () => { return;}
+  changeItemType: () => { return;},
+  clearAll: () => { return;},
 })
 
 export function useOrders() {
@@ -52,7 +54,7 @@ export function getGroupName(institution: InstitutionInfo, badatelna?: Badatelna
 }
 
 export function OrdersProvider({children}:PropsWithChildren<{}>) {
-  const { store, load } = useLocalStorage<{ orderItems: OrderItemInfoEx[], groups: string[] }>("orderItems");
+  const { store, load, clear } = useLocalStorage<{ orderItems: OrderItemInfoEx[], groups: string[] }>("orderItems");
   const loadedState = load();
 
   const [orderItems, setOrderItems] = useState<OrderItemInfoEx[]>(loadedState?.orderItems || []);
@@ -106,7 +108,13 @@ export function OrdersProvider({children}:PropsWithChildren<{}>) {
     store({orderItems: newItems, groups})
   }
 
-  return <OrdersContext.Provider value={{orderItems, addItem, removeItem, changeItemType, groups}}>
+  function clearAll() {
+    setOrderItems([]);
+    setGroups([]);
+    clear();
+  }
+
+  return <OrdersContext.Provider value={{orderItems, addItem, removeItem, changeItemType, groups, clearAll}}>
     {children}
   </OrdersContext.Provider>
 }

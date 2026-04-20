@@ -1,6 +1,8 @@
 import { createUrl } from '../../common-utils';
 import { Button } from '../../components';
 import { Props as ButtonProps } from '../../components/button/types';
+import { BASE_URL } from '../../enums/api';
+import { ModulePath } from '../../enums';
 import { useOrders } from './orders-provider';
 import { OrderItemInfo, ZpusobZpristupneni } from './types';
 
@@ -27,7 +29,13 @@ export function AddToOrderButton({ apuId, ...otherProps }: Props) {
     if (!isOrdered) {
       const orderItemInfo = await apiGet<OrderItemInfo>(`/script/order-item-info/${apuId}`)
       if (orderItemInfo) {
-        addItem({ ...orderItemInfo, apuId, type: ZpusobZpristupneni.NAHLIZENI });
+        const apuUrl = `${window.location.origin}${BASE_URL}${ModulePath.APU}/${apuId}`;
+        addItem({
+          ...orderItemInfo,
+          archivalie: { ...orderItemInfo.archivalie, url: apuUrl },
+          apuId,
+          type: ZpusobZpristupneni.NAHLIZENI,
+        });
       }
     }
   }
