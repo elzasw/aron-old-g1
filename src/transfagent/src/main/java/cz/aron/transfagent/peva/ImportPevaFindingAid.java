@@ -253,15 +253,16 @@ public class ImportPevaFindingAid implements FindingAidImporter {
         boolean send = !configPeva2.getFindingAidProperties().isDontSend();
         int numAttachments = attachments.size();
         int numDaos = daos.size();
-        transactionTemplate.executeWithoutResult(t -> {
+        transactionTemplate.executeWithoutResult(t -> {        	
+        	var reimportFund = configPeva2.getFundProperties().isAggregateAttachments()||configPeva2.getFundProperties().isFindingAidAggregateFlag();        	
             FindingAid fa;
-            if (findingAid == null) {
+            if (findingAid == null) {            	            	
 				fa = findingAidService.createFindingAid(findingAidCode, funds, institution, dataDir, dir, builder,
-						attachments, configPeva2.getFundProperties().isAggregateAttachments(), send,
+						attachments, reimportFund, send,
 						ifai.getFindingAidCodeInt(), ifai.getFindingAidPartNumberInt(), numAttachments, numDaos, ifai.getFindingAidName());
             } else {
 				findingAidService.updateFindingAid(findingAid, dataDir, dir, builder, attachments,
-						configPeva2.getFundProperties().isAggregateAttachments(), send, ifai.getFindingAidCodeInt(),
+						reimportFund, send, ifai.getFindingAidCodeInt(),
 						ifai.getFindingAidPartNumberInt(), numAttachments, numDaos, ifai.getFindingAidName());
                 fa = findingAid;
             }
@@ -575,6 +576,15 @@ public class ImportPevaFindingAid implements FindingAidImporter {
 						ifai.getFindingAidCodeInt(), ifai.getFindingAidPartNumberInt(), numAttachments, numDaos, ifai.getFindingAidName());
 				if (daoFileStore3Service != null||!daoImporters.isEmpty()) {
 				    this.daoImportService.updateDaos(apuSource, daos);
+				}
+				if (configPeva2.getFundProperties().isAggregateAttachments()
+						|| configPeva2.getFundProperties().isFindingAidAggregateFlag()) {
+					for(var fundUuid:ifai.getFundUUIDs()) {
+						var fund = fundRepository.findByUuid(fundUuid);
+						if (fund!=null&&!fund.getApuSource().isDeleted()) {
+							fund.getApuSource().setReimport(true);
+						}
+					}
 				}
 			});
 		} catch (Exception e) {
