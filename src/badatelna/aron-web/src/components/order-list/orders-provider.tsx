@@ -9,6 +9,7 @@ export interface OrdersContextType {
   removeItem: (apuId: string) => void;
   changeItemType: (apuId: string, type: ZpusobZpristupneni) => void;
   clearAll: () => void;
+  clearGroup: (groupName: string) => void;
 }
 
 const OrdersContext = createContext<OrdersContextType>({
@@ -18,6 +19,7 @@ const OrdersContext = createContext<OrdersContextType>({
   removeItem: () => { return;},
   changeItemType: () => { return;},
   clearAll: () => { return;},
+  clearGroup: () => { return;},
 })
 
 export function useOrders() {
@@ -114,7 +116,17 @@ export function OrdersProvider({children}:PropsWithChildren<{}>) {
     clear();
   }
 
-  return <OrdersContext.Provider value={{orderItems, addItem, removeItem, changeItemType, groups, clearAll}}>
+  function clearGroup(groupName: string) {
+    const _orderItems = orderItems.filter(({ institution, badatelna }: OrderItemInfoEx) =>
+      getGroupName(institution, badatelna) !== groupName
+    );
+    const _groups = groups.filter((g: string) => g !== groupName);
+    setOrderItems(_orderItems);
+    setGroups(_groups);
+    store({ orderItems: _orderItems, groups: _groups });
+  }
+
+  return <OrdersContext.Provider value={{orderItems, addItem, removeItem, changeItemType, groups, clearAll, clearGroup}}>
     {children}
   </OrdersContext.Provider>
 }

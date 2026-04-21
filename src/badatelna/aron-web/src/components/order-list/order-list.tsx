@@ -9,6 +9,7 @@ import makeStyles from '@material-ui/core/styles/makeStyles';
 import { ZpusobZpristupneni, OrderItemInfoEx, InstitutionInfo, BadatelnaInfo } from './types';
 import { AccessTypeSelect } from './access-type-select';
 import { OrderConfirmDialog } from './order-confirm-dialog';
+import { ConfirmDialog } from './confirm-dialog';
 
 export interface Props {
   apuId: string;
@@ -43,9 +44,10 @@ interface DialogState {
 }
 
 export function OrderList() {
-  const { orderItems: _orderItems, groups, removeItem, changeItemType, clearAll } = useOrders();
+  const { orderItems: _orderItems, groups, removeItem, changeItemType, clearAll, clearGroup } = useOrders();
   const classes = useStyles();
   const [dialogState, setDialogState] = useState<DialogState | null>(null);
+  const [confirmState, setConfirmState] = useState<{ message: string; onConfirm: () => void } | null>(null);
 
   if (_orderItems.length === 0) {
     return <></>
@@ -91,8 +93,10 @@ export function OrderList() {
           borderRadius: "4px",
           border: "1px solid #ddd",
         }}>
-          <div style={{marginBottom: "4px"}}><b>{institution.name}</b></div>
-          {badatelna && <div style={{ marginBottom: "4px" }}><i>{badatelna.name}</i></div>}
+          <div style={{display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px"}}>
+            <div><b>{institution.name}</b>{badatelna && <i> — {badatelna.name}</i>}</div>
+            <MUIButton size="small" onClick={() => setConfirmState({ message: 'Chcete odebrat celou skupinu?', onConfirm: () => clearGroup(getGroupName(institution, badatelna)) })}><DeleteOutline fontSize="small" /></MUIButton>
+          </div>
           <div style={{margin: "8px 0"}}>
             {orderItems.map((item, index) => {
               const isLast = index === orderItems.length - 1
@@ -140,8 +144,16 @@ export function OrderList() {
       })}
     </div>
     <div style={{ display: "flex", justifyContent: "flex-start", padding: "4px 8px 8px" }}>
-      <MUIButton size="small" onClick={clearAll}>Vyprázdnit košík</MUIButton>
+      <MUIButton size="small" onClick={() => setConfirmState({ message: 'Chcete vyprázdnit celý košík?', onConfirm: clearAll })}>Vyprázdnit celý košík</MUIButton>
     </div>
+    {confirmState && (
+      <ConfirmDialog
+        open={true}
+        message={confirmState.message}
+        onConfirm={() => { confirmState.onConfirm(); setConfirmState(null); }}
+        onCancel={() => setConfirmState(null)}
+      />
+    )}
     {dialogState && (
       <OrderConfirmDialog
         open={true}

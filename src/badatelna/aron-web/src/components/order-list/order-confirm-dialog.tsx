@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { SnackbarContext, SnackbarVariant } from '@eas/common-web';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -9,8 +10,10 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import { BadatelnaInfo, InstitutionInfo, OrderItemInfoEx } from './types';
+import { ConfirmDialog } from './confirm-dialog';
 import { API_ORDERS_URL } from '../../enums/api';
 import {
+  Chyba,
   NepripojenaObjednavka,
   ZpusobZpristupneniArchivalie,
 } from '../../types/order';
@@ -87,12 +90,19 @@ export function OrderConfirmDialog({
   orderItems,
 }: OrderConfirmDialogProps) {
   const classes = useStyles();
+  const { showSnackbar } = useContext(SnackbarContext);
   const institutionLabel = badatelna ? badatelna.name : institution.name;
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const savedContact = (() => {
+    try { return JSON.parse(localStorage.getItem('orderContact') || '{}'); } catch { return {}; }
+  })();
+
+  const [name, setName] = useState<string>(savedContact.name || '');
+  const [email, setEmail] = useState<string>(savedContact.email || '');
+  const [phoneNumber, setPhoneNumber] = useState<string>(savedContact.phoneNumber || '');
   const [touched, setTouched] = useState({ name: false, email: false });
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [subject, setSubject] = useState('Předběžná rezervace archiválií');
   const [reserveDate, setReserveDate] = useState('');
   const [message, setMessage] = useState('');
@@ -105,12 +115,16 @@ export function OrderConfirmDialog({
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
-  async function handleSubmit() {
+  function handleSubmit() {
     if (!name.trim() || !email.trim() || !emailValid) {
       setTouched({ name: true, email: true });
       return;
     }
+    setConfirmOpen(true);
+  }
 
+  async function doSubmit() {
+    setConfirmOpen(false);
     const popisParts: string[] = [];
     if (reserveDate) popisParts.push(`Na kdy rezervovat: ${reserveDate}`);
     if (message) popisParts.push(message);
@@ -130,17 +144,31 @@ export function OrderConfirmDialog({
       })),
     };
 
-    await fetch(`${API_ORDERS_URL}/orders`, {
+    localStorage.setItem('orderContact', JSON.stringify({ name, email, phoneNumber }));
+
+    setSubmitError(null);
+    const response = await fetch(`${API_ORDERS_URL}/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
+    if (!response.ok) {
+      try {
+        const chyba: Chyba = await response.json();
+        setSubmitError(chyba.zprava);
+      } catch {
+        setSubmitError(`Chyba ${response.status}`);
+      }
+      return;
+    }
+
+    showSnackbar('Objednávka byla úspěšně odeslána.', SnackbarVariant.SUCCESS);
     onClose();
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle disableTypography className={classes.title}>
         <span>Rezervace archiválií</span>
         <IconButton size="small" onClick={handleClose}>
@@ -229,10 +257,19 @@ export function OrderConfirmDialog({
       </DialogContent>
 
       <DialogActions className={classes.actions}>
+        {submitError && (
+          <span style={{ color: 'red', flexGrow: 1, fontSize: 13 }}>{submitError}</span>
+        )}
         <MUIButton variant="contained" color="primary" onClick={handleSubmit}>
           Odeslat
         </MUIButton>
       </DialogActions>
+      <ConfirmDialog
+        open={confirmOpen}
+        message="Chcete odeslat objednávku?"
+        onConfirm={doSubmit}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </Dialog>
   );
 }
