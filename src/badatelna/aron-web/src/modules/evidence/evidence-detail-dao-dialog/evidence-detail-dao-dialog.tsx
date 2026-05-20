@@ -1,10 +1,12 @@
+import Popover from '@material-ui/core/Popover';
 import { Fullscreen, FullscreenExit, GetApp as GetAppIcon, InfoOutlined, LockOpen, Lock, Tune, ExploreOutlined, Explore } from "@material-ui/icons";
 import classNames from 'classnames';
 import { findIndex } from 'lodash';
 import React, { useEffect, useRef, useState, useContext } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { downloadFileByUrl, createUrlParams } from '../../../common-utils';
-import { useConfiguration, Tooltip } from '../../../components';
+import { useConfiguration } from '../../../components';
+import { License } from '../../../components/configuration/types';
 import { ImageViewer, ImageViewerExposedFunctions } from '../../../components/file-viewer/image-viewer';
 import { Message, API_URL } from '../../../enums';
 import { useLayoutStyles, useSpacingStyles } from '../../../styles';
@@ -44,6 +46,65 @@ const getDaoPlacementStyle = (placement?: DaoNamePlacement) => {
   if (!placementStyle) { throw `Undefined placement name: ${placement}` }
 
   return placementStyle || {};
+}
+
+function LicenseItem({ description, link: descriptionLink, parts }: License) {
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  return (
+    <div style={{ display: "flex", alignItems: "center" }}>
+      {parts.map(({ link, iconUrl, name, separator }) => {
+        if (link) {
+          return <>
+            <a href={link} target="_blank" rel="noopener noreferrer" style={{ margin: "0 8px", color: "white", display: "flex" }}>
+              {iconUrl && <img src={iconUrl} style={{ width: '60px', marginRight: name ? "5px" : undefined }} />}
+              {name && <span>{name}</span>}
+            </a>
+            {separator && "|"}
+          </>;
+        }
+        return <>
+          <span style={{ margin: "0 8px", color: "white", display: "flex" }}>
+            {iconUrl && <img src={iconUrl} style={{ width: '60px', marginRight: name ? "5px" : undefined }} />}
+            {name && <span>{name}</span>}
+          </span>
+          {separator && "|"}
+        </>;
+      })}
+      {description && <>
+        {descriptionLink
+          ? <a
+              href={descriptionLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'inherit', display: 'flex', paddingLeft: '10px', borderLeft: '1px solid currentColor', margin: '0 5px' }}
+              onClick={(e) => { e.preventDefault(); setAnchorEl(e.currentTarget); }}
+            >
+              <InfoOutlined />
+            </a>
+          : <span
+              style={{ paddingLeft: '10px', borderLeft: '1px solid currentColor', margin: '0 5px', cursor: 'pointer', display: 'flex' }}
+              onClick={(e) => setAnchorEl(e.currentTarget)}
+            >
+              <InfoOutlined />
+            </span>
+        }
+        <Popover
+          open={Boolean(anchorEl)}
+          anchorEl={anchorEl}
+          onClose={() => setAnchorEl(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <div style={{ padding: '8px 12px' }}>
+            {descriptionLink
+              ? <a href={descriptionLink} target="_blank" rel="noopener noreferrer">{description}</a>
+              : description
+            }
+          </div>
+        </Popover>
+      </>}
+    </div>
+  );
 }
 
 export function EvidenceDetailDaoDialog({
@@ -325,37 +386,7 @@ export function EvidenceDetailDaoDialog({
                   className={classes.daoDialogFloatingOverlay}
                   style={{ bottom: 0, right: 0 }}
                 >
-                  {daoLicenses.map(({description, parts}) => {
-                      return <div style={{display: "flex", alignItems: "center"}}>
-                        {parts.map(({link, iconUrl, name, separator}) => {
-                          if(link){
-                            return <>
-                              <a href={link} style={{margin: "0 8px", color: "white", display: "flex"}}>
-                                {iconUrl && <img src={iconUrl} style={{width: '60px', marginRight: name ? "5px" : undefined}} />}
-                                {name && <span>{name}</span>}
-                              </a>
-                              {separator && "|"}
-                            </>
-                          }
-                          return <>
-                            <span style={{margin: "0 8px", color: "white", display: "flex"}}>
-                              {iconUrl && <img src={iconUrl} style={{width: '60px', marginRight: name ? "5px" : undefined}} />}
-                              {name && <span>{name}</span>}
-                            </span>
-                            {separator && "|"}
-                          </>
-                        })}
-                        {description && <Tooltip title={description}>
-                          <span style={{
-                            paddingLeft: '10px',
-                            borderLeft: '1px solid currentColor',
-                            margin: '0 5px'
-                          }}>
-                            <InfoOutlined/>
-                          </span>
-                        </Tooltip>}
-                      </div>
-                    })}
+                  {daoLicenses.map((license) => <LicenseItem key={license.code} {...license} />)}
 
                 </div>
             }
