@@ -13,7 +13,6 @@ export interface License {
   parts: LicensePart[];
   code: string;
   description?: string;
-  link?: string;
 }
 
 export interface DaoFooterDef {

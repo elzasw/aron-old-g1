@@ -1,4 +1,6 @@
 import Popover from '@material-ui/core/Popover';
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 import { Fullscreen, FullscreenExit, GetApp as GetAppIcon, InfoOutlined, LockOpen, Lock, Tune, ExploreOutlined, Explore } from "@material-ui/icons";
 import classNames from 'classnames';
 import { findIndex } from 'lodash';
@@ -48,7 +50,7 @@ const getDaoPlacementStyle = (placement?: DaoNamePlacement) => {
   return placementStyle || {};
 }
 
-function LicenseItem({ description, link: descriptionLink, parts }: License) {
+function LicenseItem({ description, parts }: License) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   return (
     <div style={{ display: "flex", alignItems: "center" }}>
@@ -71,35 +73,26 @@ function LicenseItem({ description, link: descriptionLink, parts }: License) {
         </>;
       })}
       {description && <>
-        {descriptionLink
-          ? <a
-              href={descriptionLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'inherit', display: 'flex', paddingLeft: '10px', borderLeft: '1px solid currentColor', margin: '0 5px' }}
-              onClick={(e) => { e.preventDefault(); setAnchorEl(e.currentTarget); }}
-            >
-              <InfoOutlined />
-            </a>
-          : <span
+        <span
               style={{ paddingLeft: '10px', borderLeft: '1px solid currentColor', margin: '0 5px', cursor: 'pointer', display: 'flex' }}
               onClick={(e) => setAnchorEl(e.currentTarget)}
             >
-              <InfoOutlined />
-            </span>
-        }
+          <InfoOutlined />
+        </span>
         <Popover
           open={Boolean(anchorEl)}
           anchorEl={anchorEl}
           onClose={() => setAnchorEl(null)}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
           transformOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
+        >          
           <div style={{ padding: '8px 12px' }}>
-            {descriptionLink
-              ? <a href={descriptionLink} target="_blank" rel="noopener noreferrer">{description}</a>
-              : description
-            }
+              <Paper>
+                <Typography
+                    variant="body2"
+                    dangerouslySetInnerHTML={{ __html: description }}
+                />
+              </Paper>
           </div>
         </Popover>
       </>}
