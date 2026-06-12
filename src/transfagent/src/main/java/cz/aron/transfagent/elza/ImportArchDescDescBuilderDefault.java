@@ -51,7 +51,7 @@ public class ImportArchDescDescBuilderDefault implements ImportArchDescDescBuild
 		if (nameStr != null) {
 			title = nameStr;
 		} else if (titleStr != null) {
-			title = nameStr;
+			title = titleStr;
 		}
 
         boolean titleInherited = false;
