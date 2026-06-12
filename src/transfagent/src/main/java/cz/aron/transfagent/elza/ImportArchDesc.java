@@ -608,9 +608,11 @@ public class ImportArchDesc implements EdxItemCovertContext {
     private void initConvertor() {    	
     	ElzaNameBuilder nameBuilder = new ElzaNameBuilder(apTypeService);    	
 	    stringTypeMap = new HashMap<>();
-        // TITLE is used as default APU name, it is not converted as separate ABSTRACT
-        //stringTypeMap.put("ZP2015_TITLE",new EdxStringConvertor("ABSTRACT"));     
-        stringTypeMap.put("ZP2015_TITLE",new EdxNullConvertor());
+	    
+        // TITLE or NAME is used as default APU name, it is not converted as separate ABSTRACT     
+        stringTypeMap.put(ElzaTypes.ZP2015_TITLE,new EdxNullConvertor());
+        stringTypeMap.put(ElzaTypes.ZP2015_NAME,new EdxNullConvertor());
+        
 		if (configArchDesc.isFileType()) {
 			stringTypeMap.put("ZP2015_UNIT_TYPE", new EdxUnitTypeConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.unitTypeMap, ElzaTypes.spisSet));
 			stringTypeMap.put("ZP2015_FOLDER_TYPE", new EdxEnumConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.folderTypeUnitTypeMap,false));
@@ -876,18 +878,29 @@ public class ImportArchDesc implements EdxItemCovertContext {
         otherIdPriorityMap.put("ZP2015_OTHERID_MATRIXID", 85);
     }
     
-    public static String inheritTitle(LevelContext parentContext) {
-    	while(parentContext!=null) {
-    		for(DescriptionItem item : parentContext.getLevel().getDdOrDoOrDp()) {
-                if(item.getT().equals("ZP2015_TITLE")) {
-                    DescriptionItemString title = (DescriptionItemString)item;
-                    return title.getV();
-                }
-            }
-    		parentContext = parentContext.getParentContext();
-    	}
-    	return null;    	
-    }
+	public static String inheritTitle(LevelContext parentContext) {
+		while (parentContext != null) {
+			String title = null;
+			String name = null;
+			for (DescriptionItem item : parentContext.getLevel().getDdOrDoOrDp()) {
+				if (ElzaTypes.ZP2015_TITLE.equals(item.getT())) {
+					DescriptionItemString titleItem = (DescriptionItemString) item;
+					title = titleItem.getV();
+				} else if (ElzaTypes.ZP2015_NAME.equals(item.getT())) {
+					DescriptionItemString nameItem = (DescriptionItemString) item;
+					name = nameItem.getV();
+				}
+			}
+			if (name != null) {
+				return name;
+			}
+			if (title != null) {
+				return title;
+			}
+			parentContext = parentContext.getParentContext();
+		}
+		return null;
+	}
 
     /**
      * Precte dataci z nadrizenych urvni
