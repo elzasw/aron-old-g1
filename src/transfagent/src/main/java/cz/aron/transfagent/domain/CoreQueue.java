@@ -25,6 +25,9 @@ public class CoreQueue {
 
     @Column(name = "error_message")
     private String errorMessage;
+    
+    @Column(name= "context")
+    private String context;
 
     public Long getId() {
         return id;
@@ -49,5 +52,13 @@ public class CoreQueue {
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
+
+	public String getContext() {
+		return context;
+	}
+
+	public void setContext(String context) {
+		this.context = context;
+	}
 
 }

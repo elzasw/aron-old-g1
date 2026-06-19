@@ -3,6 +3,7 @@ package cz.aron.transfagent.service.importfromdir;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -263,6 +264,16 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
             throw new IllegalStateException(e);
         }
 
+        String context = null;
+        var notifyPath = dir.resolve("notify.json");
+        if (Files.isRegularFile(archdescXmlPath)) {
+        	try {
+				context = Files.readString(notifyPath, StandardCharsets.UTF_8);
+			} catch (IOException e) {
+				log.error("Fail to read context", e);
+			}
+        }
+        
         Path dataDir;
         try {
             dataDir = storageService.moveToDataDir(dir);
@@ -279,7 +290,9 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         } else {
             updateArchDesc(archDesc, dataDir, dir, apusrcBuilder, numAttachments, numDaos, numLevels);
         }
-        insertToCoreQueue(archDesc.getApuSource());
+        
+                
+        insertToCoreQueue(archDesc.getApuSource(), context);
 
         // Request entities and store refs
         Set<UUID> uuids = iad.getApRefs();
@@ -292,9 +305,10 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         }
     }
 
-    private void insertToCoreQueue(ApuSource apuSource) {
+    private void insertToCoreQueue(ApuSource apuSource, String context) {
     	var coreQueue = new CoreQueue();
         coreQueue.setApuSource(apuSource);
+        coreQueue.setContext(context);
         coreQueueRepository.save(coreQueue);
     }
     

@@ -25,6 +25,8 @@ public class ConfigElza {
     
     private boolean trustAll = false;
 
+    private String systemName;
+
     public boolean isDisabled() {
         return disabled;
     }
@@ -95,5 +97,13 @@ public class ConfigElza {
 	
 	public void setTrustAll(boolean trusAll) {
 		this.trustAll = trusAll;
+	}
+
+	public String getSystemName() {
+		return systemName;
+	}
+
+	public void setSystemName(String systemName) {
+		this.systemName = systemName;
 	}
 }

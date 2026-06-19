@@ -630,4 +630,10 @@
       <column name="handle" />
     </createIndex>
  </changeSet>
+ <changeSet author="karel.zacek@lightcomp.cz" id="23">
+    <addColumn tableName="core_queue">
+       <column name="context" type="text" />
+    </addColumn>
+ </changeSet>
+
 </databaseChangeLog>

@@ -1,9 +1,11 @@
 package cz.aron.transfagent.service;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
@@ -15,6 +17,8 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lightcomp.ft.FileTransfer;
 import com.lightcomp.ft.client.Client;
 import com.lightcomp.ft.client.ClientConfig;
@@ -62,6 +66,8 @@ public class CoreQueueService implements SmartLifecycle {
     private final TransactionTemplate tt;
     
     private final ArchivalEntityRepository archivalEntityRepository;
+    
+    private final ObjectMapper objectMapper;
 
     private ThreadStatus status;
     
@@ -69,7 +75,8 @@ public class CoreQueueService implements SmartLifecycle {
 
 	public CoreQueueService(CoreQueueRepository coreQueueRepository, AttachmentRepository attachmentRepository,
 			ApuSourceRepository apuSourceRepository, ConfigAronCore configAronCore, CoreAronClient coreAronClient,
-			StorageService storageService, TransactionTemplate tt, ArchivalEntityRepository archivalEntityRepository) {
+			StorageService storageService, TransactionTemplate tt, ArchivalEntityRepository archivalEntityRepository,
+			ObjectMapper objectMapper) {
 		this.coreQueueRepository = coreQueueRepository;
 		this.attachmentRepository = attachmentRepository;
 		this.apuSourceRepository = apuSourceRepository;
@@ -78,6 +85,7 @@ public class CoreQueueService implements SmartLifecycle {
 		this.storageService = storageService;
 		this.tt = tt;
 		this.archivalEntityRepository = archivalEntityRepository;
+		this.objectMapper = objectMapper;
     }
 
     /**
@@ -99,7 +107,10 @@ public class CoreQueueService implements SmartLifecycle {
 					tt.executeWithoutResult(t->{
 						coreQueueRepository.deleteById(item.getId());
 						apuSourceRepository.setLastSent(item.getApuSource().getId(), item.getId());
-					});					
+					});
+					if (item.getContext()!=null) {
+						processContext(item);
+					}
 					if (status != ThreadStatus.RUNNING) {
 						return;
 					}
@@ -114,6 +125,23 @@ public class CoreQueueService implements SmartLifecycle {
 				}
 				client = null;
 			}
+		}
+	}
+	
+	
+	private void processContext(CoreQueue coreQueue) {
+				
+		try {
+			var notify =objectMapper.readValue(coreQueue.getContext(), new TypeReference<Map<String, Object>>() {});
+			Object publicationId = notify.get("publicationId");
+			if (publicationId != null && publicationId instanceof Number) {
+				var id = ((Number)publicationId).intValue();
+				var path = storageService.getInputPath().resolve("commands").resolve("publication_notify-" + id);
+				Files.createFile(path);
+				
+			}
+		} catch (Exception e) {
+			log.error("Fail to notify", e);
 		}
 	}
 	

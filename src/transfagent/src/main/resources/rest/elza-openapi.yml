@@ -3,26 +3,40 @@ info:
   title: ELZA API
   version: 1.0.0
 tags:
-  - name: admin
-    description: Administrativní funkce
-  - name: daos
-    description: Digitální archivní objekty
-  - name: externalsystems
-    description: Externí systémy
-  - name: funds
-    description: Archivní soubory
-  - name: descitems
-    description: Záznamy v archivních fondech
-  - name: accesspoints
-    description: Přístupové body a archivní entity
-  - name: io
-    description: Vstup a výstup informací
-  - name: report
-    description: Statistické zprávy
-  - name: node
-    description: Práce s úrovněmi a uzly
+  - name: accesspoint-internal
+    description: Access-point API used by the Elza UI
+  - name: publication-internal
+    description: Publication API used by the Elza UI
+  - name: publication
+    description: Public API for the publication system
+  - name: tasks
+    description: Úkoly
   - name: search
     description: Vyhledávání
+  - name: structure
+    description: structure
+  - name: node
+    description: Práce s úrovněmi a uzly
+  - name: report
+    description: Statistické zprávy
+  - name: aips
+    description: aips
+  - name: io
+    description: Vstup a výstup informací
+  - name: accesspoints
+    description: Přístupové body a archivní entity
+  - name: descitems
+    description: Záznamy v archivních fondech
+  - name: funds
+    description: Archivní soubory
+  - name: externalsystems
+    description: Externí systémy
+  - name: daos
+    description: Digitální archivní objekty
+  - name: admin
+    description: Administrativní funkce
+  - name: rules
+    description: Pravidla popisu archiválií (typy atributů, datové typy, …)
 servers:
   - url: http://localhost
     description: Výchozí server
@@ -51,6 +65,122 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DeleteAccessPointsDetail'
+        description: seznam ID nebo UUID, které chceme smazat
+  /accesspoint/search:
+    post:
+      operationId: AccessPoint_search
+      description: |-
+        Search for access points.
+        Accepts the same filter inputs as /accesspoint/export (scalar fields + ApAdvanceSearchFilter)
+        plus pagination (from, count) and the criteria-query SearchType selectors.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApAccessPointSearchResult'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - accesspoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessPointSearchParams'
+        description: filter selecting the access points to search for
+  /accesspoint/export:
+    post:
+      operationId: AccessPoint_batchExport
+      description: |-
+        Asynchronously export access points matching the given search query to CSV.
+        Returns the request id; poll /io/export-status/{id} and download the result via /io/file/{id}.
+        Results are ordered by accessPointId ascending. The filter shape mirrors the scalar
+        parameters of /registry/search, so the same registry-list filter values can be passed
+        through. Empty body / null fields means "all access points visible to the user".
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: integer
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - accesspoints
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessPointBatchExportParams'
+        description: filter selecting the access points to export
+  /accesspoint/export/{queueItemId}:
+    put:
+      operationId: AccessPoint_exportForceOrNo
+      description: Decision on forced export ELZA -> CAM
+      parameters:
+        - name: queueItemId
+          in: path
+          required: true
+          description: id of queue
+          schema:
+            type: integer
+        - name: force
+          in: query
+          required: true
+          description: 'force export: yes or no'
+          schema:
+            type: boolean
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - accesspoints
   /accesspoint/invalidated:
     get:
       operationId: AccessPoint_getInvalidatedEntities
@@ -169,6 +299,28 @@ paths:
             schema:
               $ref: '#/components/schemas/CopyAccessPointDetail'
         description: additional copy options
+  /accesspoint/{id}/lastParticipants:
+    get:
+      operationId: AccessPoint_getLastParticipants
+      description: Get a list of entity processors
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id of accesspoint
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Participant'
+      tags:
+        - accesspoints
   /accesspoint/{id}/part:
     post:
       operationId: AccessPoint_createPart
@@ -589,6 +741,13 @@ paths:
           schema:
             type: integer
           explode: false
+        - name: assignTo
+          in: query
+          required: false
+          description: userId
+          schema:
+            type: integer
+          explode: false
       responses:
         '200':
           description: The request has succeeded.
@@ -622,6 +781,13 @@ paths:
           in: query
           required: false
           description: actual version of ApAccessPoint
+          schema:
+            type: integer
+          explode: false
+        - name: assignTo
+          in: query
+          required: false
+          description: userId
           schema:
             type: integer
           explode: false
@@ -738,6 +904,846 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Admin.CopyPermissionParams'
+  /aip/bulk-connect-logic-to-jp:
+    post:
+      operationId: Aip_bulkConnectLogicToJp
+      description: Bulk connect logical structure to JP
+      parameters:
+        - name: arrNodeId
+          in: query
+          required: true
+          description: ArrNode ID
+          schema:
+            type: integer
+          explode: false
+        - name: daAipIdList
+          in: query
+          required: true
+          description: DaAip ID list
+          schema:
+            type: array
+            items:
+              type: integer
+          explode: false
+        - name: daLevelViewId
+          in: query
+          required: true
+          description: DaLevelView ID
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/bulk-connect-to-jp:
+    post:
+      operationId: Aip_bulkConnectToJp
+      description: Bulk connect to JP
+      parameters:
+        - name: arrNodeId
+          in: query
+          required: true
+          description: ArrNode ID
+          schema:
+            type: integer
+          explode: false
+        - name: daAipIdList
+          in: query
+          required: true
+          description: DaAip ID list
+          schema:
+            type: array
+            items:
+              type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/bulk-create-from-selected:
+    post:
+      operationId: Aip_bulkCreateFromSelected
+      description: Bulk create from selected
+      parameters:
+        - name: arrNodeId
+          in: query
+          required: true
+          description: ArrNode ID
+          schema:
+            type: integer
+          explode: false
+        - name: daAipIdList
+          in: query
+          required: true
+          description: DaAip ID list
+          schema:
+            type: array
+            items:
+              type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/bulk-create-selected-to-jp:
+    post:
+      operationId: Aip_bulkCreateSelectedToJp
+      description: Bulk create from selected and connect to JP
+      parameters:
+        - name: arrNodeId
+          in: query
+          required: true
+          description: ArrNode ID
+          schema:
+            type: integer
+          explode: false
+        - name: daAipIdList
+          in: query
+          required: true
+          description: DaAip ID list
+          schema:
+            type: array
+            items:
+              type: integer
+          explode: false
+        - name: daLevelViewId
+          in: query
+          required: true
+          description: DaLevelView ID
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/connect-jp-from-selected:
+    post:
+      operationId: Aip_connectJpFromSelected
+      description: Create JP from selected
+      parameters:
+        - name: arrNodeId
+          in: query
+          required: true
+          description: ArrNode ID
+          schema:
+            type: integer
+          explode: false
+        - name: daAipId
+          in: query
+          required: true
+          description: DaAip ID
+          schema:
+            type: integer
+          explode: false
+        - name: daDaoIdList
+          in: query
+          required: true
+          description: DaDao ID List
+          schema:
+            type: array
+            items:
+              type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/connect-jp-link-from-selected:
+    post:
+      operationId: Aip_connectJpLinkFromSelected
+      description: Create JP and link from selected
+      parameters:
+        - name: arrNodeId
+          in: query
+          required: true
+          description: ArrNode ID
+          schema:
+            type: integer
+          explode: false
+        - name: daAipId
+          in: query
+          required: true
+          description: DaAip ID
+          schema:
+            type: integer
+          explode: false
+        - name: daDaoIdList
+          in: query
+          required: true
+          description: DaDao ID List
+          schema:
+            type: array
+            items:
+              type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/connect-part-to-jp:
+    post:
+      operationId: Aip_connectPartToJp
+      description: Connect Part to JP
+      parameters:
+        - name: arrNodeId
+          in: query
+          required: true
+          description: ArrNode ID
+          schema:
+            type: integer
+          explode: false
+        - name: daAipId
+          in: query
+          required: true
+          description: DaAip ID
+          schema:
+            type: integer
+          explode: false
+        - name: daDaoIdList
+          in: query
+          required: true
+          description: DaDao ID List
+          schema:
+            type: array
+            items:
+              type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/connect-selected-to-jp:
+    post:
+      operationId: Aip_connectSelectedToJp
+      description: Connect selected to JP
+      parameters:
+        - name: arrNodeId
+          in: query
+          required: true
+          description: ArrNode ID
+          schema:
+            type: integer
+          explode: false
+        - name: daAipId
+          in: query
+          required: true
+          description: DaAip ID
+          schema:
+            type: integer
+          explode: false
+        - name: daDaoIdList
+          in: query
+          required: true
+          description: DaDao ID List
+          schema:
+            type: array
+            items:
+              type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/connect-to-jp:
+    post:
+      operationId: Aip_connectToJp
+      description: Connect to JP
+      parameters:
+        - name: arrNodeId
+          in: query
+          required: true
+          description: ArrNode ID
+          schema:
+            type: integer
+          explode: false
+        - name: daAipId
+          in: query
+          required: true
+          description: DaAip ID
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/create-dao-link:
+    post:
+      operationId: Aip_createDaoLink
+      description: Create dao link
+      parameters:
+        - name: aipId
+          in: query
+          required: true
+          description: AIP ID
+          schema:
+            type: integer
+          explode: false
+        - name: daoId
+          in: query
+          required: true
+          description: DAO ID
+          schema:
+            type: integer
+          explode: false
+        - name: nodeId
+          in: query
+          required: true
+          description: Node ID
+          schema:
+            type: integer
+          explode: false
+        - name: linkType
+          in: query
+          required: true
+          description: Link type
+          schema:
+            $ref: '#/components/schemas/LinkType'
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/create-dao-structure:
+    post:
+      operationId: Aip_createDaoStructure
+      description: Create dao structure
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+        description: Aip IDs
+  /aip/dao-links/{nodeId}:
+    get:
+      operationId: Aip_getDaoLinks
+      description: Get dao links for node by id
+      parameters:
+        - name: nodeId
+          in: path
+          required: true
+          description: Node ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DaoLinksResult'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/delete-complete-aip:
+    post:
+      operationId: Aip_deleteCompleteAip
+      description: Delete complete AIP
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+        description: Aip IDs
+  /aip/delete-dao-link:
+    post:
+      operationId: Aip_deleteDaoLink
+      description: Delete dao link
+      parameters:
+        - name: daoLinkId
+          in: query
+          required: true
+          description: Dao link ID
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/delete-dao-structure:
+    post:
+      operationId: Aip_deleteDaoStructure
+      description: Delete dao structure
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+        description: Aip IDs
+  /aip/download-complete-aip:
+    post:
+      operationId: Aip_downloadCompleteAip
+      description: Download complete AIP
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+        description: Aip IDs
+  /aip/download-component/{fileId}:
+    get:
+      operationId: Aip_downloadComponent
+      description: Getting the component file by file id
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          description: File ID
+          schema:
+            type: integer
+      responses:
+        '102':
+          description: Informational
+        '200':
+          description: The request has succeeded.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/export-aip:
+    post:
+      operationId: Aip_exportAip
+      description: Export AIP
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+        description: Aip IDs
+  /aip/find/filter:
+    post:
+      operationId: Aip_findByFilter
+      description: Find aips by filters
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: integer
+          explode: false
+        - name: count
+          in: query
+          required: true
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AipDetailFilteredResult'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AipFilterGen'
+        description: Array of filters
+  /aip/import-package:
+    post:
+      operationId: Aip_importPackage
+      description: Import AIP package
+      parameters:
+        - name: digitalRepositoryId
+          in: query
+          required: true
+          description: Digital repository ID
+          schema:
+            type: integer
+          explode: false
+        - name: aipType
+          in: query
+          required: true
+          description: Aip package type
+          schema:
+            $ref: '#/components/schemas/AipType'
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+      requestBody:
+        required: true
+        content:
+          application/zip:
+            schema:
+              type: string
+              format: binary
+  /aip/levelViewTree:
+    post:
+      operationId: Aip_levelViewTree
+      description: Get level view tree for aips with ids
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TreeDataCustomGen'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+        description: Aip IDs
+  /aip/tree:
+    post:
+      operationId: Aip_tree
+      description: Get level view tree for aips with ids
+      parameters:
+        - name: aipId
+          in: query
+          required: true
+          description: Aip IDs
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TreeDataCustomGen'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /aip/update-aip:
+    post:
+      operationId: Aip_updateAip
+      description: Update AIP
+      parameters:
+        - name: type
+          in: query
+          required: true
+          description: Type of update
+          schema:
+            $ref: '#/components/schemas/AipUpdateType'
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+        description: Aip IDs
+  /aip/{aipId}:
+    get:
+      operationId: Aip_getAip
+      description: Get aip detail by id
+      parameters:
+        - $ref: '#/components/parameters/AipIdParameter'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AipDetailVO'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - aips
+  /binding/{bindingId}/history:
+    get:
+      operationId: AccessPointBinding_getBindingHistory
+      description: |-
+        Paginated history of binding revisions, newest first, built from
+        ap_binding_state and ap_binding_participant. Participants within each
+        revision are ordered by lastChange (ascending).
+      parameters:
+        - name: bindingId
+          in: path
+          required: true
+          description: id of binding
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: server caps at 100
+          schema:
+            type: integer
+            default: 100
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtHistory'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - accesspoint-internal
+  /binding/{bindingId}/issues:
+    get:
+      operationId: AccessPointBinding_getBindingIssues
+      description: List CAM-side issues attached to a binding.
+      parameters:
+        - name: bindingId
+          in: path
+          required: true
+          description: id of binding
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExtIssue'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - accesspoint-internal
   /daorepository:
     get:
       operationId: DaoRepository_fsRepos
@@ -751,6 +1757,58 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/FsRepo'
+  /daos/aip/{aipId}:
+    get:
+      operationId: Dao_findByAipIdAndTypeAndDeleteChangeIsNull
+      description: Získání stromu pro průzkumník aipu
+      parameters:
+        - name: aipId
+          in: path
+          required: true
+          description: Identifikátor aipu
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplorerTreeNode'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - daos
+  /daos/component/{id}:
+    get:
+      operationId: Dao_getDaoViewRequestInfo
+      description: Získání informací o da dao pro view request na digital repository
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identifikátor da dao
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DaoViewRequestVO'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - daos
   /daos/{id}/change-scenario:
     post:
       operationId: Dao_changeLinkScenario
@@ -780,6 +1838,39 @@ paths:
             schema:
               type: string
         description: new scenario
+  /descItems/{fundVersionId}:
+    delete:
+      operationId: DescItem_deleteDescItem
+      description: Delete attribute value
+      parameters:
+        - name: fundVersionId
+          in: path
+          required: true
+          description: id version AS
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemDataResult'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - descitems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NodeItem'
+        description: attribute value
   /descItems/{fundVersionId}/create:
     put:
       operationId: DescItem_createDescItem
@@ -788,7 +1879,7 @@ paths:
         - name: fundVersionId
           in: path
           required: true
-          description: id AP version
+          description: id version AS
           schema:
             type: integer
       responses:
@@ -815,7 +1906,7 @@ paths:
         - name: fundVersionId
           in: path
           required: true
-          description: id AP version
+          description: id version AS
           schema:
             type: integer
         - name: createNewVersion
@@ -924,6 +2015,28 @@ paths:
               items:
                 type: integer
         description: external system property id
+  /extsystem/resync/{id}:
+    post:
+      operationId: ExternalSystem_externalSystemResync
+      description: External system resync
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: external system ID or CODE
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - externalsystems
   /fund:
     post:
       operationId: fund_createFund
@@ -1194,6 +2307,200 @@ paths:
                 $ref: '#/components/schemas/BaseException'
       tags:
         - funds
+  /fund/{fundId}/publication:
+    get:
+      operationId: FundPublication_listFundPublications
+      description: |-
+        Return the publications for a fund, newest first.
+
+        The UI must paginate — the list can grow large.
+      parameters:
+        - $ref: '#/components/parameters/FundIdParameter'
+        - name: publicationTypeId
+          in: query
+          required: false
+          description: Optional filter on publication type.
+          schema:
+            type: integer
+          explode: false
+        - name: offset
+          in: query
+          required: false
+          description: Offset for pagination.
+          schema:
+            type: integer
+            default: 0
+          explode: false
+        - name: limit
+          in: query
+          required: false
+          description: Page size.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationList'
+      tags:
+        - publication-internal
+    post:
+      operationId: FundPublication_createFundPublication
+      description: |-
+        Enqueue a new publication for the current open version of the fund.
+
+        Rejected with 409 if the current fund version already has a
+        publication of the same type in NEW state (avoids racing two
+        identical async generations). A previous publication in PREPARED
+        or later state does NOT block: the fund may have changed and
+        the new publication carries different content.
+        Rejected with 403 if the target publication type is inactive.
+      parameters:
+        - $ref: '#/components/parameters/FundIdParameter'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationDetail'
+        '403':
+          description: Publication type is inactive.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '404':
+          description: Publication type or fund not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - publication-internal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePublication'
+  /fund/{fundId}/publication/{publicationId}:
+    delete:
+      operationId: FundPublication_invalidateFundPublication
+      description: |-
+        Invalidate a publication.
+
+        The associated DMS file is deleted from disk; the
+        {
+      parameters:
+        - $ref: '#/components/parameters/FundIdParameter'
+        - $ref: '#/components/parameters/PublicationIdParameter'
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - publication-internal
+  /fund/{fundId}/publication/{publicationId}/copy:
+    post:
+      operationId: FundPublication_copyFundPublication
+      description: |-
+        Copy an existing publication into another target system.
+
+        The target publication type must have a compatible filter setting
+        (same rul_export_filter snapshot, or both unfiltered).
+        Rejected with 403 if the target publication type is inactive.
+      parameters:
+        - $ref: '#/components/parameters/FundIdParameter'
+        - $ref: '#/components/parameters/PublicationIdParameter'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationDetail'
+        '403':
+          description: Target publication type is inactive.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '404':
+          description: Source publication, target publication type, or fund not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '409':
+          description: Target type has an incompatible filter setting.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - publication-internal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopyPublication'
+  /fund/{fundId}/publication/{publicationId}/download:
+    get:
+      operationId: FundPublication_downloadFundPublication
+      description: |-
+        Download the prepared XML from the UI.
+
+        Unlike the public {
+      parameters:
+        - $ref: '#/components/parameters/FundIdParameter'
+        - $ref: '#/components/parameters/PublicationIdParameter'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/xml:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '410':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - publication-internal
   /fund/{fundId}/usedItemtypes/{fundVersionId}:
     get:
       operationId: fund_usedItemTypes
@@ -1294,17 +2601,18 @@ paths:
             schema:
               $ref: '#/components/schemas/ImportFundData'
         description: Doplnění způsobu importu
-  /fund/{id}/structuredObject:
-    delete:
-      operationId: fund_deleteStructureData
-      description: Smazání seznamu hodnot strukturovaného datového typu
+  /funds/sdo/type:
+    get:
+      operationId: Sdo_findStructureTypes
+      description: 'GET Lists the possible data types that can be used in AS: findStructureTypes()'
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: Identifikátor AS
+        - name: fundVersionId
+          in: query
+          required: false
+          description: fund version id
           schema:
             type: integer
+          explode: false
       responses:
         '200':
           description: The request has succeeded.
@@ -1313,9 +2621,71 @@ paths:
               schema:
                 type: array
                 items:
-                  type: integer
+                  $ref: '#/components/schemas/Sdo.Type'
       tags:
-        - funds
+        - structure
+  /funds/sdo/{fundId}:
+    post:
+      operationId: Sdo_createObject
+      description: Creating object of the structured data type
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: value
+          in: query
+          required: false
+          description: value for the structured data
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredObject'
+      tags:
+        - structure
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+        description: structured data type code
+    delete:
+      operationId: Sdo_deleteObjects
+      description: Deleting a value(s) of a structured data type
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: fundVersionId
+          in: query
+          required: false
+          description: fund version id
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - structure
       requestBody:
         required: true
         content:
@@ -1324,7 +2694,473 @@ paths:
               type: array
               items:
                 type: integer
-        description: Seznam id hodnot strukturovaného datového typu
+        description: list of id value(s) of structured data type
+  /funds/sdo/{fundId}/assignable/{assignable}:
+    post:
+      operationId: Sdo_setDataAssignable
+      description: Assignability settings.
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: assignable
+          in: path
+          required: true
+          description: assignable value
+          schema:
+            type: boolean
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+        - structure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+        description: value ids for a structured data type
+  /funds/sdo/{fundId}/batchUpdate/{structureTypeCode}:
+    post:
+      operationId: Sdo_updateObjects
+      description: Bulk update of items/values of a structural type
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structureTypeCode
+          in: path
+          required: true
+          description: structure type code
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+        - structure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Sdo.BatchUpdateParam'
+        description: batch of data to update
+  /funds/sdo/{fundId}/extension/{structureTypeCode}:
+    get:
+      operationId: Sdo_findFundStructureExtension
+      description: 'GET Finds available and enabled AS extensions: findFundStructureExtension()'
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structureTypeCode
+          in: path
+          required: true
+          description: structure type code
+          schema:
+            type: string
+        - name: fundVersionId
+          in: query
+          required: false
+          description: fund version id
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sdo.ExtensionFund'
+      tags:
+        - structure
+    put:
+      operationId: Sdo_setFundStructureExtensions
+      description: 'PUT Sets a specific extension on the AS: setFundStructureExtensions()'
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structureTypeCode
+          in: path
+          required: true
+          description: structure type code
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+        - structure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: structure ext codes
+  /funds/sdo/{fundId}/item/{structuredObjectId}:
+    post:
+      operationId: Sdo_createItem
+      description: Create item value of a structured data type
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structuredObjectId
+          in: path
+          required: true
+          description: structure data id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sdo.ItemResult'
+      tags:
+        - structure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StructuredObjectItem'
+        description: node item
+    get:
+      operationId: Sdo_getFormStructureItems
+      description: 'GET Getting data for a structured data type form: getFormStructureItems()'
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structuredObjectId
+          in: path
+          required: true
+          description: structured object id
+          schema:
+            type: integer
+        - name: fundVersionId
+          in: query
+          required: false
+          description: fund version id
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredObjectItems'
+      tags:
+        - structure
+  /funds/sdo/{fundId}/item/{structuredObjectId}/by-type/{itemTypeId}:
+    delete:
+      operationId: Sdo_deleteItemsByType
+      description: Delete items based on the value of a data type structure by attribute type
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structuredObjectId
+          in: path
+          required: true
+          description: structured object id
+          schema:
+            type: integer
+        - name: itemTypeId
+          in: path
+          required: true
+          description: item type id
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - structure
+  /funds/sdo/{fundId}/item/{structuredObjectId}/{createNewVersion}:
+    put:
+      operationId: Sdo_updateItem
+      description: Update item value of a structured data type
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structuredObjectId
+          in: path
+          required: true
+          description: structure data id
+          schema:
+            type: integer
+        - name: createNewVersion
+          in: path
+          required: true
+          description: create a new version
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sdo.ItemResult'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - structure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StructuredObjectItem'
+        description: node item
+  /funds/sdo/{fundId}/item/{structuredObjectId}/{itemObjectId}:
+    delete:
+      operationId: Sdo_deleteItem
+      description: Delete item value of a structured data type
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structuredObjectId
+          in: path
+          required: true
+          description: structured object id
+          schema:
+            type: integer
+        - name: itemObjectId
+          in: path
+          required: true
+          description: item object id
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - structure
+  /funds/sdo/{fundId}/search/{structureTypeCode}:
+    get:
+      operationId: Sdo_findStructObj
+      description: 'GET Searching for values of a structured data type: findStructObj()'
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structureTypeCode
+          in: path
+          required: true
+          description: structure type code
+          schema:
+            type: string
+        - name: search
+          in: query
+          required: false
+          description: text for filtering (optional)
+          schema:
+            type: string
+          explode: false
+        - name: assignable
+          in: query
+          required: false
+          description: assignable value
+          schema:
+            type: boolean
+          explode: false
+        - name: from
+          in: query
+          required: false
+          description: from default = 0
+          schema:
+            type: integer
+            default: 0
+          explode: false
+        - name: count
+          in: query
+          required: false
+          description: max number of items
+          schema:
+            type: integer
+            default: 200
+          explode: false
+        - name: fundVersionId
+          in: query
+          required: false
+          description: fund version id
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sdo.FindResult'
+      tags:
+        - structure
+  /funds/sdo/{fundId}/{structuredObjectId}:
+    get:
+      operationId: Sdo_getObject
+      description: Getting the value of a structured data type
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structuredObjectId
+          in: path
+          required: true
+          description: structure data id
+          schema:
+            type: integer
+        - name: fundVersionId
+          in: query
+          required: false
+          description: fund version id
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredObject'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - structure
+  /funds/sdo/{fundId}/{structuredObjectId}/confirm:
+    post:
+      operationId: Sdo_confirm
+      description: Confirms the value of a structured data type. Sets the value
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structuredObjectId
+          in: path
+          required: true
+          description: structure data id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredObject'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - structure
+  /funds/sdo/{fundId}/{structuredObjectId}/copy:
+    post:
+      operationId: Sdo_copyObject
+      description: Creating duplicates of a structured data type and an auto-increment field
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          description: fund id
+          schema:
+            type: integer
+        - name: structuredObjectId
+          in: path
+          required: true
+          description: structure data id
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+      tags:
+        - structure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Sdo.CopyObjectParam'
+        description: batch of data to create
   /io/export:
     post:
       operationId: Io_exportRequest
@@ -1411,6 +3247,96 @@ paths:
                 $ref: '#/components/schemas/BaseException'
       tags:
         - io
+  /node/copyOlderSiblingAttribute:
+    put:
+      operationId: Node_copyOlderSiblingAttribute
+      description: Copies the attribute of the specified type from the node's parent
+      parameters:
+        - name: versionId
+          in: query
+          required: true
+          description: version id of tree
+          schema:
+            type: integer
+          explode: false
+        - name: descItemTypeId
+          in: query
+          required: true
+          description: id of the attribute we want to copy
+          schema:
+            type: integer
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+      tags:
+        - node
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NodeBase'
+        description: node to assign values from the older brother
+  /node/info/id/{nodeId}:
+    get:
+      operationId: Node_getNodeInfoById
+      description: Get basic information about a node by its numeric ID.
+      parameters:
+        - $ref: '#/components/parameters/NodeIdParameter'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeInfo'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - node
+  /node/info/uuid/{nodeUuid}:
+    get:
+      operationId: Node_getNodeInfoByUuid
+      description: Get basic information about a node by its UUID.
+      parameters:
+        - name: nodeUuid
+          in: path
+          required: true
+          description: Node UUID (36 characters)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeInfo'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - node
   /node/node-data:
     post:
       operationId: Node_getNodeData
@@ -1474,9 +3400,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FundSearchResult'
+                $ref: '#/components/schemas/NodeSearchResult'
         '400':
           description: The server could not understand the request due to invalid syntax.
           content:
@@ -1539,6 +3463,276 @@ paths:
                 $ref: '#/components/schemas/BaseException'
       tags:
         - node
+  /publication/types:
+    get:
+      operationId: PublicationTypeAdmin_listPublicationTypes
+      description: Return all publication types, including inactive ones.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PublicationType'
+      tags:
+        - publication-internal
+    post:
+      operationId: PublicationTypeAdmin_createPublicationType
+      description: Create a new publication type.
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationType'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - publication-internal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicationType'
+  /publication/types/{id}:
+    put:
+      operationId: PublicationTypeAdmin_updatePublicationType
+      description: Update an existing publication type.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicationType'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - publication-internal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicationType'
+    delete:
+      operationId: PublicationTypeAdmin_deletePublicationType
+      description: |-
+        Remove a publication type.
+
+        Deactivating via {
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '409':
+          description: The request conflicts with the current state of the server.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - publication-internal
+  /publications/available/{targetSystem}:
+    get:
+      operationId: Publication_getAvailablePublications
+      description: |-
+        Get the list of prepared XML exports for a given target system.
+
+        On the first call `lastTransaction` is omitted. The response carries
+        `nextTransaction`, which the caller stores and sends in the next
+        request as `lastTransaction`. This way only new exports since the
+        previous call are returned.
+
+        At most 100 records are returned. If multiple prepared exports exist
+        for the same fund, only the most recent one is included.
+
+        If the publication type (target system) is inactive, the call returns
+        403 — information about prepared exports is not exposed in that case.
+      parameters:
+        - name: targetSystem
+          in: path
+          required: true
+          description: |-
+            Publication type code (ARR_EXPORT_TYPE.code),
+            which also identifies the target system.
+          schema:
+            type: string
+        - name: lastTransaction
+          in: query
+          required: false
+          description: |-
+            Opaque key of the last already-processed
+            transaction. Omitted on the first call. The caller must not parse
+            the key — Elza reserves the right to change its format in the
+            future.
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailablePublications'
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - publication
+  /publications/download/{id}:
+    get:
+      operationId: Publication_downloadPublication
+      description: |-
+        Download the prepared XML.
+
+        The client should only call this with an ID it received from
+        `/available`. The download succeeds as long as the XML file is
+        physically present on the server; each successful download updates
+        the internal audit trail of the last fetch.
+
+        The file is returned as `application/xml` with header
+        `Content-Disposition: attachment; filename="{mark}-{fundNumber}-{publicationId}.xml"`.
+        If the fund has neither `mark` nor `fundNumber` set, the fallback
+        `fundId-{fundId}-{publicationId}.xml` is used.
+
+        HTTP responses:
+        - 200 + XML — the file is available
+        - 403       — the publication type has been deactivated
+        - 404       — unknown ID, or an ID in an internal state that is not
+        exposed to the client (e.g. preparation in progress —
+        such IDs are never returned by `/available` and the
+        client should not encounter them)
+        - 410       — the file is permanently unavailable to the client
+        (publication invalidated by the user, or retention
+        expired)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Publication identifier (ARR_EXPORT.export_id).
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/xml:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Access is forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+        '410':
+          description: Client error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - publication
+  /publications/status/{id}:
+    post:
+      operationId: Publication_reportPublicationStatus
+      description: |-
+        Report the publication outcome from the publication system.
+
+        The client reports the outcome of a publication it has been
+        working with — typically after a successful `/download/{id}`,
+        but a report from a publication that was prepared and not yet
+        marked as fetched is also accepted (e.g. when the download
+        response was lost in transit but the publication system still
+        processed the file).
+
+        - status OK    — publication succeeded
+        - status ERROR — publication failed
+
+        The call is last-writer-wins: a publication system that gets
+        resynchronised may report the same publication any number of
+        times — identical replays are no-ops, new values silently
+        overwrite. Rate-limiting / conflict detection may be added in
+        a later revision.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Publication identifier (ARR_EXPORT.export_id).
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The request has succeeded.
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseException'
+      tags:
+        - publication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicationStatusReport'
   /report/definitions:
     get:
       operationId: Report_getDefinitions
@@ -1658,6 +3852,37 @@ paths:
                 $ref: '#/components/schemas/BaseException'
       tags:
         - report
+  /rules/itemTypes:
+    get:
+      operationId: Rules_listItemTypes
+      description: |-
+        Returns all item types defined across loaded rule sets, together with
+        their specifications and rendering hints.
+
+        Public URL: `GET /api/v1/rules/itemTypes`.
+
+        Localized strings (`name`, `shortcut`, `description` on `ItemType` and
+        `ItemTypeSpec`, plus `name` on `ItemTableColumn`) honour the
+        `Accept-Language` request header when provided; otherwise the server
+        default language is used.
+
+        Replaces the legacy `GET /api/rule/descItemTypes`.
+      parameters:
+        - name: Accept-Language
+          in: header
+          required: false
+          description: Preferred language for localized strings (e.g. "cs", "en").
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemTypeList'
+      tags:
+        - rules
   /search-ap:
     post:
       operationId: Search_entity
@@ -1736,8 +3961,31 @@ paths:
             schema:
               $ref: '#/components/schemas/SearchParams'
         description: search parameters
+  /tasks/my:
+    get:
+      operationId: Tasks_getMyTasks
+      description: Task list for a given user
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tasks.ViewDetail'
+      tags:
+        - tasks
 components:
   parameters:
+    AipIdParameter:
+      name: aipId
+      in: path
+      required: true
+      description: Aip ID
+      schema:
+        type: integer
     FsRepoIdParameter:
       name: fsrepoId
       in: path
@@ -1764,6 +4012,13 @@ components:
       in: path
       required: true
       description: Node ID
+      schema:
+        type: integer
+    PublicationIdParameter:
+      name: publicationId
+      in: path
+      required: true
+      description: Publication ID (ARR_EXPORT.export_id).
       schema:
         type: integer
   schemas:
@@ -1832,6 +4087,184 @@ components:
           format: int32
           description: Number of logged users
       description: Basic statistics about Elza instance
+    AipDetailFilteredResult:
+      type: object
+      required:
+        - count
+        - rows
+      properties:
+        count:
+          type: integer
+          description: Počet výsledků
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/AipDetailVO'
+          description: Seznam objektů
+    AipDetailVO:
+      type: object
+      required:
+        - aipId
+        - code
+        - digitalRepositoryId
+        - aipVersion
+        - fund
+        - fundCode
+        - institution
+        - originatorInstitution
+        - originator
+        - unitdateFrom
+        - unitdateTo
+        - institutionCode
+        - ingestionCode
+        - referenceNumber
+        - nadChangeCode
+        - aipSize
+        - metadataLoad
+        - completeAipLoad
+        - metadataError
+        - metadataErrorException
+        - aipVersionMetadata
+        - importState
+        - exportState
+        - linkedNodes
+      properties:
+        aipId:
+          type: integer
+          description: Id AIPu
+        code:
+          type: string
+          description: Kód AIPu
+        digitalRepositoryId:
+          type: integer
+          description: Id digitálního repozitáře
+        aipVersion:
+          type: string
+          description: Verze AIPu
+        fund:
+          allOf:
+            - $ref: '#/components/schemas/ArrFundGen'
+          description: Archivní soubor
+        fundCode:
+          type: string
+          description: Kód archivního souboru
+        institution:
+          allOf:
+            - $ref: '#/components/schemas/ParInstitutionGen'
+          description: Instituce
+        originatorInstitution:
+          allOf:
+            - $ref: '#/components/schemas/ParInstitutionGen'
+          description: Instituce původce
+        originator:
+          type: string
+          description: Původce
+        unitdateFrom:
+          type: string
+          description: Datace od
+        unitdateTo:
+          type: string
+          description: Datace do
+        institutionCode:
+          type: string
+          description: Kód instituce
+        ingestionCode:
+          type: string
+          description: Číslo příjemky
+        referenceNumber:
+          type: string
+          description: Číslo jednací příjemky ve spisovce
+        nadChangeCode:
+          type: string
+          description: Identifikátor vnější změny NAD v PEvA
+        aipSize:
+          type: integer
+          description: Velikost AIPu v bytech
+        metadataLoad:
+          type: boolean
+          description: Příznak načtených metadat
+        completeAipLoad:
+          type: boolean
+          description: Příznak načteného kompletního AIPu
+        metadataError:
+          type: boolean
+          description: Příznak chyby při načítání metadat
+        metadataErrorException:
+          type: string
+          description: Chyby při načítání metadat
+        aipVersionMetadata:
+          type: string
+          description: Verze AIPu s načtenými metadaty
+        importState:
+          allOf:
+            - $ref: '#/components/schemas/QueueItemState'
+          description: Stav importu
+        exportState:
+          allOf:
+            - $ref: '#/components/schemas/QueueItemState'
+          description: Stav exportu
+        linkedNodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkedNodeVO'
+          description: Seznam napojených nodes
+      description: Vo pro detail AIPu
+    AipFilterCriteriaGen:
+      type: string
+      enum:
+        - IS_NULL
+        - IS_NOT_NULL
+        - CONTAINS
+        - DOES_NOT_CONTAIN
+        - EQUALS
+        - BETWEEN
+      description: Způsob porovnání hodnot filtru
+    AipFilterGen:
+      type: object
+      required:
+        - attr
+        - criteria
+        - path
+      properties:
+        id:
+          type: string
+          description: UUID filtru
+        attr:
+          type: string
+          description: Atribut, podle kterého chceme filtrovat
+        value:
+          type: string
+          description: filtrovaná hodnota
+        criteria:
+          allOf:
+            - $ref: '#/components/schemas/AipFilterCriteriaGen'
+          description: Způsob porovnání
+        from:
+          type: string
+          description: Hodnota od
+        to:
+          type: string
+          description: Hodnota do
+        path:
+          type: string
+          description: Cesta
+      description: Filter aipu
+    AipType:
+      type: string
+      enum:
+        - PACKAGE_INFO
+        - ARCHDESC
+        - METADATA_BASE
+        - AIP_BASE
+        - AIP_RAW
+      description: Aip package type
+    AipUpdateType:
+      type: string
+      enum:
+        - DB_UPDATE
+        - DOWNLOAD_UPDATE
+        - FORCE_UPDATE
+      description: AIP update type
     ApPartFormVO:
       type: object
       format: partform
@@ -1844,6 +4277,209 @@ components:
         - APPROVED
         - TO_AMEND
       description: States of ApState
+    ApSearchArea:
+      type: string
+      enum:
+        - PREFER_NAMES
+        - ALL_NAMES
+        - ALL_PARTS
+        - ENTITY_CODE
+      description: 'Area in which to search: preferred names only / all names / all parts / by entity code'
+    ApSearchByRelation:
+      type: object
+      properties:
+        relTypeId:
+          type: integer
+          description: Item type id of the relation
+        relSpecId:
+          type: integer
+          description: Item specification id of the relation
+        code:
+          type: integer
+          description: Access-point id the relation must point to
+      description: Filter for searching by a relation (item type, specification, target AP)
+    ApSearchByItemWithValue:
+      type: object
+      properties:
+        partTypeCode:
+          type: string
+          description: Code of the part type to search in
+        itemTypeId:
+          type: integer
+          description: Item type id
+        itemSpecId:
+          type: integer
+          description: Item specification id (optional)
+        value:
+          type: object
+          description: Value to match (free-form; interpretation depends on item type)
+      description: Filter for searching by an item with a specific value
+    ApAdvanceSearchFilter:
+      type: object
+      properties:
+        search:
+          type: string
+          description: Full-text search term
+        area:
+          allOf:
+            - $ref: '#/components/schemas/ApSearchArea'
+          description: Area in which to search
+        onlyMainPart:
+          type: boolean
+          description: Restrict the search to the main part
+        aeTypeIds:
+          type: array
+          items:
+            type: integer
+          description: List of access-point type ids to include
+        code:
+          type: string
+          description: Identifier of a concrete access point
+        user:
+          type: string
+          description: Username (or login) filter
+        assignedTo:
+          type: integer
+          description: Id of user the access point is assigned to
+        validationResult:
+          type: string
+          description: 'Validation result: ok | error'
+        creation:
+          type: string
+          description: Creation date filter
+        extinction:
+          type: string
+          description: Extinction date filter
+        relFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApSearchByRelation'
+          description: Filters by relation
+        extFilters:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApSearchByItemWithValue'
+          description: Filters by item value
+        syncState:
+          allOf:
+            - $ref: '#/components/schemas/SyncState'
+          description: Filter by binding synchronisation state
+        excludeAps:
+          type: array
+          items:
+            type: integer
+          description: List of access-point ids to exclude from the result
+      description: Advanced filter for access-point search; used as the request body of /accesspoint/search
+    AccessPointBatchExportParams:
+      type: object
+      properties:
+        search:
+          type: string
+          description: Full-text search
+        apTypeId:
+          type: integer
+          description: Single AP-type id; on the backend it is subtree-expanded so descendant types are included
+        versionId:
+          type: integer
+          description: Fund version id (used to resolve scope context, optional)
+        scopeId:
+          type: integer
+          description: Scope id; on the backend it is expanded for the resolved fund + user-visible scopes
+        itemTypeId:
+          type: integer
+          description: Restrict to AP types referenced from this item type
+        itemSpecId:
+          type: integer
+          description: Restrict to AP types referenced from this item specification
+        state:
+          allOf:
+            - $ref: '#/components/schemas/ApStateApproval'
+          description: Filter by access-point state
+        revState:
+          allOf:
+            - $ref: '#/components/schemas/RevisionState'
+          description: Filter by revision state
+        searchFilter:
+          allOf:
+            - $ref: '#/components/schemas/ApAdvanceSearchFilter'
+          description: Advanced filter (mirrors the body of /accesspoint/search). When the top-level scalar fields and searchFilter both define a value, the top-level value wins for the parameters where this conflicts (e.g. top-level search vs. searchFilter.search).
+      description: Body of POST /accesspoint/export. Mirrors the scalar parameters of /accesspoint/search and accepts the same advanced filter via searchFilter.
+    ApSearchType:
+      type: string
+      enum:
+        - DISABLED
+        - JOIN
+        - FULLTEXT
+        - RIGHT_SIDE_LIKE
+      description: Search strategy for criteria-based access-point queries (name / username fields)
+    ApAccessPointVO:
+      type: object
+      format: ap-access-point-vo
+      description: Access-point view object (returned by /accesspoint/search). Externally provided — see cz.tacr.elza.controller.vo.ApAccessPointVO
+    AccessPointSearchParams:
+      type: object
+      properties:
+        search:
+          type: string
+          description: Full-text search
+        from:
+          type: integer
+          description: Offset (zero-based) of the first result to return
+        count:
+          type: integer
+          description: Maximum number of rows to return
+        apTypeId:
+          type: integer
+          description: Single AP-type id; on the backend it is subtree-expanded so descendant types are included
+        versionId:
+          type: integer
+          description: Fund version id (used to resolve scope context, optional)
+        scopeId:
+          type: integer
+          description: Scope id; expanded on the backend
+        itemTypeId:
+          type: integer
+          description: Restrict to AP types referenced from this item type
+        itemSpecId:
+          type: integer
+          description: Restrict to AP types referenced from this item specification
+        state:
+          allOf:
+            - $ref: '#/components/schemas/ApStateApproval'
+          description: Filter by access-point state
+        revState:
+          allOf:
+            - $ref: '#/components/schemas/RevisionState'
+          description: Filter by revision state
+        searchTypeName:
+          allOf:
+            - $ref: '#/components/schemas/ApSearchType'
+          description: Search strategy applied to access-point name (criteria-query path)
+        searchTypeUsername:
+          allOf:
+            - $ref: '#/components/schemas/ApSearchType'
+          description: Search strategy applied to user / username (criteria-query path)
+        searchFilter:
+          allOf:
+            - $ref: '#/components/schemas/ApAdvanceSearchFilter'
+          description: Advanced filter; same precedence rule as AccessPointBatchExportParams (top-level scalar fields override conflicting fields inside searchFilter)
+      description: Body of POST /accesspoint/search.
+    ApAccessPointSearchResult:
+      type: object
+      required:
+        - count
+        - rows
+      properties:
+        count:
+          type: integer
+          format: int64
+          description: Total number of matches (before pagination)
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApAccessPointVO'
+          description: One page of results
+      description: Paginated access-point search result returned by /accesspoint/search
     ApStateUpdate:
       type: object
       required:
@@ -1878,6 +4514,43 @@ components:
           items:
             $ref: '#/components/schemas/PartValidationIssues'
       description: Entity validation issues/errors
+    ArrFundGen:
+      type: object
+      required:
+        - id
+        - name
+        - internalCode
+        - fundNumber
+        - mark
+        - createDate
+        - institutionId
+        - unitdate
+      properties:
+        id:
+          type: integer
+          description: Identifikátor
+        name:
+          type: string
+          description: Název
+        internalCode:
+          type: string
+          description: Kód
+        fundNumber:
+          type: integer
+          description: Číslo
+        mark:
+          type: string
+          description: Značka
+        createDate:
+          type: string
+          description: Datum vytvoření
+        institutionId:
+          type: integer
+          description: ID instituce archivního souboru
+        unitdate:
+          type: string
+          description: Unitdate
+      description: Archivní soubor
     AutoValue:
       type: object
       properties:
@@ -1891,6 +4564,103 @@ components:
           type: string
           description: value of the element
       description: Automatically generated elements of the description
+    AvailablePublication:
+      type: object
+      required:
+        - publicationId
+        - fundId
+        - fundVersionId
+        - createdTime
+        - publicationType
+      properties:
+        publicationId:
+          type: integer
+          description: Publication identifier (ARR_EXPORT.export_id).
+        fundId:
+          type: integer
+          description: Archival fund identifier.
+        fundVersionId:
+          type: integer
+          description: Identifier of the fund version the export was created from.
+        createdTime:
+          type: string
+          format: date-time
+          description: Time the publication request was created.
+        lastChangeId:
+          type: integer
+          description: |-
+            ID of the last fund change included in the export (reference to
+            arr_change). May be null if the originating change has been removed
+            from arr_change — the XML content itself is not affected.
+        publicationType:
+          type: string
+          description: |-
+            Export data format expressed as the URI of the target XSD namespace.
+            The client should pick the schema to parse the XML with according to
+            this value; unknown values should be ignored.
+
+            Known values:
+            - `http://elza.tacr.cz/schema/v2` — Elza native XML schema, version 2.
+
+            The field is intentionally typed as a free-form string (not an enum)
+            so that new formats can be introduced without a TypeSpec change.
+      description: |-
+        Entry in the list of prepared exports.
+
+        The archival institution code and NAD are not part of this header — they
+        are contained in the XML.
+    AvailablePublications:
+      type: object
+      required:
+        - nextTransaction
+        - items
+      properties:
+        nextTransaction:
+          type: string
+          description: |-
+            Transaction identifier the caller should send in the next request as
+            `lastTransaction`. When `items` is empty, the same value as the
+            input is returned.
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailablePublication'
+          description: |-
+            List of prepared exports after `lastTransaction` (exclusive),
+            ordered ascending by internal transaction.
+
+            At most 100 records are returned. If multiple prepared exports exist
+            for the same fund with the same export parameters (target system
+            and filter), only the most recent one is returned — superseded
+            entries are suppressed so the recipient does not have to download
+            already-obsolete versions.
+
+            Records that do not currently have a downloadable file (e.g. removed
+            by retention or invalidated) are not returned.
+      description: |-
+        Page of prepared exports for a given target system.
+
+        The caller remembers the `nextTransaction` value from the response and
+        sends it back in the next request as `lastTransaction`. The value is an
+        opaque key from the caller's perspective — its internal structure may
+        change in the future and must not be parsed by the caller.
+    BaseCode:
+      type: object
+      required:
+        - id
+        - code
+        - name
+      properties:
+        id:
+          type: integer
+          description: Identifikátor
+        code:
+          type: string
+          description: Kód
+        name:
+          type: string
+          description: Název
+      description: Souhrný model pro enumy
     BaseException:
       type: object
       required:
@@ -1910,6 +4680,41 @@ components:
         stackTrace:
           type: string
       description: Error specification for the client
+    BaseItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: id of item
+        itemObjectId:
+          type: integer
+          description: id value of item
+        position:
+          type: integer
+          description: pozition
+        undefined:
+          type: boolean
+          description: no value
+        itemTypeId:
+          type: integer
+          description: id type of item
+        itemSpecId:
+          type: integer
+          description: id spec of item
+        readOnly:
+          type: boolean
+          description: value cannot be changed
+        data:
+          allOf:
+            - $ref: '#/components/schemas/ItemData'
+          description: item data
+    ConnectionType:
+      type: string
+      enum:
+        - DEVELOPMENT
+        - TEST
+        - PRODUCTION
+      description: Kind of target environment a publication type connects to.
     CopyAccessPointDetail:
       type: object
       required:
@@ -1927,6 +4732,18 @@ components:
             type: integer
           description: list of description element IDs not to copy
       description: Additional copy options
+    CopyPublication:
+      type: object
+      required:
+        - targetPublicationTypeId
+      properties:
+        targetPublicationTypeId:
+          type: integer
+          description: Identifier of the publication type to copy the export into.
+      description: |-
+        Body of POST /fund/{fundId}/publication/{publicationId}/copy — copy an
+        existing prepared export into another target system. The target type
+        must have a compatible filter setting.
     CreateFund:
       type: object
       required:
@@ -1976,6 +4793,17 @@ components:
           minItems: 1
           description: Seznam oblastí entit
       description: Zakládaný archivní souboru
+    CreatePublication:
+      type: object
+      required:
+        - publicationTypeId
+      properties:
+        publicationTypeId:
+          type: integer
+          description: Identifier of the publication type to publish into.
+      description: |-
+        Body of POST /fund/{fundId}/publication — request to enqueue a new
+        publication for the current open version of the fund.
     CreatedPart:
       type: object
       required:
@@ -1987,6 +4815,82 @@ components:
         apVersion:
           type: integer
       description: Result of creating a part
+    DaDaoType:
+      type: string
+      enum:
+        - REPRESENTATION
+        - LOGICAL
+        - FILE
+        - METAAMD
+        - METADMDINHERENT
+        - METADMDCONTEXTUAL
+      description: Dao type
+    DaoLink:
+      type: object
+      required:
+        - daoLinkUuid
+        - aipId
+        - name
+      properties:
+        daoLinkId:
+          type: integer
+          description: Dao link ID
+        daoLinkUuid:
+          type: string
+          description: Dao link UUID
+        aipId:
+          type: integer
+          description: Aip ID
+        daoId:
+          type: integer
+          description: Dao ID
+        daoCode:
+          type: string
+          description: Dao code
+        daoType:
+          allOf:
+            - $ref: '#/components/schemas/DaDaoType'
+          description: Dao type
+        name:
+          type: string
+          description: Komponent name
+        path:
+          type: string
+          description: Cesta k dao
+        childrenCount:
+          type: integer
+          description: Number of children components
+        children:
+          description: Link on children components
+          type: array
+          items:
+            $ref: '#/components/schemas/DaoLink'
+      description: Dao link
+    DaoLinksResult:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DaoLink'
+      description: List of dao links
+    DaoViewRequestVO:
+      type: object
+      required:
+        - daoId
+        - entityRef
+        - viewUrl
+      properties:
+        daoId:
+          type: string
+          description: Identifikátor aipu - aip.code
+        entityRef:
+          type: string
+          description: Identifikátor dao - dao.code
+        viewUrl:
+          type: string
+          description: Url pro zobratení komponenty
+      description: Model DaoVireRequest
     DataBit:
       type: object
       required:
@@ -2264,6 +5168,140 @@ components:
           type: string
           description: optional description of entity
       description: Return value when copying ApAccessPoint
+    ExplorerTreeNode:
+      type: object
+      required:
+        - uuid
+        - daoId
+        - label
+        - childFolders
+        - childFiles
+        - parentFolder
+        - parentFolderLogical
+        - linkedNodes
+      properties:
+        uuid:
+          type: string
+          description: Identifikátor nodu
+        daoId:
+          type: integer
+          format: int32
+          description: Identifikátor da dao
+        label:
+          type: string
+          description: Popisek nodu
+        childFolders:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExplorerTreeNode'
+          description: Seznam podsložek
+        childFiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExplorerTreeNodeFile'
+          description: Seznam podsouborů
+        parentFolder:
+          allOf:
+            - $ref: '#/components/schemas/ExplorerTreeNode'
+          description: Rodičovská složka
+        parentFolderLogical:
+          allOf:
+            - $ref: '#/components/schemas/ExplorerTreeNode'
+          description: Rodičovská složka v logické struktuře
+        linkedNodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkedNodeVO'
+          description: Seznam připojených nodů
+      description: Model ExplorerTreeNode
+    ExplorerTreeNodeFile:
+      type: object
+      required:
+        - daoFileId
+        - checksum
+        - checksumType
+        - mimeType
+        - size
+        - filename
+        - uuid
+        - daoId
+        - label
+        - childFolders
+        - childFiles
+        - parentFolder
+        - parentFolderLogical
+        - linkedNodes
+        - daoFileFolderId
+      properties:
+        daoFileId:
+          type: integer
+        checksum:
+          type: string
+        checksumType:
+          type: string
+        mimeType:
+          type: string
+        size:
+          type: integer
+          format: int32
+        imageHeight:
+          type: integer
+        imageWidth:
+          type: integer
+        sourceXDimensionUnit:
+          type: string
+        sourceXDimensionValue:
+          type: integer
+        sourceYDimensionUnit:
+          type: string
+        sourceYDimensionValue:
+          type: integer
+        duration:
+          type: string
+        description:
+          type: string
+        filename:
+          type: string
+        uuid:
+          type: string
+          description: Identifikátor nodu
+        daoId:
+          type: integer
+          format: int32
+          description: Identifikátor da dao
+        label:
+          type: string
+          description: Popisek nodu
+        childFolders:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExplorerTreeNode'
+          description: Seznam podsložek
+        childFiles:
+          description: Seznam podsouborů
+          type: array
+          items:
+            $ref: '#/components/schemas/ExplorerTreeNodeFile'
+        parentFolder:
+          allOf:
+            - $ref: '#/components/schemas/ExplorerTreeNode'
+          description: Rodičovská složka
+        parentFolderLogical:
+          allOf:
+            - $ref: '#/components/schemas/ExplorerTreeNode'
+          description: Rodičovská složka v logické struktuře
+        linkedNodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkedNodeVO'
+          description: Seznam připojených nodů
+        daoFileFolderId:
+          type: integer
+          format: int32
+        isLogical:
+          type: boolean
+          description: Příznak logické struktury
+      description: Model ExplorerTreeNodeFile
     ExportParams:
       type: object
       properties:
@@ -2275,8 +5313,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FundSections'
-        exportFilterId:
-          type: integer
+        exportFilter:
+          type: string
+          description: kód nebo ID filtru
         includeUUID:
           type: boolean
           default: true
@@ -2294,6 +5333,249 @@ components:
         progress:
           type: integer
       description: Status of request
+    ExtEntityBinding:
+      type: object
+      required:
+        - id
+        - externalSystemId
+        - externalSystemCode
+        - value
+      properties:
+        id:
+          type: integer
+        externalSystemId:
+          type: integer
+        externalSystemCode:
+          type: string
+          description: |-
+            Code of the external system. Marked deprecated on the Java VO, but
+            still load-bearing for several action calls — kept until the callers
+            migrate to externalSystemId.
+        value:
+          type: string
+          description: Identifier of the entity in the external system.
+        extState:
+          type: string
+        extRevision:
+          type: string
+        extUser:
+          type: string
+        extReplacedBy:
+          type: string
+        detailUrlExtReplacedBy:
+          type: string
+        syncState:
+          $ref: '#/components/schemas/SyncState'
+        syncProgress:
+          $ref: '#/components/schemas/SyncProgress'
+        bindingItemList:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtItemBinding'
+        extMetadataRevision:
+          type: string
+        extPrevRevision:
+          type: string
+        extCreatedAt:
+          type: string
+          format: date-time
+          description: Creation time of this revision in the external system.
+        issueSummary:
+          allOf:
+            - $ref: '#/components/schemas/ExtIssueSummary'
+          description: Pre-computed badge for the warning icon. Absent = no issues.
+      description: |-
+        One binding of an access point to an external system. Represents the
+        entity's identity in that system together with sync/state metadata and
+        (since CAMv2) per-revision metadata and issue summary.
+    ExtHistory:
+      type: object
+      required:
+        - revisions
+        - totalCount
+        - incomplete
+      properties:
+        revisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtRevision'
+        totalCount:
+          type: integer
+          description: total number of revisions known to Elza for this binding
+        incomplete:
+          type: boolean
+          description: |-
+            True when the chain has gaps (some extPrevRevision points to a revision
+            Elza does not have). The UI then suggests consulting the source system.
+      description: Paginated history of a binding, newest revision first.
+    ExtIssue:
+      type: object
+      required:
+        - id
+        - severity
+      properties:
+        id:
+          type: integer
+          description: binding_issue_id
+        uuid:
+          type: string
+          description: stable identifier from CAM, when provided
+        severity:
+          $ref: '#/components/schemas/ExtIssueSeverity'
+        status:
+          $ref: '#/components/schemas/ExtIssueStatus'
+        ruleCode:
+          type: string
+        issueCode:
+          type: string
+        message:
+          type: string
+        source:
+          type: string
+        detail:
+          type: string
+        note:
+          type: string
+        issueFrom:
+          type: string
+          format: date-time
+          description: valid-from timestamp from CAM
+        extFromRev:
+          type: string
+          description: external revision in which the issue first appeared
+        partId:
+          type: integer
+          description: referenced part of the AP, when applicable
+        itemId:
+          type: integer
+          description: referenced item of the AP, when applicable
+        relatedBindingId:
+          type: integer
+          description: related binding within the same external system, when applicable
+        relatedBindingExtValue:
+          type: string
+          description: value of the related binding in the external system
+      description: |-
+        One issue/finding reported by CAM about an entity binding. Issues are not
+        versioned in Elza — only the current state synced from CAM is kept. Issue
+        references never cross external systems: relatedBindingId always points to
+        a binding within the same external system as this entity.
+    ExtIssueIconState:
+      type: string
+      enum:
+        - NONE
+        - NEUTRAL
+        - NEW
+        - ATTENTION
+      description: |-
+        Aggregated badge state computed by the server from all issues on a binding.
+
+        NONE      no issues
+        NEUTRAL   only WARNING issues with status IR_ALL_REVISIONS_OK / IR_REVISION_OK
+        NEW       at least one WARNING with status absent
+        ATTENTION any ERROR, or any status = IR_FIX_NEEDED — single most prominent icon
+    ExtIssueSeverity:
+      type: string
+      enum:
+        - WARNING
+        - ERROR
+      description: Severity of a CAM-side issue attached to an entity binding.
+    ExtIssueStatus:
+      type: string
+      enum:
+        - IR_ALL_REVISIONS_OK
+        - IR_FIX_NEEDED
+        - IR_REVISION_OK
+      description: |-
+        Resolution state of an issue. Absent on the wire = new issue not yet
+        evaluated by the user.
+    ExtIssueSummary:
+      type: object
+      required:
+        - count
+        - iconState
+      properties:
+        count:
+          type: integer
+          description: total number of issues attached to the binding
+        iconState:
+          $ref: '#/components/schemas/ExtIssueIconState'
+      description: |-
+        Pre-computed badge for a binding, embedded in ExtEntityBinding so the client
+        renders the warning icon without a second round-trip.
+    ExtItemBinding:
+      type: object
+      required:
+        - sync
+      properties:
+        partId:
+          type: integer
+        itemId:
+          type: integer
+        sync:
+          type: boolean
+      description: Binding of one part or item of an access point to an external entity.
+    ExtParticipant:
+      type: object
+      required:
+        - id
+        - role
+        - name
+        - lastChange
+      properties:
+        id:
+          type: integer
+          description: binding_participant_id
+        role:
+          $ref: '#/components/schemas/ExtParticipantRole'
+        name:
+          type: string
+        institutionCode:
+          type: string
+        lastChange:
+          type: string
+          format: date-time
+      description: One person who participated on a binding revision.
+    ExtParticipantRole:
+      type: string
+      enum:
+        - AUTHOR
+        - APPROVAL
+      description: Role of a participant on an entity revision.
+    ExtRevision:
+      type: object
+      required:
+        - bindingStateId
+        - participants
+      properties:
+        bindingStateId:
+          type: integer
+          description: binding_state_id
+        extRevision:
+          type: string
+        extPrevRevision:
+          type: string
+        extMetadataRevision:
+          type: string
+        extCreatedAt:
+          type: string
+          format: date-time
+          description: time of revision creation in the external system
+        createChangeAt:
+          type: string
+          format: date-time
+          description: fallback timestamp from arr_change when extCreatedAt is missing
+        sender:
+          type: string
+          description: sender of the revision — value of ApBindingState.extUser
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtParticipant'
+      description: |-
+        One revision in the binding's history, assembled from ap_binding_state with
+        embedded participants from ap_binding_participant. Participants are returned
+        ordered by lastChange (ascending).
     ExtSystemProperty:
       type: object
       required:
@@ -2511,76 +5793,50 @@ components:
       properties:
         id:
           type: integer
-          description: Identifikátor
+          description: Fonds identifier
         uuid:
           type: string
-          description: UUID - identifikátor AS
+          description: Fonds UUID
         name:
           type: string
-          description: Název
+          description: Fonds name
         institutionIdentifier:
           type: string
-          description: Identifikátor instituce (vždy kód instituce)
+          description: Archival institution identifier
         internalCode:
           type: string
-          description: Interní kód
+          description: Internal organization fonds code
         createDate:
           type: string
           format: date-time
-          description: Datum založení
+          description: Creation fonds date
         fundNumber:
           type: integer
-          description: Číslo archivního souboru
+          description: Archival fonds number
         unitdate:
           type: string
-          description: Datace
+          description: Date range for the fonds
         mark:
           type: string
-          description: Značka archivního souboru
-      description: Archivní soubor
+          description: Fonds mark
+      description: Archival fonds described by basic information
     FundDetail:
       type: object
       required:
-        - id
-        - uuid
-        - name
-        - institutionIdentifier
         - scopes
+        - fundVersionId
       properties:
-        id:
-          type: integer
-          description: Identifikátor
-        uuid:
-          type: string
-          description: UUID - identifikátor AS
-        name:
-          type: string
-          description: Název
-        institutionIdentifier:
-          type: string
-          description: Identifikátor instituce (vždy kód instituce)
-        internalCode:
-          type: string
-          description: Interní kód
-        createDate:
-          type: string
-          format: date-time
-          description: Datum založení
-        fundNumber:
-          type: integer
-          description: Číslo archivního souboru
-        unitdate:
-          type: string
-          description: Datace
-        mark:
-          type: string
-          description: Značka archivního souboru
         scopes:
           type: array
           items:
             type: string
           description: Seznam oblastí entit
-      description: Zakládaný archivní souboru
+        fundVersionId:
+          type: integer
+          description: Active funds version
+      allOf:
+        - $ref: '#/components/schemas/Fund'
+      description: Details about archival funds
     FundSearchResult:
       type: object
       required:
@@ -2624,6 +5880,16 @@ components:
       required:
         - importType
         - dataFile
+    IntViewDefinition:
+      type: object
+      required:
+        - displayType
+      properties:
+        displayType:
+          $ref: '#/components/schemas/ItemDisplayType'
+      allOf:
+        - $ref: '#/components/schemas/ItemViewDefinition'
+      description: 'Display hint for INT items: numeric vs. duration formatting.'
     InvalidatedEntities:
       type: object
       required:
@@ -2681,6 +5947,198 @@ components:
             - $ref: '#/components/schemas/NodeItem'
           description: item
       description: Výsledek vytvoření nebo aktualizace ArrDescItem
+    ItemDisplayType:
+      type: string
+      enum:
+        - NUMBER
+        - DURATION
+      description: Display hint for items of `dataType == INT`.
+    ItemTableColumn:
+      type: object
+      required:
+        - code
+        - name
+        - dataType
+      properties:
+        code:
+          type: string
+          description: Column code.
+        name:
+          type: string
+          description: Human-readable column name (localized).
+        dataType:
+          type: string
+          description: Column data type — limited subset; see ELZA package XSD.
+        width:
+          type: integer
+          description: Suggested column width.
+      description: Column definition for items of `dataType == JSON_TABLE`.
+    ItemType:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - shortcut
+        - dataType
+        - sortable
+      properties:
+        id:
+          type: integer
+          description: Database identifier of the underlying `rul_item_type` row. Not stable across deployments — use `code` for cross-system references.
+        code:
+          type: string
+          description: Stable public code (e.g. "ZP2015_UNIT_ID").
+        name:
+          type: string
+          description: Human-readable name (localized).
+        shortcut:
+          type: string
+          description: Short label for compact UI such as column headers (localized).
+        description:
+          type: string
+          description: Longer description (localized).
+        dataType:
+          allOf:
+            - $ref: '#/components/schemas/DataType'
+          description: Underlying value type.
+        sortable:
+          type: boolean
+          description: Whether items of this type can be used as a sort key.
+        structureTypeCode:
+          type: string
+          description: |-
+            For `dataType == STRUCTURED` only: code of the structure type whose
+            template defines this item's nested fields.
+        viewDefinition:
+          allOf:
+            - $ref: '#/components/schemas/ItemViewDefinition'
+          description: Optional rendering hints; variant determined by `dataType`.
+        specs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemTypeSpec'
+          description: Available specifications, in display order. Empty/omitted ⇒ no specifications.
+      description: |-
+        Definition of one item type registered in the rules.
+
+        Replaces the legacy `RulDescItemTypeExtVO` exposed via
+        `GET /api/rule/descItemTypes`. Display order is given by the order of
+        the response `itemTypes[]` array.
+
+        Per-form behaviour (whether the item is required/recommended, whether it
+        is repeatable in a given context, etc.) is **not** part of this registry
+        — that information lives in `FormItemType` / `FormItemSpec`, returned by
+        the node-form endpoints.
+    ItemTypeGroup:
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        types:
+          type: array
+          items:
+            $ref: '#/components/schemas/FormItemType'
+      description: |-
+        Skupina zapouzdrující typy hodnot atributů pro UI
+
+        Náhrada `ItemTypeGroupVO`
+    ItemTypeList:
+      type: object
+      required:
+        - itemTypes
+      properties:
+        itemTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemType'
+          description: Item types defined across all loaded rule sets, in display order.
+      description: Response payload for `GET /itemTypes`.
+    ItemTypeSpec:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - shortcut
+      properties:
+        id:
+          type: integer
+          description: Database identifier of the underlying `rul_item_spec` row. Not stable across deployments — use `code` for cross-system references.
+        code:
+          type: string
+          description: Stable public code.
+        name:
+          type: string
+          description: Human-readable name (localized).
+        shortcut:
+          type: string
+          description: Short label for compact UI (localized).
+        description:
+          type: string
+          description: Longer description (localized).
+      description: |-
+        A specification (enumerated value) of an item type.
+        Display order is given by the order of the parent `specs[]` array.
+    ItemViewDefinition:
+      type: object
+      required:
+        - dataType
+      properties:
+        dataType:
+          $ref: '#/components/schemas/DataType'
+      discriminator:
+        propertyName: dataType
+        mapping:
+          INT: '#/components/schemas/IntViewDefinition'
+          STRING: '#/components/schemas/StringViewDefinition'
+          JSON_TABLE: '#/components/schemas/JsonTableViewDefinition'
+      description: |-
+        Optional rendering hints for an `ItemType`.
+
+        Discriminated by `dataType`. Item types whose data type has no rendering
+        hint (DATE, COORDINATES, RECORD_REF, …) simply omit `viewDefinition` on
+        `ItemType`.
+    JsonTableViewDefinition:
+      type: object
+      required:
+        - tableColumns
+      properties:
+        tableColumns:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemTableColumn'
+      allOf:
+        - $ref: '#/components/schemas/ItemViewDefinition'
+      description: Column definitions for JSON_TABLE items.
+    LinkType:
+      type: string
+      enum:
+        - AIP
+        - PART_AIP
+        - COMPONENT_AIP
+      description: Link type
+    LinkedNodeVO:
+      type: object
+      required:
+        - id
+        - nodeId
+        - name
+      properties:
+        id:
+          type: integer
+          description: Identifikátor linku
+        nodeId:
+          type: integer
+          description: Identifikátor node
+        name:
+          type: string
+          description: Jméno node
     LoggedUser:
       type: object
       required:
@@ -2768,7 +6226,24 @@ components:
           type: string
           description: vytvořená citace
       description: Received quote
-    NodeAccordionData:
+    NodeBase:
+      type: object
+      required:
+        - id
+        - version
+        - uuid
+      properties:
+        id:
+          type: integer
+          description: id of node
+        version:
+          type: integer
+          description: node version
+        uuid:
+          type: string
+          description: node uuid
+      description: Node information without item values, used for parent and sibling nodes in NodeData
+    NodeBrief:
       type: object
       required:
         - id
@@ -2809,26 +6284,10 @@ components:
             $ref: '#/components/schemas/WfSimpleIssue'
           description: seznam otevřených připomínek
       description: |-
-        Struktura pro položky v accordionu.
+        Brief view of a description unit — id, version, accordion-row presentation fields, and per-node status indicators.
+        Used wherever a list of nodes is presented (e.g. siblings).
 
         Náhrada `AccordionNodeVO`
-    NodeBase:
-      type: object
-      required:
-        - id
-        - version
-        - uuid
-      properties:
-        id:
-          type: integer
-          description: id of node
-        version:
-          type: integer
-          description: node version
-        uuid:
-          type: string
-          description: node uuid
-      description: Náhrada za třídu `ArrNodeVO`
     NodeConformity:
       type: object
       required:
@@ -2911,9 +6370,6 @@ components:
       type: object
       required:
         - formData
-        - parents
-        - children
-        - siblings
         - nodeIndex
         - nodeCount
       properties:
@@ -2921,21 +6377,25 @@ components:
           allOf:
             - $ref: '#/components/schemas/NodeFormData'
           description: data formuláře požadované JP
+        node:
+          allOf:
+            - $ref: '#/components/schemas/NodeStatus'
+          description: Status of the focus node. Returned only when request.nodeStatus is true.
         parents:
           type: array
           items:
             $ref: '#/components/schemas/NodeTreeData'
-          description: požadovaní rodiče ke kořeni
+          description: Parents chain up to the root. Returned only when request.parents is true.
         children:
           type: array
           items:
             $ref: '#/components/schemas/NodeTreeData'
-          description: požadovaní přímí potomci
+          description: Direct children. Returned only when request.children is true.
         siblings:
           type: array
           items:
-            $ref: '#/components/schemas/NodeAccordionData'
-          description: požadovaní sourozenci
+            $ref: '#/components/schemas/NodeBrief'
+          description: Siblings window. Returned only when request.siblingsFrom is set.
         nodeIndex:
           type: integer
           description: index požadované JP
@@ -2980,6 +6440,9 @@ components:
         children:
           type: boolean
           description: Load children description units?
+        nodeStatus:
+          type: boolean
+          description: Load focus-node status (response.node)? Default false.
       description: Parameters for get information about the description unit and its "surroundings"
     NodeField:
       type: object
@@ -3029,30 +6492,49 @@ components:
           type: boolean
           description: oprávnění pořádat v dané JP
       description: Náhrada `DescFormDataNewVO`
-    NodeItem:
+    NodeInfo:
       type: object
+      required:
+        - id
+        - version
+        - uuid
+        - fundId
+        - fundVersionId
       properties:
         id:
           type: integer
-          description: id of item
-        itemObjectId:
+          description: Node ID
+        version:
           type: integer
-          description: id value of item
-        position:
+          description: Node DB row version (for optimistic concurrency on subsequent writes)
+        uuid:
+          type: string
+          description: Node UUID
+        fundId:
           type: integer
-          description: pozition
-        undefined:
-          type: boolean
-          description: no value
-        itemTypeId:
+          description: Fund ID the node belongs to
+        fundVersionId:
           type: integer
-          description: id type of item
-        itemSpecId:
+          description: |-
+            ID of the most recent fund version in which the node was available
+            (i.e. had an active level). Not necessarily the open version —
+            if the node has been deleted in the open version, this points to
+            the latest version that still contained it.
+        deleteChangeId:
           type: integer
-          description: id spec of item
-        readOnly:
-          type: boolean
-          description: value cannot be changed
+          description: |-
+            ID of the ArrChange that deleted the node's level after `fundVersionId`
+            was locked. Absent if the node's level is still active in `fundVersionId`
+            (i.e. the node is still reachable in that version).
+      description: |-
+        Basic information about a node — its identifiers, fund placement,
+        and deletion state relative to the most recent version that contained it.
+
+        Lightweight alternative to the full node-data load for clients that
+        only need to resolve a node identifier to fund/version context.
+    NodeItem:
+      type: object
+      properties:
         nodeId:
           type: integer
           description: id node
@@ -3062,11 +6544,50 @@ components:
         inhibited:
           type: boolean
           description: if inheritance is prohibited - true
-        data:
-          allOf:
-            - $ref: '#/components/schemas/ItemData'
-          description: item data
+      allOf:
+        - $ref: '#/components/schemas/BaseItem'
       description: Náhrada za třídu `ArrItemVO`
+    NodeSearchResult:
+      type: object
+      required:
+        - fonds
+        - totalCount
+        - partialResult
+      properties:
+        fonds:
+          type: array
+          items:
+            $ref: '#/components/schemas/FundSearchResult'
+          description: seznam archivních souborů
+        totalCount:
+          type: integer
+          format: int64
+          description: celkový počet
+        partialResult:
+          type: boolean
+          description: znak částečného výsledku
+      description: Seznam archivních souborů jako výsledek vyhledávání
+    NodeStatus:
+      type: object
+      required:
+        - id
+        - version
+      properties:
+        id:
+          type: integer
+          description: Node identifier — echoes request.nodeId for self-describing responses.
+        version:
+          type: integer
+          description: DB version of the node, for optimistic concurrency on subsequent writes.
+        nodeConformity:
+          allOf:
+            - $ref: '#/components/schemas/NodeConformity'
+          description: Validation conformity (errors, missing items, visible policy types). Absent if no conformity record exists for this node.
+      description: |-
+        Status information about a single description unit (the node referenced by request.nodeId).
+        Returned in response.node when the request flag `nodeStatus` is true.
+
+        Designed to be additive-only: new optional fields may be appended without breaking clients.
     NodeTreeData:
       type: object
       required:
@@ -3107,6 +6628,21 @@ components:
         Data uzlu stromu odesílané klientovi pro strom fa.
 
         Náhrada `TreeNodeVO`
+    NodeUpdateItem:
+      type: object
+      required:
+        - updateOp
+        - item
+      properties:
+        updateOp:
+          allOf:
+            - $ref: '#/components/schemas/UpdateOp'
+          description: operation
+        item:
+          allOf:
+            - $ref: '#/components/schemas/NodeItem'
+          description: item to update
+      description: Náhrada za třídu `ArrUpdateItemVO`
     OperationCompareType:
       type: string
       enum:
@@ -3130,6 +6666,32 @@ components:
         - AND
         - OR
       description: Operation type for LogicalFilter
+    ParInstitutionGen:
+      type: object
+      required:
+        - id
+        - institutionType
+        - accessPointId
+        - name
+        - code
+      properties:
+        id:
+          type: integer
+          description: Id instituce
+        institutionType:
+          allOf:
+            - $ref: '#/components/schemas/BaseCode'
+          description: Typ instituce
+        accessPointId:
+          type: integer
+          description: Id ApAccessPoint
+        name:
+          type: string
+          description: Název instituce
+        code:
+          type: string
+          description: Kód instituce
+      description: VO pro instituce
     PartValidationIssues:
       type: object
       required:
@@ -3143,6 +6705,217 @@ components:
           items:
             type: string
       description: Part validation issues/errors
+    Participant:
+      type: object
+      required:
+        - canWrite
+        - canConfirm
+        - canEditConfirmed
+      properties:
+        canWrite:
+          type: boolean
+          description: if user has ability to save and modify new entity
+        canConfirm:
+          type: boolean
+          description: if user has ability to approve entity
+        canEditConfirmed:
+          type: boolean
+          description: if user has ability to change approved entity
+      allOf:
+        - $ref: '#/components/schemas/UserRef'
+      description: Entity processor (user)
+    PublicationDetail:
+      type: object
+      required:
+        - id
+        - typeId
+        - typeCode
+        - typeName
+        - fundVersionId
+        - state
+        - createdBy
+        - createdAt
+        - hasDownloadableFile
+      properties:
+        id:
+          type: integer
+          description: Publication identifier (ARR_EXPORT.export_id).
+        typeId:
+          type: integer
+          description: Publication type ID.
+        typeCode:
+          type: string
+          description: Publication type code (target system).
+        typeName:
+          type: string
+          description: Publication type name (display).
+        fundVersionId:
+          type: integer
+          description: Fund version the export was created from.
+        state:
+          allOf:
+            - $ref: '#/components/schemas/PublicationStateInternal'
+          description: Current life-cycle state.
+        createdBy:
+          allOf:
+            - $ref: '#/components/schemas/UserRef'
+          description: User who created the publication request.
+        createdAt:
+          type: string
+          format: date-time
+          description: Time the publication request was created.
+        preparedAt:
+          type: string
+          format: date-time
+          description: Time XML preparation finished. Null until PREPARED.
+        lastFetchedAt:
+          type: string
+          format: date-time
+          description: Time of the last fetch by the publication system.
+        publishedAt:
+          type: string
+          format: date-time
+          description: Time the publication reported completion.
+        errorAt:
+          type: string
+          format: date-time
+          description: Time the record entered an error state.
+        invalidatedAt:
+          type: string
+          format: date-time
+          description: Time the record was invalidated by a user.
+        lastChangeId:
+          type: integer
+          description: |-
+            ID of the last fund change included in the export snapshot. Null
+            when the originating change has been purged (the XML itself is
+            not affected).
+        errorMessage:
+          type: string
+          description: Error description for PREPARE_ERROR / PUBLISH_ERROR.
+        hasDownloadableFile:
+          type: boolean
+          description: Whether a downloadable XML file is currently available on the server.
+      description: One publication record as shown in the UI.
+    PublicationList:
+      type: object
+      required:
+        - items
+        - totalCount
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicationDetail'
+        totalCount:
+          type: integer
+          description: Total number of publications matching the query, not just on this page.
+      description: Paginated list of publications for a fund.
+    PublicationReportStatus:
+      type: string
+      enum:
+        - OK
+        - ERROR
+      description: Outcome reported back to Elza by the publication system.
+    PublicationStateInternal:
+      type: string
+      enum:
+        - NEW
+        - PREPARED
+        - FETCHED
+        - PUBLISHED
+        - PREPARE_ERROR
+        - PUBLISH_ERROR
+        - INVALIDATED
+      description: |-
+        Internal-only view of a publication's life-cycle state. Mirrors
+        {
+    PublicationStatusReport:
+      type: object
+      required:
+        - status
+        - publishedAt
+      properties:
+        status:
+          allOf:
+            - $ref: '#/components/schemas/PublicationReportStatus'
+          description: Publication outcome.
+        publishedAt:
+          type: string
+          format: date-time
+          description: |-
+            Time at which publication succeeded or failed, as reported by the
+            publication system.
+        errorMessage:
+          type: string
+          description: Error message. Filled only when status = ERROR.
+      description: Body of `POST /publications/status/{id}`.
+    PublicationType:
+      type: object
+      required:
+        - name
+        - code
+        - allowPermExport
+        - allowPermPublication
+        - connectionType
+      properties:
+        id:
+          type: integer
+          description: Server-assigned identifier. Absent on create / update request bodies.
+        name:
+          type: string
+          description: Human-readable name shown in the UI.
+        code:
+          type: string
+          description: |-
+            Stable code identifying the target system; also used as
+            {
+        active:
+          type: boolean
+          description: When false, the type accepts neither new publications nor downloads.
+          default: true
+        exportFilterCode:
+          type: string
+          description: Code of {
+        retentionCount:
+          type: integer
+          minimum: 0
+          description: |-
+            Number of most recent exports retained on disk per type. 0 means
+            unlimited; 1 keeps only the latest; default is 5.
+          default: 5
+        allowPermExport:
+          type: boolean
+          description: Users holding the FUND_EXPORT permission may publish into this type.
+        allowPermPublication:
+          type: boolean
+          description: Users holding the FUND_PUBLISH permission may publish into this type.
+        connectionType:
+          allOf:
+            - $ref: '#/components/schemas/ConnectionType'
+          description: Target environment kind (development / test / production).
+      description: |-
+        Publication type — target-system configuration.
+
+        Used as both the read shape (responses) and the write shape (create / update
+        request bodies). The `id` is server-assigned and is absent on create or
+        update requests — on `PUT /{id}` the path parameter is authoritative; any
+        `id` carried in the body is ignored.
+
+        Changing `code` on an existing type is permitted by the API but will break
+        the cursor for any publication system bound to the old code. The UI
+        surfaces a warning (or disables the field) to prevent accidental changes.
+    QueueItemState:
+      type: string
+      enum:
+        - UPDATE
+        - IMPORT_NEW
+        - IMPORT_OK
+        - IMPORT_ERROR
+        - EXPORT_NEW
+        - EXPORT_OK
+        - EXPORT_ERROR
+      description: Výčet stavů aktualizace AIPu
     ReplaceType:
       type: string
       enum:
@@ -3458,6 +7231,103 @@ components:
         - TO_APPROVE
         - TO_AMEND
       description: States of ApRevState
+    Sdo.BatchUpdateParam:
+      type: object
+      required:
+        - ids
+        - autoincrementItemTypeIds
+        - deleteItemTypeIds
+        - items
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+        autoincrementItemTypeIds:
+          type: array
+          items:
+            type: integer
+        deleteItemTypeIds:
+          type: array
+          items:
+            type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/StructuredObjectItem'
+      description: Data for bulk value update
+    Sdo.CopyObjectParam:
+      type: object
+      required:
+        - count
+        - incrementedTypeIds
+      properties:
+        count:
+          type: integer
+        incrementedTypeIds:
+          type: array
+          items:
+            type: integer
+      description: Data for bulk value creation
+    Sdo.ExtensionFund:
+      type: object
+      required:
+        - id
+        - name
+        - code
+        - active
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        code:
+          type: string
+        active:
+          type: boolean
+      description: Extention fund
+    Sdo.FindResult:
+      type: object
+      required:
+        - count
+        - rows
+      properties:
+        count:
+          type: integer
+          format: int64
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/StructuredObject'
+      description: Result found
+    Sdo.ItemResult:
+      type: object
+      required:
+        - parent
+        - item
+      properties:
+        parent:
+          $ref: '#/components/schemas/StructuredObject'
+        item:
+          $ref: '#/components/schemas/StructuredObjectItem'
+      description: Status of a structured data type
+    Sdo.Type:
+      type: object
+      required:
+        - id
+        - name
+        - code
+        - anonymous
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        code:
+          type: string
+        anonymous:
+          type: boolean
+      description: Structure type
     SearchParams:
       type: object
       properties:
@@ -3497,6 +7367,199 @@ components:
         - asc
         - desc
       description: Order of sorting
+    StringViewDefinition:
+      type: object
+      required:
+        - mask
+      properties:
+        mask:
+          type: string
+      allOf:
+        - $ref: '#/components/schemas/ItemViewDefinition'
+      description: |-
+        Input mask for STRING items (e.g. "###-##"). `#` denotes a value
+        character, `*` denotes a variable-length run, other characters are
+        literals automatically inserted by the UI.
+    StructuredObject:
+      type: object
+      required:
+        - id
+        - value
+        - typeCode
+        - complement
+        - state
+        - assignable
+      properties:
+        id:
+          type: integer
+        value:
+          type: string
+        typeCode:
+          type: string
+        complement:
+          type: string
+        state:
+          type: string
+          enum:
+            - OK
+            - ERROR
+            - TEMP
+        assignable:
+          type: boolean
+        errorDescription:
+          type: string
+      description: Value of a structured type
+    StructuredObjectItem:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/BaseItem'
+    StructuredObjectItems:
+      type: object
+      required:
+        - parent
+        - items
+        - itemTypes
+      properties:
+        parent:
+          $ref: '#/components/schemas/StructuredObject'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/StructuredObjectItem'
+        itemTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/FormItemType'
+      description: Form data
+    SyncProgress:
+      type: string
+      enum:
+        - UPLOAD_PENDING
+        - UPLOAD_STARTED
+      description: Progres synchronizace
+    SyncState:
+      type: string
+      enum:
+        - SYNC_OK
+        - NOT_SYNCED
+        - LOCAL_CHANGE
+      description: Stav synchronizace
+    Tasks.EntityType:
+      type: string
+      enum:
+        - AP
+        - AP_REV
+      description: Entity type for task
+    Tasks.Status:
+      type: string
+      enum:
+        - NEW
+        - CANCELLED
+        - FINISHED
+      description: Task status
+    Tasks.ViewDetail:
+      type: object
+      required:
+        - taskId
+        - created
+        - assigneeId
+        - assigneeName
+        - status
+        - taskTypeId
+        - taskTypeCode
+        - taskTypeName
+        - description
+        - primaryEntityId
+        - primaryEntityName
+        - primaryEntityType
+      properties:
+        taskId:
+          type: integer
+        created:
+          type: string
+          format: date-time
+        closed:
+          type: string
+          format: date-time
+        assigneeId:
+          type: integer
+        assigneeName:
+          type: string
+        creatorId:
+          type: integer
+        creatorName:
+          type: string
+        closedById:
+          type: integer
+        closedByName:
+          type: string
+        status:
+          $ref: '#/components/schemas/Tasks.Status'
+        taskTypeId:
+          type: integer
+        taskTypeCode:
+          type: string
+        taskTypeName:
+          type: string
+        description:
+          type: string
+        primaryEntityId:
+          type: integer
+        primaryEntityName:
+          type: string
+        primaryEntityType:
+          $ref: '#/components/schemas/Tasks.EntityType'
+      description: Task detail
+    TreeDataCustomGen:
+      type: object
+      required:
+        - nodes
+        - expandedIdsExtension
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/TreeNodeCustomGen'
+          description: Seznam uzlů stromu
+        expandedIdsExtension:
+          type: array
+          items:
+            type: string
+          description: Seznam uuid již expandovaných uzlů
+      description: Custom strom
+    TreeNodeCustomGen:
+      type: object
+      required:
+        - UUID
+        - name
+        - value
+        - depth
+        - hasChildren
+        - parent
+      properties:
+        UUID:
+          type: string
+          description: Unikátní identifikátor uzlu
+        name:
+          type: string
+          description: Název
+        value:
+          type: array
+          items:
+            type: integer
+          description: Hodnota
+        depth:
+          type: integer
+          description: Hloubka
+        daLeveViewId:
+          type: integer
+        hasChildren:
+          type: boolean
+          description: Příznak, zda udel má potomky
+        parent:
+          type: string
+          description: Unikátení identifikátor rodičovského uzlu
+      description: Custom uzel stromu
     UpdateFund:
       type: object
       properties:
@@ -3530,6 +7593,13 @@ components:
           type: boolean
           description: Zákaz změny vlastností
       description: Změny archivního souboru
+    UpdateOp:
+      type: string
+      enum:
+        - CREATE
+        - UPDATE
+        - DELETE
+      description: Type of update Item
     UsedItemType:
       type: object
       required:
@@ -3541,6 +7611,28 @@ components:
         count:
           type: integer
       description: Fund node item type id and quantity
+    UserRef:
+      type: object
+      required:
+        - userId
+        - name
+        - username
+      properties:
+        userId:
+          type: integer
+          description: User identifier
+        name:
+          type: string
+          description: Full display name
+        username:
+          type: string
+          description: Username (login)
+      description: |-
+        Reference to a user account.
+
+        Carries enough information for the client to display the user
+        (name, username) without an extra lookup, while still keeping the
+        stable identifier.
     WfSimpleIssue:
       type: object
       required:
