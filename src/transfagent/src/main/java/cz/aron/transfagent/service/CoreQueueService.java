@@ -1,12 +1,10 @@
 package cz.aron.transfagent.service;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 
@@ -28,15 +26,12 @@ import com.lightcomp.ft.core.send.items.SimpleFile;
 import com.lightcomp.ft.core.send.items.SourceItem;
 
 import cz.aron.apux.ApuSourceBuilder;
-import cz.aron.apux._2020.ApuType;
 import cz.aron.apux._2020.UuidList;
 import cz.aron.management.v1.ApuManagementPort;
 import cz.aron.transfagent.config.ConfigAronCore;
 import cz.aron.transfagent.domain.ApuSource;
-import cz.aron.transfagent.domain.ArchDesc;
 import cz.aron.transfagent.domain.Attachment;
 import cz.aron.transfagent.domain.CoreQueue;
-import cz.aron.transfagent.domain.Fund;
 import cz.aron.transfagent.domain.SourceType;
 import cz.aron.transfagent.peva.ImportPevaGeo;
 import cz.aron.transfagent.peva.ImportPevaOriginator;
@@ -69,14 +64,31 @@ public class CoreQueueService implements SmartLifecycle {
     
     private final ObjectMapper objectMapper;
 
+    private final List<PostSentNotify> postSentNotifies;
+
     private ThreadStatus status;
-    
+
     private Client client = null;
+
+    /**
+     * Callback invoked after an {@link ApuSource} carrying a context has been successfully sent to the
+     * ARON core. Implementations registered as Spring beans receive the deserialized context map.
+     */
+    public static interface PostSentNotify {
+
+        /**
+         * Called after the item was sent to the ARON core.
+         *
+         * @param notify the deserialized {@code CoreQueue.context} map
+         */
+        void sentToAronCore(Map<String, Object> notify);
+
+    }
 
 	public CoreQueueService(CoreQueueRepository coreQueueRepository, AttachmentRepository attachmentRepository,
 			ApuSourceRepository apuSourceRepository, ConfigAronCore configAronCore, CoreAronClient coreAronClient,
 			StorageService storageService, TransactionTemplate tt, ArchivalEntityRepository archivalEntityRepository,
-			ObjectMapper objectMapper) {
+			ObjectMapper objectMapper, List<PostSentNotify> postSentNotifies) {
 		this.coreQueueRepository = coreQueueRepository;
 		this.attachmentRepository = attachmentRepository;
 		this.apuSourceRepository = apuSourceRepository;
@@ -86,6 +98,7 @@ public class CoreQueueService implements SmartLifecycle {
 		this.tt = tt;
 		this.archivalEntityRepository = archivalEntityRepository;
 		this.objectMapper = objectMapper;
+		this.postSentNotifies = postSentNotifies;
     }
 
     /**
@@ -130,15 +143,11 @@ public class CoreQueueService implements SmartLifecycle {
 	
 	
 	private void processContext(CoreQueue coreQueue) {
-				
+
 		try {
 			var notify =objectMapper.readValue(coreQueue.getContext(), new TypeReference<Map<String, Object>>() {});
-			Object publicationId = notify.get("publicationId");
-			if (publicationId != null && publicationId instanceof Number) {
-				var id = ((Number)publicationId).intValue();
-				var path = storageService.getInputPath().resolve("commands").resolve("publication_notify-" + id);
-				Files.createFile(path);
-				
+			for (var postSentNotify : postSentNotifies) {
+				postSentNotify.sentToAronCore(notify);
 			}
 		} catch (Exception e) {
 			log.error("Fail to notify", e);
