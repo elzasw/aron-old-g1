@@ -20,7 +20,7 @@ repositories {
         url 'https://repo.spring.io/snapshot/'
     }
     maven {
-        url 'http://10.2.0.2:8080/artifactory/repo'
+        url 'https://mvn.lightcomp.cz/repo'
     }
 }
 
