@@ -57,7 +57,7 @@ public class ImportArchDescCommand implements CommandProcessor {
 
 	private final IoApi ioApi;
 	
-	private final Integer exportFilterId;
+	private final String exportFilter;
 
 	public ImportArchDescCommand(StorageService storageService, ConfigElza configElza,
 			ConfigElzaArchDesc configElzaArchDesc) {
@@ -66,7 +66,9 @@ public class ImportArchDescCommand implements CommandProcessor {
 		this.apiClient = new ApiClientEx(configElza.getUsername(), configElza.getPassword(), elzaUrl + "/login",
 				elzaUrl + "/api/v1");
 		this.ioApi = new IoApi(apiClient);
-		this.exportFilterId = configElzaArchDesc.getExportFilterId();
+		this.exportFilter = configElzaArchDesc.getExportFilterId() != null
+				? configElzaArchDesc.getExportFilterId().toString()
+				: null;
 	}
 
 	@Override
@@ -149,8 +151,8 @@ public class ImportArchDescCommand implements CommandProcessor {
 		var fundSection = new FundSections();
 		fundSection.setFundVersionId(Integer.parseInt(fundVersionId));
 		exportParams.getFundsSections().add(fundSection);
-		if (exportFilterId != null) {
-			exportParams.setExportFilterId(exportFilterId);	
+		if (exportFilter != null) {
+			exportParams.setExportFilter(exportFilter);									
 		}
 		try {
 			Integer requestId = ioApi.ioExportRequest(exportParams);
@@ -471,7 +473,7 @@ public class ImportArchDescCommand implements CommandProcessor {
 		var fundSection = new FundSections();
 		fundSection.setFundVersionId(1);
 		exportParams.getFundsSections().add(fundSection);
-		exportParams.setExportFilterId(1);		
+		exportParams.setExportFilter("1");		
 		var requestId = ioApi.ioExportRequest(exportParams);
 		
 		while(true) {									
