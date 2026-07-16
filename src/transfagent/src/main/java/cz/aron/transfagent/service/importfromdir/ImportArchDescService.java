@@ -320,6 +320,7 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
 			case "file":
 			case "file2":
 			case "file4":
+			case "file5":
 				daoSources.add(new DaoSource(s,
 						r.stream().map(x -> new DaoSourceRef(x.getUuid(), x.getHandle())).collect(Collectors.toSet())));
 				break;

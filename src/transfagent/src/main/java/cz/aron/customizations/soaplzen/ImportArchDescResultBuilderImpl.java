@@ -109,7 +109,14 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 	}
 	
-	private void generateThumbnail(ValueCollector valueCollector, Result result) {
+	private void generateThumbnail(ValueCollector valueCollector, Result result) {		
+		var daoId = valueCollector.getDaoId();
+		if (daoId != null) {
+			if (thumbnailFileStore.fillDaoIdLink(daoId, result)) {
+				return;
+			}		
+		}
+
 		var daoLink = valueCollector.getDaoLink();
 		if (daoLink != null) {
 			thumbnailFileStore.fillThumbnailLink(daoLink, result);
@@ -470,6 +477,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		boolean typZaznamuSet = false;
 		
 		String daoLink = null;
+		String daoId = null;
 		
 		boolean oddani = false;
 		boolean oddaniIndex = false;
@@ -562,6 +570,9 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					if (!EdxLinkConvertor.ELZA_NODE.equals(uriRef.getSchm())) {
 						daoLink = uriRef.getUri();
 					}
+				} else if (ElzaTypes.ZP2015_DAO_ID.equals(pp.getT())) {
+					var daoIdStr = (DescriptionItemString) pp;
+					daoId = daoIdStr.getV();
 				}
 			}
 			if (nameStr != null) {
@@ -767,10 +778,27 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		public String getDaoLink() {
 			return daoLink;
 		}
+
+		public String getDaoId() {
+			return daoId;
+		}
+		
 	}
 
 	public interface ThumbnailFileStoreI {
-		void fillThumbnailLink(String daoLink, Result result);	
+		
+		void fillThumbnailLink(String daoLink, Result result);
+		
+		/**
+		 * Fill link from ZP2015_DAOID
+		 * @param daoId
+		 * @param result
+		 * @return true - filled, false - not filled
+		 */
+		default boolean fillDaoIdLink(String daoId, Result result) {
+			return false;
+		}
+		
 	}
 	
 }
