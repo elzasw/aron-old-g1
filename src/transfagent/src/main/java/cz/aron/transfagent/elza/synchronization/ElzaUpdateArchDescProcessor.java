@@ -42,7 +42,7 @@ import cz.tacr.elza.client.PublicationApi;
  * @see NotifyPublicationCommand
  * @see ApiClientEx
  */
-@ConditionalOnProperty(value = "elza.url")
+@ConditionalOnProperty(value = "elza.syncpublication")
 @Service
 public class ElzaUpdateArchDescProcessor implements ImportProcessor {
 
