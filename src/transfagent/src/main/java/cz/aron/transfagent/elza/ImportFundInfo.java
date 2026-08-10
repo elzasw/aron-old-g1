@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -109,12 +110,15 @@ public class ImportFundInfo {
 
 		Section sect = sections.getS().get(0);
 		FundInfo fi = sect.getFi();
-		String fundName = createName(fi);
-
+		var fundName = createName(fi);
+		var indexedFundName = createIndexedName(fi);
 		Apu apu = apusBuilder.createApu(fundName,ApuType.FUND, uuid);
-		Part partName = apusBuilder.addPart(apu, CoreTypes.PT_TITLE);
+		if (indexedFundName!=null && !Objects.equals(indexedFundName, fundName)) {
+			apu.setIndexedName(indexedFundName);
+		}
+		Part partName = ApuSourceBuilder.addPart(apu, CoreTypes.PT_TITLE);
 		partName.setValue(fundName);
-		apusBuilder.addString(partName, CoreTypes.TITLE, fundName);
+		ApuSourceBuilder.addString(partName, CoreTypes.TITLE, fundName);
 
 		institutionCode = fi.getIc();
 		var instInfo = dataProvider.getInstitutionApu(institutionCode);
@@ -122,7 +126,7 @@ public class ImportFundInfo {
             throw new RuntimeException("Missing institution: " + institutionCode);
 		}
 
-		Part partFundInfo = apusBuilder.addPart(apu, CoreTypes.PT_FUND_INFO);
+		Part partFundInfo = ApuSourceBuilder.addPart(apu, CoreTypes.PT_FUND_INFO);
 		apusBuilder.addApuRef(partFundInfo, "INST_REF", instInfo.getUuid());
 		var rootLvlUuid = getRootLevelUuid(sect.getLvls());
 		if(rootLvlUuid!=null) {
@@ -132,10 +136,10 @@ public class ImportFundInfo {
 			}			
 		}
         if(fi.getNum()!=null) {
-            apusBuilder.addString(partFundInfo, "CISLO_NAD", fi.getNum().toString());
+        	ApuSourceBuilder.addString(partFundInfo, "CISLO_NAD", fi.getNum().toString());
         }
         if(fi.getMrk()!=null) {
-            apusBuilder.addString(partFundInfo, "FUND_MARK", fi.getMrk());
+        	ApuSourceBuilder.addString(partFundInfo, "FUND_MARK", fi.getMrk());
         }
 
 		// Puvodce
@@ -198,6 +202,10 @@ public class ImportFundInfo {
             sb.append(", ").append(date);
         }
         return sb.toString();
+    }
+    
+    private String createIndexedName(FundInfo fi) {
+    	return fi.getN();
     }
 
     private List<ItemDateRange> getItemDateRanges(Level lvl) {

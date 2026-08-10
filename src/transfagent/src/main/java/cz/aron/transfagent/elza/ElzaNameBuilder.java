@@ -137,6 +137,12 @@ public class ElzaNameBuilder {
         return sb.toString();
     }
     
+    public String createIndexedName(Fragment frg, String entityClass, boolean noPriv) {
+    	var sb = new StringBuilder();
+    	sb.append(ElzaXmlReader.getStringType(frg, ElzaTypes.NM_MAIN));    
+    	return sb.toString();
+    }
+
     private static class SupplementBuilder {
         
         private final Map<String,Integer> types;

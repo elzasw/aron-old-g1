@@ -180,6 +180,8 @@ public class ImportAp implements EdxItemCovertContext {
             }   
         }    
         
+        String indexedName = null;
+        
         // oznaceni
         Fragments frgs = ap.getFrgs();
         if(frgs==null) {        	
@@ -188,8 +190,11 @@ public class ImportAp implements EdxItemCovertContext {
         for(Fragment frg: frgs.getFrg()) {
             switch(frg.getT()) {
             case "PT_NAME":
-                importName(apu, frg);
-                break;
+				importName(apu, frg);
+				if (indexedName == null) {
+					indexedName = nameBuilder.createIndexedName(frg, entityClass, false);
+				}
+				break;
             case "PT_BODY":
                 importBody(apu, aeInfoPart, frg);
                 break;
@@ -224,6 +229,10 @@ public class ImportAp implements EdxItemCovertContext {
 				apu.setResult(result);
 			}
 		}
+        
+        if (indexedName != null && !Objects.equal(indexedName, apu.getName())) {
+        	apu.setIndexedName(indexedName);
+        }
         
         apu = null;
 
