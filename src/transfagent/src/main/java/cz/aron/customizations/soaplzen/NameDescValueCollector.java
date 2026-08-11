@@ -46,10 +46,7 @@ public class NameDescValueCollector {
 
 	public void collect(LevelContext levelContext) {		
 		var context = levelContext;
-		
-		String nameStr = null;
-		String titleStr = null;
-		
+
 		// not inherited attributes
 		for (var pp : context.getLevel().getDdOrDoOrDp()) {
 			if (ElzaTypes.ZP2015_LEVEL_TYPE.equals(pp.getT())) {
@@ -57,12 +54,9 @@ public class NameDescValueCollector {
 				if (ElzaTypes.ZP2015_LEVEL_ROOT.equals(levelType.getS())) {
 					root = true;
 				}
-			} else if (ElzaTypes.ZP2015_NAME.equals(pp.getT())) {
-				DescriptionItemString nameItem = (DescriptionItemString) pp;
-				nameStr = nameItem.getV();
 			} else if (ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
 				DescriptionItemString titleItem = (DescriptionItemString) pp;
-				titleStr = titleItem.getV();
+				title = titleItem.getV();
 			} else if (pp.getT().equals(ElzaTypes.ZP2015_UNIT_DATE) && (pp instanceof DescriptionItemUnitDate)) {
 				DescriptionItemUnitDate dataceUnitDate = (DescriptionItemUnitDate) pp;
 				datace = UnitDateConvertor.convertToString(dataceUnitDate);
@@ -77,26 +71,14 @@ public class NameDescValueCollector {
 				processRecordType(pp);
 			}
 		}
-		
-		if (nameStr!=null) {
-			// preferujeme ZP2015_NAME pred ZP2015_TITLE
-			title = nameStr;
-		} else if (titleStr != null) {
-			title = titleStr;
-		}
 
-		String inheritedName = null;
-		String inheritedTitle = null;
-		
 		// inherited attributes
 		while ((context = context.getParentContext()) != null) {
 			for (var pp : context.getLevel().getDdOrDoOrDp()) {
-				if (title == null && inheritedTitle == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
+				if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
 					DescriptionItemString titleItem = (DescriptionItemString) pp;
-					inheritedTitle = titleItem.getV();
-				} else if (title == null && inheritedName == null && ElzaTypes.ZP2015_NAME.equals(pp.getT())) {
-					DescriptionItemString nameItem = (DescriptionItemString) pp;
-					inheritedName = nameItem.getV();
+					title = titleItem.getV();
+					titleInherited = true;
 				} else if (datace == null && pp.getT().equals(ElzaTypes.ZP2015_UNIT_DATE)
 						&& (pp instanceof DescriptionItemUnitDate)) {
 					DescriptionItemUnitDate dataceUnitDate = (DescriptionItemUnitDate) pp;
@@ -115,16 +97,6 @@ public class NameDescValueCollector {
 						&& (pp instanceof DescriptionItemEnum)) {
 					processRecordType(pp);
 				}
-			}
-		}
-		
-		if (title == null) {
-			if (inheritedName != null) {
-				title = inheritedName;
-				titleInherited = true;
-			} else if (inheritedTitle == null) {
-				title = inheritedTitle;
-				titleInherited = true;
 			}
 		}
 		

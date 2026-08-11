@@ -500,10 +500,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 		
 		private void collectNonInheritedAttributes(LevelContext levelContext) {
-			
-			String titleStr = null;
-			String nameStr = null;
-			
+						
 			for (var pp : levelContext.getLevel().getDdOrDoOrDp()) {
 
 				if (ElzaTypes.ZP2015_LEVEL_TYPE.equals(pp.getT())) {
@@ -513,9 +510,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 				} else if ("ZP2015_UNIT_CONTENT".equals(pp.getT())) {
 					unitContent = ((DescriptionItemString) pp).getV();
 				} else if (ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
-					titleStr = ((DescriptionItemString) pp).getV();
-				} else if (ElzaTypes.ZP2015_NAME.equals(pp.getT())) {
-					nameStr = ((DescriptionItemString) pp).getV();
+					title = ((DescriptionItemString) pp).getV();
 				} else if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
 					unitDateText = ((DescriptionItemString) pp).getV();
 				} else if (ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT())) {
@@ -575,20 +570,10 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					daoId = daoIdStr.getV();
 				}
 			}
-			if (nameStr != null) {
-				title = nameStr;
-			} else if (titleStr != null) {
-				title = nameStr;
-			}			
 		}
 		
 		private void collectInheritedAttributes(LevelContext levelContext) {
-			
-			String titleStr = null;
-			String nameStr = null;
-			String parentTitleStr = null;
-			String parentNameStr = null;
-			
+						
 			for (var pp : levelContext.getLevel().getDdOrDoOrDp()) {
 				// inherited attributes
 				if ("ZP2015_INV_CISLO".equals(pp.getT()) && (pp instanceof DescriptionItemString)) {
@@ -596,14 +581,10 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					if (refOzn == null && invCislo == null) {
 						invCislo = ((DescriptionItemString) pp).getV();
 					}
-				} else if (title == null && titleStr ==null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
-					titleStr = ((DescriptionItemString) pp).getV();
-				} else if (title == null && nameStr ==null && ElzaTypes.ZP2015_NAME.equals(pp.getT())) {
-					nameStr = ((DescriptionItemString) pp).getV();
-				} else if (parentTitle == null && parentTitleStr==null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
-					parentTitleStr = ((DescriptionItemString) pp).getV();
-				} else if (parentTitle == null && parentNameStr==null && ElzaTypes.ZP2015_NAME.equals(pp.getT())) {
-					parentNameStr =  ((DescriptionItemString) pp).getV();
+				} else if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
+					title = ((DescriptionItemString) pp).getV();
+				}  else if (parentTitle == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
+					parentTitle = ((DescriptionItemString) pp).getV();
 				} else if (unitDateText == null && unitDate == null && ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())||ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT()))) {
 					if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
 						unitDateText = ((DescriptionItemString) pp).getV();
@@ -629,22 +610,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 						&& (pp instanceof DescriptionItemEnum)) {
 					processRecordType(pp);
 				}
-			}
-			
-			if (title == null) {
-				if (nameStr != null) {
-					title = nameStr;
-				} else if (titleStr != null) {
-					title = nameStr;
-				}
-			}
-			if (parentTitle == null) {
-				if (parentNameStr != null ) {
-					parentTitle = parentNameStr;
-				} else if (parentTitleStr != null) {
-					parentTitle = parentNameStr;
-				}
-			}
+			}			
 		}
 
 		private void processRecordType(DescriptionItem pp) {

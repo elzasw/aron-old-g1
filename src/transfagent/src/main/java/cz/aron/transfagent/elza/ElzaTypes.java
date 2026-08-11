@@ -79,6 +79,9 @@ public abstract class ElzaTypes {
     
     public static final String ZP2015_TITLE = "ZP2015_TITLE";
     public static final String ZP2015_NAME = "ZP2015_NAME";
+    public static final String ZP2015_FORMAL_TITLE = "ZP2015_FORMAL_TITLE";
+    public static final String ZP2015_CONTENT = "ZP2015_CONTENT";
+    public static final String ZP2015_UNIT_CONTENT = "ZP2015_UNIT_CONTENT";    
 
     public static final String ZP2015_EXTRA_UNITS = "ZP2015_EXTRA_UNITS";
     public static final String ZP2015_UNIT_SUBTYPE = "ZP2015_UNIT_SUBTYPE";
@@ -90,6 +93,9 @@ public abstract class ElzaTypes {
     public static final String ZP2015_ENTITY_ROLE_TEXT = "ZP2015_ENTITY_ROLE_TEXT";
     public static final String ZP2015_OTHER_ID = "ZP2015_OTHER_ID";
     public static final String ZP2015_STORAGE_ID = "ZP2015_STORAGE_ID";
+    public static final String ZP2015_PACKET_NUMBER = "ZP2015_PACKET_NUMBER";
+    public static final String ZP2015_UNIT_ID = "ZP2015_UNIT_ID";
+    public static final String ZP2015_INV_CISLO = "ZP2015_INV_CISLO";
 
     public static final String ZP2015_ORIGINATOR = "ZP2015_ORIGINATOR";
     public static final String ZP2015_POSITION = "ZP2015_POSITION";

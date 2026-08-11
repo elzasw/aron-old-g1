@@ -29,36 +29,25 @@ public class ImportArchDescDescBuilderDefault implements ImportArchDescDescBuild
             return null;
         }
 
-        String title = null;
+        String titleStr = null;
         String datace = null;
         StringBuilder sb = new StringBuilder();
-        
-        String titleStr = null;
-        String nameStr = null;
         for (DescriptionItem item : levelContext.getLevel().getDdOrDoOrDp()) {
-            if (ElzaTypes.ZP2015_TITLE.equals(item.getT())) {
-                DescriptionItemString titleItem = (DescriptionItemString) item;
-                titleStr = titleItem.getV();
-            } else if (ElzaTypes.ZP2015_NAME.equals(item.getT())) {
-            	DescriptionItemString nameItem = (DescriptionItemString) item;
-                nameStr = nameItem.getV();
+            if (item.getT().equals("ZP2015_TITLE")) {
+                DescriptionItemString title = (DescriptionItemString) item;
+                titleStr = title.getV();
             }
             if (item.getT().equals(ElzaTypes.ZP2015_UNIT_DATE) && (item instanceof DescriptionItemUnitDate)) {
                 DescriptionItemUnitDate dataceUnitDate = (DescriptionItemUnitDate) item;
                 datace = UnitDateConvertor.convertToString(dataceUnitDate);
             }
         }
-		if (nameStr != null) {
-			title = nameStr;
-		} else if (titleStr != null) {
-			title = titleStr;
-		}
 
         boolean titleInherited = false;
         boolean dateInherited = false;
         // inherit title and name when null
-        if (StringUtils.isBlank(title)) {        	
-            title = ImportArchDesc.inheritTitle(levelContext.getParentContext());
+        if (StringUtils.isBlank(titleStr)) {        	
+            titleStr = ImportArchDesc.inheritTitle(levelContext.getParentContext());
             titleInherited = true;
         }
         if (StringUtils.isBlank(datace) && configArchDesc.isInheritNameDate()) {
@@ -66,8 +55,8 @@ public class ImportArchDescDescBuilderDefault implements ImportArchDescDescBuild
             dateInherited = true;
         }
 
-        if (StringUtils.isNotBlank(title)) {
-            sb.append(title);
+        if (StringUtils.isNotBlank(titleStr)) {
+            sb.append(titleStr);
         }
 		if (StringUtils.isNotBlank(datace)
 				&& (configArchDesc.isAddDateToName() || (configArchDesc.isInheritNameDate() && titleInherited))) {
