@@ -4,6 +4,10 @@
 		<xs:documentation>Native Elza XML Schema&#xD;
 This schema may be updated as needed. It can be used for integration, but without any guarantees.&#xD;
 &#xD;
+Version 2.2&#xD;
+	- New complex type: SourceApp and optional info element in the root (edx) with the generating application, its version, user and creation timestamp&#xD;
+	- DigitalArchivalObject: new required rep element (repository code) and optional part element (link to the relevant part of the digital object)&#xD;
+&#xD;
 Version 2.1&#xD;
 	- New complex type: InhibitedItem&#xD;
 	- Optional attribute id in DescriptionItem</xs:documentation>
@@ -393,11 +397,31 @@ Item ID</xs:documentation>
 		</xs:complexContent>
 	</xs:complexType>
 	<xs:complexType name="DigitalArchivalObject">
+		<xs:annotation>
+			<xs:documentation>Reference on the digital archival object</xs:documentation>
+		</xs:annotation>
 		<xs:sequence>
-			<xs:element name="doid" type="e:Id" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="rep" type="e:Id" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Repository code where is digital object stored</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="doid" type="e:Id" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Id of the object in the repository</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="part" type="e:Id" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Optional link to the relevant part of the digital object</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="DigitalArchivalObjects">
+		<xs:annotation>
+			<xs:documentation>Connected archival objects</xs:documentation>
+		</xs:annotation>
 		<xs:sequence>
 			<xs:element name="dao" type="e:DigitalArchivalObject" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
@@ -407,6 +431,7 @@ Item ID</xs:documentation>
 			<xs:documentation>Elza data</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
+			<xs:element name="info" type="e:SourceApp" minOccurs="0" maxOccurs="1"/>
 			<xs:element name="aps" type="e:AccessPoints" minOccurs="0" maxOccurs="1">
 				<xs:annotation>
 					<xs:documentation>List of access points</xs:documentation>
@@ -1129,6 +1154,32 @@ This is ID of the created party</xs:documentation>
 		<xs:sequence>
 			<xs:element name="s" type="e:Section" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="SourceApp">
+		<xs:annotation>
+			<xs:documentation>Information about XML source. This type records application name and its version. When the XML was created and who generated the XML.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence/>
+		<xs:attribute name="app" use="required" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>Name of application</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="cre" use="required" type="xs:dateTime">
+			<xs:annotation>
+				<xs:documentation>Date/Time when output was created</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="usr" use="optional" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>User who generated the file. It is typically username.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="v" use="optional" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>Version of the application</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
 	</xs:complexType>
 	<xs:complexType name="StructuredObject">
 		<xs:annotation>
