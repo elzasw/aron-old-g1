@@ -6,6 +6,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
 import MUIButton from '@material-ui/core/Button';
 import MUITextField from '@material-ui/core/TextField';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import makeStyles from '@material-ui/core/styles/makeStyles';
@@ -100,6 +102,7 @@ export function OrderConfirmDialog({
   const [name, setName] = useState<string>(savedContact.name || '');
   const [email, setEmail] = useState<string>(savedContact.email || '');
   const [phoneNumber, setPhoneNumber] = useState<string>(savedContact.phoneNumber || '');
+  const [rememberValues, setRememberValues] = useState<boolean>(!!(savedContact.name || savedContact.email));
   const [touched, setTouched] = useState({ name: false, email: false });
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -144,7 +147,11 @@ export function OrderConfirmDialog({
       })),
     };
 
-    localStorage.setItem('orderContact', JSON.stringify({ name, email, phoneNumber }));
+    if (rememberValues) {
+      localStorage.setItem('orderContact', JSON.stringify({ name, email, phoneNumber }));
+    } else {
+      localStorage.removeItem('orderContact');
+    }
 
     setSubmitError(null);
     const response = await fetch(`${API_ORDERS_URL}/orders`, {
@@ -210,6 +217,18 @@ export function OrderConfirmDialog({
             onChange={(e) => setPhoneNumber(e.target.value)}
           />
         </div>
+
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={rememberValues}
+              onChange={(e) => setRememberValues(e.target.checked)}
+              color="primary"
+              size="small"
+            />
+          }
+          label="Zapamatovat hodnoty"
+        />
 
         <div className={classes.field}>
           <div className={classes.label}>Předmět zprávy :</div>
