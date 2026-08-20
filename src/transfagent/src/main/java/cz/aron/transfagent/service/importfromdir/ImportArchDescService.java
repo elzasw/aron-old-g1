@@ -42,7 +42,6 @@ import cz.aron.transfagent.elza.ImportArchDescNameBuilder;
 import cz.aron.transfagent.elza.ImportArchDescRefreshEntitiesCommand;
 import cz.aron.transfagent.elza.ImportArchDescResultBuilder;
 import cz.aron.transfagent.elza.dao.ArchDescLevelDaoImporter;
-import cz.aron.transfagent.peva.ArchiveFundId;
 import cz.aron.transfagent.repository.ArchDescRepository;
 import cz.aron.transfagent.repository.CoreQueueRepository;
 import cz.aron.transfagent.repository.FundRepository;
@@ -236,14 +235,14 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
             throw new IllegalStateException("The entry Institution code={" + iad.getInstitutionCode() + "} must exist.");
         }
 
-        var fund = fundRepository.findByCodeAndInstitution(fundCode, institution);
+        // Reuse the fund that importArchDesc above already resolved from the XML
+        // (fi/@c, else the NAD-based jafa id). Deriving a key from the directory
+        // name instead only ever matched funds whose code happens to be
+        // "<institutionCode>-<nad>", so no Elza-published archdesc could import.
+        var fund = fundRepository.findByUuidAndInstitution(iad.getFundApuUuid(), institution);
         if (fund == null) {
-        	if (iad.getFundId()!=null) {
-        		fund = fundRepository.findByCodeAndInstitution(ArchiveFundId.createJaFaId(iad.getInstitutionCode(), iad.getFundId().toString(), null), institution);
-        	}
-        	if (fund==null) {
-        		throw new IllegalStateException("The entry Fund code={" + fundCode + "} must exist.");
-        	}
+            throw new IllegalStateException("The entry Fund uuid={" + iad.getFundApuUuid()
+                    + "}, institution={" + iad.getInstitutionCode() + "} must exist (directory " + fundCode + ").");
         }
         
         // reimportuji fond, aby se vytvorila vazba fond->archdescs

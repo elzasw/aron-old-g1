@@ -231,6 +231,15 @@ public class ImportArchDesc implements EdxItemCovertContext {
     public Integer getFundId() {
     	return fundId;
     }
+
+    /**
+     * UUID of the fund this archdesc belongs to, resolved while building the APU
+     * source from the identifiers the XML provides (fi/@c, else the NAD-based
+     * jafa id). Callers reuse it instead of deriving a key of their own.
+     */
+    public UUID getFundApuUuid() {
+    	return fundApuUuid;
+    }
     
     public int getNumLevels() {
     	return numLevels;

@@ -50,6 +50,10 @@ public class ImportFundInfo {
 	private ContextDataProvider dataProvider;
 
 	private String institutionCode;
+
+	private String fundName;
+
+	private Integer fundNad;
 	
 	private boolean archdescFlag;
 
@@ -121,6 +125,10 @@ public class ImportFundInfo {
 		ApuSourceBuilder.addString(partName, CoreTypes.TITLE, fundName);
 
 		institutionCode = fi.getIc();
+		// Kept for the fund entity: the same identifiers the archdesc import and the
+		// admin UI resolve funds by. Elza has no sub-NAD, only fi/@num.
+		fundName = fi.getN();
+		fundNad = fi.getNum() != null ? fi.getNum().intValue() : null;
 		var instInfo = dataProvider.getInstitutionApu(institutionCode);
 		if(instInfo==null) {
             throw new RuntimeException("Missing institution: " + institutionCode);
@@ -279,6 +287,14 @@ public class ImportFundInfo {
 			puvodci.add(UUID.fromString(ap.getApe().getUuid()));
 		}
 		return puvodci;
+	}
+
+	public String getFundName() {
+		return fundName;
+	}
+
+	public Integer getFundNad() {
+		return fundNad;
 	}
 
 	public String getInstitutionCode() {

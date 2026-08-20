@@ -146,7 +146,11 @@ public class ImportFundElza implements FundImporter {
 		}
 
 		if (fund == null) {
-			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE, null, null, null, 0, 0);
+			// Store the name and the NAD the XML carries (fi/@n, fi/@num) - PEvA funds
+			// already do, and the NAD-based lookups and the admin UI need them. Elza
+			// has no sub-NAD.
+			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE,
+					ifi.getFundName(), ifi.getFundNad(), null, 0, 0);
 		} else {
 			fundService.updateFund(fund, dataDir, dir, true, 0, 0);
 		}
