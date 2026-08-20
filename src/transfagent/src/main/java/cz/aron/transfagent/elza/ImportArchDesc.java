@@ -622,7 +622,11 @@ public class ImportArchDesc implements EdxItemCovertContext {
         stringTypeMap.put(ElzaTypes.ZP2015_TITLE,new EdxNullConvertor());
         stringTypeMap.put(ElzaTypes.ZP2015_NAME,new EdxNullConvertor());
         
-        stringTypeMap.put(ElzaTypes.ZP2015_CONTENT, new EdxStringConvertor("CONTENT"));
+        // Elza 3.4 sends the thematic description as ZP2015_CONTENT where older
+        // versions sent ZP2015_UNIT_CONTENT (see below); both feed the same ARON
+        // item type. There is no CONTENT type in the model - only UNIT_CONTENT
+        // ("Tematicky popis jednotky popisu").
+        stringTypeMap.put(ElzaTypes.ZP2015_CONTENT, new EdxStringConvertor("UNIT_CONTENT"));
         
 		if (configArchDesc.isFileType()) {
 			stringTypeMap.put("ZP2015_UNIT_TYPE", new EdxUnitTypeConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.unitTypeMap, ElzaTypes.spisSet));
