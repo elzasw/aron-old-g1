@@ -226,6 +226,7 @@ const defaultConfiguration: ConfigurationType = {
   hideDescriptionFor: [
     // 'ARCH_DESC'
   ],
+  // nameDetailItem: 'ARCH_DESC~UNIT_TITLE',
   showOrders: false,
   alternativeSearchStyle: false,
   primaryColor: {

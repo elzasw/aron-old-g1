@@ -189,6 +189,21 @@ export function EvidenceDetail({
 
   const loading = loadingItem || loadingBasic;
 
+  // optional detail of the name, taken from the configured apu part item
+  const nameDetail = useMemo(() => {
+    const code = configuration.nameDetailItem;
+
+    if (!code || !item?.parts) {
+      return undefined;
+    }
+
+    const values = flatten(item.parts.map((part) => part.items))
+      .filter(({ type, visible, value }) => type === code && visible && value)
+      .map(({ value }) => value);
+
+    return values.length ? values.join(', ') : undefined;
+  }, [item, configuration.nameDetailItem]);
+
   const findRoot = useCallback((root?: ApuEntity): ApuEntity | undefined => {
     return root?.parent ? findRoot(root.parent) : root;
   }, []);
@@ -268,7 +283,8 @@ export function EvidenceDetail({
         .map(({ code, name, type, lang }) => {
           return compact(
             findApuParts(part.items, code).map((item) => {
-              return item.type === ApuPartItemEnum.ARCHDESC_ROOT_REF
+              return item.type === ApuPartItemEnum.ARCHDESC_ROOT_REF ||
+                item.type === configuration.nameDetailItem
                 ? null
                 : ({
                     ...item,
@@ -306,7 +322,7 @@ export function EvidenceDetail({
 
   const parts = useMemo(
     () => (item ? getApuParts(item) : []),
-    [item, apuPartTypes, apuPartItemTypes, locale]
+    [item, apuPartTypes, apuPartItemTypes, locale, configuration.nameDetailItem]
   );
 
   const path = item ? getPathByItem(item) : undefined;
@@ -428,6 +444,18 @@ export function EvidenceDetail({
                     <h3 className={spacingClasses.marginBottomSmall}>
                       {item.name}
                     </h3>
+                    {nameDetail ? (
+                      <h3
+                        className={classNames(
+                          classes.evidenceDetailNameDetail,
+                          spacingClasses.marginBottomSmall
+                        )}
+                      >
+                        {nameDetail}
+                      </h3>
+                    ) : (
+                      <></>
+                    )}
                     <div className={classes.buttonsContainer}>
                       <Button
                         className={classNames(

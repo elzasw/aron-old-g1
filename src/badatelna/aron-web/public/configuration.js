@@ -128,6 +128,7 @@ var _configuration = {
   // ENTITY: '#fdad3c',
   // },
   // hideDescriptionFor: ['ARCH_DESC'],
+  // nameDetailItem: 'ARCH_DESC~UNIT_TITLE',
   // showOrders: false,
   // favouritesStyle: "TEXT",
   // devMode: false,

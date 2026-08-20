@@ -196,6 +196,10 @@ export const useStyles = makeStyles((theme) => {
       fontWeight: 400,
       whiteSpace: 'pre-wrap',
     },
+    evidenceDetailNameDetail: {
+      fontWeight: 'normal',
+      whiteSpace: 'pre-wrap',
+    },
     evidenceDetailItem: {
       fontSize: 13,
     },

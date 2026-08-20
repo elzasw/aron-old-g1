@@ -105,6 +105,7 @@ export interface ConfigurationType {
   attachmentsOnTop?: boolean;
   refsOnTop?: string[];
   hideDescriptionFor?: string[];
+  nameDetailItem?: string;
   showOrders?: boolean;
   orderItemTypes?: string[];
   favouritesSections?: FavouritesSection[];
