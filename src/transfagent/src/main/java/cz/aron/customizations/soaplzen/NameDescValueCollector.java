@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import cz.aron.transfagent.elza.ElzaTypes;
 import cz.aron.transfagent.elza.ElzaXmlReader;
 import cz.aron.transfagent.elza.ImportArchDesc.LevelContext;
+import cz.aron.transfagent.elza.LevelNameDescValues;
 import cz.aron.transfagent.elza.convertor.UnitDateConvertor;
 import cz.tacr.elza.schema.v2.DescriptionItem;
 import cz.tacr.elza.schema.v2.DescriptionItemEnum;
@@ -15,7 +16,7 @@ import cz.tacr.elza.schema.v2.DescriptionItemStructObjectRef;
 import cz.tacr.elza.schema.v2.DescriptionItemUnitDate;
 import cz.tacr.elza.schema.v2.StructuredObject;
 
-public class NameDescValueCollector {
+public class NameDescValueCollector implements LevelNameDescValues {
 	
 	private final ElzaXmlReader elzaXmlReader;
 	
@@ -159,42 +160,52 @@ public class NameDescValueCollector {
 		}
 	}
 
+	@Override
 	public ElzaXmlReader getElzaXmlReader() {
 		return elzaXmlReader;
 	}
 
-	public String getTitle() {
+	@Override
+	public String getName() {
 		return title;
 	}
 
+	@Override
 	public boolean isTitleInherited() {
 		return titleInherited;
 	}
 
+	@Override
 	public String getUkladaciJednotka() {
 		return ukladaciJednotka;
 	}
 
+	@Override
 	public boolean isUkladaciJednotkaInherited() {
 		return ukladaciJednotkaInherited;
 	}
 
+	@Override
 	public String getDatace() {
 		return datace;
 	}
 
+	@Override
 	public boolean isDataceInherited() {
 		return dataceInherited;
 	}
 
+	@Override
 	public boolean isRoot() {
 		return root;
 	}
 
+	@Override
 	public boolean isMatrika() {
 		return matrika;
 	}
 
+	@Override
 	public String getTypZaznamu() {
 		return typZaznamu;
 	}

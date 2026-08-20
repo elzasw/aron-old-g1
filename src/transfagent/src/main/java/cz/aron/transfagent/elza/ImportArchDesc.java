@@ -613,6 +613,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
         stringTypeMap.put(ElzaTypes.ZP2015_TITLE,new EdxNullConvertor());
         stringTypeMap.put(ElzaTypes.ZP2015_NAME,new EdxNullConvertor());
         
+        stringTypeMap.put(ElzaTypes.ZP2015_CONTENT, new EdxStringConvertor("CONTENT"));
+        
 		if (configArchDesc.isFileType()) {
 			stringTypeMap.put("ZP2015_UNIT_TYPE", new EdxUnitTypeConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.unitTypeMap, ElzaTypes.spisSet));
 			stringTypeMap.put("ZP2015_FOLDER_TYPE", new EdxEnumConvertor(CoreTypes.UNIT_TYPE, ElzaTypes.folderTypeUnitTypeMap,false));
@@ -994,6 +996,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
         private Map<ConfigElzaInheritedType,List<InheritedConvertor>> inheritedConvertors = null;
         
         private Map<String, String> geoEntities	= null;
+        
+        private boolean zp2015NameFound = false; 
 
         public LevelContext(Level level, Apu apu, LevelContext parentContext) {
             this.level = level;
@@ -1101,6 +1105,15 @@ public class ImportArchDesc implements EdxItemCovertContext {
 		public Map<String,String> getGeoEntities() {
 			return geoEntities;
 		}
+
+		public boolean isZp2015NameFound() {
+			return zp2015NameFound;
+		}
+
+		public void setZp2015NameFound(boolean zp2015NameFound) {
+			this.zp2015NameFound = zp2015NameFound;
+		}		
+		
     }
 
     

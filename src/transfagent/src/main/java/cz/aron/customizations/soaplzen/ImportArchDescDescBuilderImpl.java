@@ -10,6 +10,8 @@ import cz.aron.transfagent.config.ConfigElzaArchDesc;
 import cz.aron.transfagent.elza.ElzaXmlReader;
 import cz.aron.transfagent.elza.ImportArchDesc.LevelContext;
 import cz.aron.transfagent.elza.ImportArchDescDescBuilder;
+import cz.aron.transfagent.elza.LevelNameDescValueCollector;
+import cz.aron.transfagent.elza.LevelNameDescValues;
 
 @Service
 @ConditionalOnProperty(value = "filestore5.path")
@@ -29,14 +31,22 @@ public class ImportArchDescDescBuilderImpl implements ImportArchDescDescBuilder 
 			return null;
 		}
 
-		var valueCollector = new NameDescValueCollector(elzaXmlReader);
-		valueCollector.collect(levelContext);
+		LevelNameDescValues valueCollector;
+		if (elzaXmlReader.getEdx().getInfo()!=null) {
+			var vc = new LevelNameDescValueCollector(elzaXmlReader, true);
+			vc.collect(levelContext);
+			valueCollector = vc;
+		} else {
+			var vc = new NameDescValueCollector(elzaXmlReader);
+			vc.collect(levelContext);
+			valueCollector = vc;
+		}
 
 		StringBuilder sb = new StringBuilder();
 		if (valueCollector.isMatrika()) {
 			var title = valueCollector.getUkladaciJednotka();
 			if (title==null) {
-				title = valueCollector.getTitle();
+				title = valueCollector.getName();
 			}			
 			sb.append(title);
 			if (StringUtils.isNotBlank(valueCollector.getDatace())) {
@@ -47,7 +57,7 @@ public class ImportArchDescDescBuilderImpl implements ImportArchDescDescBuilder 
 				}
 			}
 		} else {
-			var title = valueCollector.getTitle();
+			var title = valueCollector.getName();
 			if (StringUtils.isNotBlank(title)
 					&& (!valueCollector.isTitleInherited() || configArchDesc.isInheritNameDate())) {
 				sb.append(title);
@@ -55,13 +65,19 @@ public class ImportArchDescDescBuilderImpl implements ImportArchDescDescBuilder 
 			var datace = valueCollector.getDatace();
 			if (configArchDesc.isAddDateToName() && StringUtils.isNotBlank(datace)
 					&& (!valueCollector.isDataceInherited() || configArchDesc.isInheritNameDate())) {
-				sb.append(", ").append(datace);
+				if (sb.length()>0) {
+					sb.append(", ");
+				}
+				sb.append(datace);
 			}
 			if (levelDuplicities != null) {
 				var rawDesc = sb.toString();
 				if (levelDuplicities.contains(rawDesc) && StringUtils.isNotBlank(valueCollector.getDatace())
 						&& valueCollector.isDataceInherited() == false && !configArchDesc.isAddDateToName()) {
-					sb.append(", ").append(valueCollector.getDatace());
+					if (sb.length()>0) {
+						sb.append(", ");
+					}
+					sb.append(valueCollector.getDatace());
 				}
 			}
 		}

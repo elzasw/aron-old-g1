@@ -28,6 +28,8 @@ import cz.aron.transfagent.elza.ElzaTypes;
 import cz.aron.transfagent.elza.ElzaXmlReader;
 import cz.aron.transfagent.elza.ImportArchDesc.LevelContext;
 import cz.aron.transfagent.elza.ImportArchDescResultBuilder;
+import cz.aron.transfagent.elza.LevelResultValues;
+import cz.aron.transfagent.elza.LevelValueCollector;
 import cz.aron.transfagent.elza.convertor.EdxLinkConvertor;
 import cz.aron.transfagent.elza.convertor.UnitDateConvertor;
 import cz.aron.transfagent.repository.ArchivalEntityRepository;
@@ -81,8 +83,17 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 	public String buildResult(InstitutionInfo instInfo, Section sect, Level lvl, LevelContext levelContext,
 			UUID fundApuUuid, ElzaXmlReader elzaXmlReader) {
 
-		var valueCollector = new ValueCollector(elzaXmlReader);
-		valueCollector.collect(levelContext);
+		
+		LevelResultValues valueCollector;
+		if (elzaXmlReader.getEdx().getInfo()!=null) {
+			var vc = new LevelValueCollector(elzaXmlReader);
+			vc.collect(levelContext);
+			valueCollector = vc;
+		} else {
+			var vc = new ValueCollector(elzaXmlReader);
+			vc.collect(levelContext);
+			valueCollector = vc;
+		}
 
 		var result = new Result();
 		result.setId(lvl.getUuid());
@@ -109,7 +120,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 	}
 	
-	private void generateThumbnail(ValueCollector valueCollector, Result result) {		
+	private void generateThumbnail(LevelResultValues valueCollector, Result result) {		
 		var daoId = valueCollector.getDaoId();
 		if (daoId != null) {
 			if (thumbnailFileStore.fillDaoIdLink(daoId, result)) {
@@ -123,7 +134,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 	}
 
-	private void generateMatrika(Result result, ValueCollector valueCollector, LevelContext levelContext, ElzaXmlReader elzaXmlReader,
+	private void generateMatrika(Result result, LevelResultValues valueCollector, LevelContext levelContext, ElzaXmlReader elzaXmlReader,
 			InstitutionInfo instInfo, Section sect, UUID fundApuUuid) {
 		generateNameMatrika(result, levelContext, sect, valueCollector);
 		generateDateMatrika(result, valueCollector);
@@ -133,12 +144,12 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		generateInstitutionAndFund(result, instInfo, sect, fundApuUuid);
 	}
 	
-	public void generateName(Result result, LevelContext levelContext, Section sect, ValueCollector valueCollector) {
+	public void generateName(Result result, LevelContext levelContext, Section sect, LevelResultValues valueCollector) {
 		var rowItem = new ResultRowItem();
 		rowItem.setT("N");
 		var itemValue = new ResultRowItemValue();
 
-		var title = valueCollector.getTitle();
+		var title = valueCollector.getName();
 		if (title == null) {
 			if (levelContext.getParentContext() == null) {
 				itemValue.setV(StringUtils.abbreviate(sect.getFi().getN(), MAX_NAME_LENGTH));
@@ -153,7 +164,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 	}
 	
 	public void generateNameMatrika(Result result, LevelContext levelContext, Section sect,
-			ValueCollector valueCollector) {
+			LevelResultValues valueCollector) {
 		var rowItem = new ResultRowItem();
 		rowItem.setT("N");
 		var itemValue = new ResultRowItemValue();
@@ -163,7 +174,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			itemValue.setV(StringUtils.abbreviate(title, MAX_NAME_LENGTH));
 		} else {
 			// pokud neni ukladaci jednotka pouzije se nazev
-			title = valueCollector.getTitle();
+			title = valueCollector.getName();
 			if (title != null) {
 				itemValue.setV(StringUtils.abbreviate(title, MAX_NAME_LENGTH));
 			}
@@ -172,7 +183,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		result.addLItem(Arrays.asList(rowItem));
 	}
 
-	public void generateDate(Result result, ValueCollector valueCollector) {
+	public void generateDate(Result result, LevelResultValues valueCollector) {
 
 		String date = null;
 		if (valueCollector.getUnitDateText() != null) {
@@ -191,7 +202,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 	}
 
-	public void generateDateMatrika(Result result, ValueCollector valueCollector) {
+	public void generateDateMatrika(Result result, LevelResultValues valueCollector) {
 		String date = null;
 		if (valueCollector.getUnitDateText() != null) {
 			date = valueCollector.getUnitDateText();			
@@ -212,7 +223,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 	}
 	
-	public void generateUnitContent(Result result, ValueCollector valueCollector) {
+	public void generateUnitContent(Result result, LevelResultValues valueCollector) {
 		var unitContent = valueCollector.getUnitContent();
 		if (unitContent != null) {
 			var rowItem = new ResultRowItem();
@@ -224,7 +235,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 	}
 
-	public void generateSignature(Result result, ValueCollector valueCollector) {
+	public void generateSignature(Result result, LevelResultValues valueCollector) {
 		String spisZnak = valueCollector.getSpisZnak();
 		String signatura = valueCollector.getSignatura();
 		String puvodniSignatura = valueCollector.getPuvodniSignatura();
@@ -255,7 +266,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 	}
 
-	public void generateNumber(Result result, ValueCollector valueCollector) {
+	public void generateNumber(Result result, LevelResultValues valueCollector) {
 		String refOzn = valueCollector.getRefOzn();
 		String invCislo = valueCollector.getInvCislo();
 		String ukladaciCislo = valueCollector.getUkladaciCislo();
@@ -326,8 +337,8 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		result.addLItem(Arrays.asList(instItem, fundItem));
 	}
 
-	public void generateParent(Result result, LevelContext levelContext, Section sect, ValueCollector valueCollector) {
-		var parentTitle = valueCollector.getParentTitle();
+	public void generateParent(Result result, LevelContext levelContext, Section sect, LevelResultValues valueCollector) {
+		var parentTitle = valueCollector.getParentName();
 		if (parentTitle == null && levelContext.getParentContext() != null
 				&& levelContext.getParentContext().getParentContext() == null) {
 			parentTitle = sect.getFi().getN();
@@ -349,7 +360,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			"ZP2015_ENTITY_ROLE_64", "ZP2015_ENTITY_ROLE_65", "ZP2015_ENTITY_ROLE_71", "ZP2015_ENTITY_ROLE_82"));
 
 	public void generateGeoEntities(Result result, LevelContext levelContext, ElzaXmlReader elzaXmlReader,
-			ValueCollector valueCollector) {
+			LevelResultValues valueCollector) {
 
 		// get uuids of geo entities
 		var uuids = valueCollector.getUuids();
@@ -406,7 +417,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 
 	}
 
-	private String getType(ValueCollector valueCollector) {
+	private String getType(LevelResultValues valueCollector) {
 		var levelType = valueCollector.getLevelType();
 		if (levelType == null) {
 			return ARCHIVALIE_LEVEL_GENERIC;
@@ -442,7 +453,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 	/**
 	 * Class for prepare of all level values
 	 */
-	private class ValueCollector {
+	private class ValueCollector implements LevelResultValues {
 
 		private final ElzaXmlReader elzaXmlReader;
 
@@ -669,82 +680,102 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			}
 		}
 
+		@Override
 		public DescriptionItemEnum getLevelType() {
 			return levelType;
 		}
 
+		@Override
 		public DescriptionItemEnum getUnitType() {
 			return unitType;
 		}
 
+		@Override
 		public String getUnitContent() {
 			return unitContent;
 		}
 
+		@Override
 		public String getSpisZnak() {
 			return spisZnak;
 		}
 
+		@Override
 		public String getSignatura() {
 			return signatura;
 		}
 
+		@Override
 		public String getPuvodniSignatura() {
 			return puvodniSignatura;
 		}
 
+		@Override
 		public String getUnitDateText() {
 			return unitDateText;
 		}
 
+		@Override
 		public String getUnitDate() {
 			return unitDate;
 		}
 
+		@Override
 		public List<UUID> getUuids() {
 			return uuids;
 		}
 
+		@Override
 		public String getRefOzn() {
 			return refOzn;
 		}
 
+		@Override
 		public String getInvCislo() {
 			return invCislo;
 		}
 
+		@Override
 		public String getUkladaciCislo() {
 			return ukladaciCislo;
 		}
 
-		public String getTitle() {
+		@Override
+		public String getName() {
 			return title;
 		}
 
-		public String getParentTitle() {
+		@Override
+		public String getParentName() {
 			return parentTitle;
 		}
 
+		@Override
 		public boolean isMatrika() {
 			return matrika;
 		}
-		
+
+		@Override
 		public String getUkladaciJednotka() {
 			return ukladaciJednotka;
 		}
-		
+
+		@Override
 		public Integer getUkladaciJednotkaPoradi() {
 			return ukladaciJednotkaPoradi;
 		}
 
+		@Override
 		public String getTypZaznamu() {
 			return typZaznamu;
 		}
-		
+
+		@Override
 		public String getDaoLink() {
 			return daoLink;
 		}
 
+		@Override
 		public String getDaoId() {
 			return daoId;
 		}
