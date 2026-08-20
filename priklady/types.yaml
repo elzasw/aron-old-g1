@@ -819,6 +819,10 @@ itemTypes:
     name: Tematický popis jednotky popisu
     type: STRING
     indexed: true
+  - code: CONTENT
+    name: Obsah
+    type: STRING
+    indexed: true
   - code: UNIT_DATE
     name: Datace vzniku
     type: UNITDATE
