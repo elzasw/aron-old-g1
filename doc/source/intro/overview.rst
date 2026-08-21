@@ -52,6 +52,7 @@ tvořící aplikaci. Součástí schématu je také propojení na další kompon
     
     node "Virtuální server" {
       portin "HTTPS/443"
+      portin "HTTP(S)/Administrace"
       component HTTPD [
         Apache Httpd nebo NGINX
         ----
@@ -69,6 +70,7 @@ tvořící aplikaci. Součástí schématu je také propojení na další kompon
         ----
         Java 11
       ]
+      "HTTP(S)/Administrace" -down-> TransformAgent
       database Databáze [
          Databáze
          ----
@@ -77,7 +79,7 @@ tvořící aplikaci. Součástí schématu je také propojení na další kompon
       component ElasticSearch [
         ElasticSearch  
       ]
-      HTTPD -right-> AronCore : HTTP/8080      
+      HTTPD -down-> AronCore : HTTP/8080      
       AronCore --> Databáze
       AronCore --> ElasticSearch
       TransformAgent -left-> AronCore
