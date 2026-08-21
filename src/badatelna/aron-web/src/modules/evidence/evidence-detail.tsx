@@ -201,7 +201,14 @@ export function EvidenceDetail({
       .filter(({ type, visible, value }) => type === code && visible && value)
       .map(({ value }) => value);
 
-    return values.length ? values.join(', ') : undefined;
+    if (!values.length) {
+      return undefined;
+    }
+
+    // the detail is redundant when it only repeats the name
+    const detail = values.join(', ');
+
+    return detail.trim() === item.name.trim() ? undefined : detail;
   }, [item, configuration.nameDetailItem]);
 
   const findRoot = useCallback((root?: ApuEntity): ApuEntity | undefined => {
