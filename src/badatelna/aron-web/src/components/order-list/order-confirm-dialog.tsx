@@ -23,6 +23,7 @@ import {
 export interface OrderConfirmDialogProps {
   open: boolean;
   onClose: () => void;
+  onOrdered?: () => void;
   institution: InstitutionInfo;
   badatelna?: BadatelnaInfo;
   orderItems: OrderItemInfoEx[];
@@ -87,6 +88,7 @@ function formatCartContent(orderItems: OrderItemInfoEx[], institution: Instituti
 export function OrderConfirmDialog({
   open,
   onClose,
+  onOrdered,
   institution,
   badatelna,
   orderItems,
@@ -172,6 +174,8 @@ export function OrderConfirmDialog({
 
     showSnackbar('Objednávka byla úspěšně odeslána.', SnackbarVariant.SUCCESS);
     onClose();
+    // clear the cart last: it can unmount OrderList (and this dialog with it)
+    onOrdered?.();
   }
 
   return (

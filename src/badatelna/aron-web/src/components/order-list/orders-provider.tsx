@@ -55,27 +55,39 @@ export function getGroupName(institution: InstitutionInfo, badatelna?: Badatelna
   return `${institution.code}_${badatelna.code}`;
 }
 
-export function OrdersProvider({children}:PropsWithChildren<{}>) {
-  const { store, load, clear } = useLocalStorage<{ orderItems: OrderItemInfoEx[], groups: string[] }>("orderItems");
-  const loadedState = load();
+interface OrdersState {
+  orderItems: OrderItemInfoEx[];
+  groups: string[];
+}
 
-  const [orderItems, setOrderItems] = useState<OrderItemInfoEx[]>(loadedState?.orderItems || []);
-  const [groups, setGroups] = useState<string[]>(loadedState?.groups || []);
+export function OrdersProvider({children}:PropsWithChildren<{}>) {
+  const { store, load, clear } = useLocalStorage<OrdersState>("orderItems");
+
+  const [state, setState] = useState<OrdersState>(() => {
+    const loadedState = load();
+    return {
+      orderItems: loadedState?.orderItems || [],
+      groups: loadedState?.groups || [],
+    };
+  });
+  const { orderItems, groups } = state;
+
+  // orderItems and groups must always be updated in a single setState call: React 17
+  // does not batch updates triggered from async code (e.g. after an order is sent),
+  // so two separate calls would produce a render with a torn, inconsistent state.
+  function update(newState: OrdersState) {
+    setState(newState);
+    store(newState);
+  }
 
   function addItem(itemInfo: OrderItemInfoEx) {
-    const _orderItems = [...orderItems, itemInfo];
-    let _groups = groups;
-
-    setOrderItems(_orderItems);
-
     const groupName = getGroupName(itemInfo.institution, itemInfo.badatelna);
     const existingGroup = groups.find((_groupName) => _groupName === groupName);
-    if (!existingGroup) {
-      _groups = [...groups, groupName];
-      setGroups(_groups);
-    }
 
-    store({orderItems: _orderItems, groups: _groups})
+    update({
+      orderItems: [...orderItems, itemInfo],
+      groups: existingGroup ? groups : [...groups, groupName],
+    });
   }
 
   function removeItem(apuId: string) {
@@ -84,46 +96,39 @@ export function OrdersProvider({children}:PropsWithChildren<{}>) {
 
     const _orderItems = orderItems.filter(({apuId: _apuId}) => _apuId !== apuId);
 
-    let _groups = groups;
-
-    setOrderItems(_orderItems);
-
     const groupName = getGroupName(item.institution, item.badatelna)
     const itemsFromGroup = _orderItems.filter(({ institution, badatelna }) =>
       getGroupName(institution, badatelna) === groupName
     )
-    console.log("remove item", _orderItems, groupName, itemsFromGroup);
-    if (itemsFromGroup.length === 0) {
-      _groups = groups.filter((_groupName) => _groupName !== groupName);
-    }
-    setGroups(_groups);
 
-    store({orderItems: _orderItems, groups: _groups})
+    update({
+      orderItems: _orderItems,
+      groups: itemsFromGroup.length === 0
+        ? groups.filter((_groupName) => _groupName !== groupName)
+        : groups,
+    });
   }
 
   function changeItemType(apuId: string, type: ZpusobZpristupneni) {
     const itemIndex = orderItems.findIndex(({ apuId: _apuId }) => _apuId === apuId);
     const item = orderItems[itemIndex];
     const newItems = [...orderItems.slice(0, itemIndex), {...item, type}, ...orderItems.slice(itemIndex + 1)]
-    setOrderItems(newItems)
 
-    store({orderItems: newItems, groups})
+    update({ orderItems: newItems, groups });
   }
 
   function clearAll() {
-    setOrderItems([]);
-    setGroups([]);
+    setState({ orderItems: [], groups: [] });
     clear();
   }
 
   function clearGroup(groupName: string) {
-    const _orderItems = orderItems.filter(({ institution, badatelna }: OrderItemInfoEx) =>
-      getGroupName(institution, badatelna) !== groupName
-    );
-    const _groups = groups.filter((g: string) => g !== groupName);
-    setOrderItems(_orderItems);
-    setGroups(_groups);
-    store({ orderItems: _orderItems, groups: _groups });
+    update({
+      orderItems: orderItems.filter(({ institution, badatelna }: OrderItemInfoEx) =>
+        getGroupName(institution, badatelna) !== groupName
+      ),
+      groups: groups.filter((g: string) => g !== groupName),
+    });
   }
 
   return <OrdersContext.Provider value={{orderItems, addItem, removeItem, changeItemType, groups, clearAll, clearGroup}}>

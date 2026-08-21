@@ -53,19 +53,18 @@ export function OrderList() {
     return <></>
   }
 
-  const groupsByInstitution = groups.map((groupName) => {
-    const filteredItems = _orderItems.filter(({
+  const groupsByInstitution = groups
+    .map((groupName) => _orderItems.filter(({
       institution: _institution,
       badatelna: _badatelna
-    }) => getGroupName(_institution, _badatelna) === groupName);
-    const {institution: _institution, badatelna: _badatelna} = filteredItems[0]
-    return {
-      institution: _institution,
-      badatelna: _badatelna,
-      // orderItems: _orderItems.filter(({institution: _institution, }) => _institution.code === institution.code),
+    }) => getGroupName(_institution, _badatelna) === groupName))
+    // defensive: never dereference filteredItems[0] for a group with no items left
+    .filter((filteredItems) => filteredItems.length > 0)
+    .map((filteredItems) => ({
+      institution: filteredItems[0].institution,
+      badatelna: filteredItems[0].badatelna,
       orderItems: filteredItems,
-    }
-  })
+    }));
 
   function handleChangeType(item:OrderItemInfoEx, type: ZpusobZpristupneni) {
     changeItemType(item.apuId, type);
@@ -158,6 +157,7 @@ export function OrderList() {
       <OrderConfirmDialog
         open={true}
         onClose={() => setDialogState(null)}
+        onOrdered={() => clearGroup(getGroupName(dialogState.institution, dialogState.badatelna))}
         institution={dialogState.institution}
         badatelna={dialogState.badatelna}
         orderItems={dialogState.orderItems}
