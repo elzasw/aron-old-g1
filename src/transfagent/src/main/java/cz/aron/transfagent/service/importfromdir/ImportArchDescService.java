@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -25,6 +26,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cz.aron.apux.ApuSourceBuilder;
 import cz.aron.apux.ApuValidator;
@@ -53,9 +57,12 @@ import cz.aron.transfagent.service.DaoImportService;
 import cz.aron.transfagent.service.DaoImportService.DaoSource;
 import cz.aron.transfagent.service.DaoImportService.DaoSourceRef;
 import cz.aron.transfagent.service.FileImportService;
+import cz.aron.transfagent.service.ImportFailureNotify;
+import cz.aron.transfagent.service.ImportProtocol;
 import cz.aron.transfagent.service.LevelEnrichmentService;
 import cz.aron.transfagent.service.ReimportService;
 import cz.aron.transfagent.service.StorageService;
+import cz.aron.transfagent.service.UnrecoverableImportException;
 import cz.aron.transfagent.transformation.CachedDataProvider;
 import cz.aron.transfagent.transformation.DatabaseDataProvider;
 
@@ -108,6 +115,10 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
     
     private final ImportArchDescDescBuilder descBuilder;
 
+    private final ObjectMapper objectMapper;
+
+    private final List<ImportFailureNotify> importFailureNotifies;
+
     final private String ARCHDESC_DIR = "archdesc";
 
     public ImportArchDescService(ApTypeService apTypeService, ApuSourceService apuSourceService,
@@ -126,7 +137,9 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
             ImportArchDescRefreshEntitiesCommand refreshEntitiesCommand,
 			@Nullable ImportArchDescResultBuilder resultBuilder,
 			@Nullable ImportArchDescNameBuilder nameBuilder,
-			@Nullable ImportArchDescDescBuilder descBuilder) {
+			@Nullable ImportArchDescDescBuilder descBuilder,
+			ObjectMapper objectMapper,
+			List<ImportFailureNotify> importFailureNotifies) {
         this.apTypeService = apTypeService;
         this.apuSourceService = apuSourceService;
         this.reimportService = reimportService;
@@ -154,6 +167,8 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         this.resultBuilder = resultBuilder;
         this.nameBuilder = nameBuilder;
         this.descBuilder = descBuilder;
+        this.objectMapper = objectMapper;
+        this.importFailureNotifies = importFailureNotifies;
     }
 
     @PostConstruct
@@ -187,14 +202,90 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         var fileName = archdescXml.get().getFileName().toString();
         var tmp = fileName.substring("archdesc-".length());
         var fundCode = tmp.substring(0, tmp.length() - ".xml".length());
-        
-        tt.execute(t -> {
-           importArchDesc(t, dir, fundCode, archdescXml.get());
-           return null;
-        });
+
+        // read before the import: on failure the directory moves away, and the context is what
+        // tells the source system which of its publications was rejected
+        var context = readContext(dir);
+
+        try {
+            tt.execute(t -> {
+               importArchDesc(t, dir, fundCode, archdescXml.get(), context);
+               return null;
+            });
+        } catch (UnrecoverableImportException e) {
+            rejectArchDesc(dir, context, e.getMessage());
+        }
         return true;
     }
-    
+
+    /**
+     * Park data that can never be imported, and tell whoever supplied it why.
+     * <p>
+     * Retrying repeats the same failure every cycle, so the directory leaves the input directory for
+     * good - with the reason next to the data it belongs to, and reported back through
+     * {@link ImportFailureNotify} to the system the data came from.
+     *
+     * @param dir the staged directory
+     * @param context {@code notify.json} of the transfer, may be {@code null}
+     * @param errorMessage what is missing or wrong
+     */
+    private void rejectArchDesc(Path dir, String context, String errorMessage) {
+        if (!Files.isDirectory(dir)) {
+            // nothing left to park, the import got far enough to move the data away
+            log.error("Fail to import archdesc {}: {}", dir, errorMessage);
+            notifyImportFailed(context, errorMessage);
+            return;
+        }
+        try {
+            new ImportProtocol(dir).add(errorMessage);
+        } catch (Exception e) {
+            log.error("Fail to write protocol to {}", dir, e);
+        }
+        notifyImportFailed(context, errorMessage);
+        try {
+            var errorDir = storageService.moveToErrorDir(dir);
+            log.error("ArchDesc {} moved to error directory {}: {}", dir, errorDir, errorMessage);
+        } catch (IOException e) {
+            log.error("Fail to move {} to error directory.", dir, e);
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Report the rejection to every registered {@link ImportFailureNotify}. Data staged by hand
+     * carries no context and is reported to nobody.
+     */
+    private void notifyImportFailed(String context, String errorMessage) {
+        if (context == null || importFailureNotifies.isEmpty()) {
+            return;
+        }
+        try {
+            var notify = objectMapper.readValue(context, new TypeReference<Map<String, Object>>() {});
+            for (var importFailureNotify : importFailureNotifies) {
+                importFailureNotify.importFailed(notify, errorMessage);
+            }
+        } catch (Exception e) {
+            log.error("Fail to notify import failure", e);
+        }
+    }
+
+    /**
+     * @return the {@code notify.json} the transfer was staged with, {@code null} when the data came
+     *         with no context - a directory staged by hand rather than pulled from a source system
+     */
+    private String readContext(Path dir) {
+        var notifyPath = dir.resolve("notify.json");
+        if (!Files.isRegularFile(notifyPath)) {
+            return null;
+        }
+        try {
+            return Files.readString(notifyPath, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.error("Fail to read context {}", notifyPath, e);
+            return null;
+        }
+    }
+
     private Optional<Path> getArchDesc(Path dir) {
     	 try (var stream = Files.list(dir)) {
              return stream
@@ -214,8 +305,9 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
      * @param dir
      * @param fundCode
      * @param archdescXmlPath
+     * @param context {@code notify.json} of the transfer, may be {@code null}
      */
-    private void importArchDesc(TransactionStatus t, Path dir, String fundCode, Path archdescXmlPath) {
+    private void importArchDesc(TransactionStatus t, Path dir, String fundCode, Path archdescXmlPath, String context) {
 
         var iad = new ImportArchDesc(apTypeService, levelEnrichmentService,
                 configArchDesc, archDescLevelDaoImporters, configurationLoader.getConfig(), resultBuilder,
@@ -227,12 +319,13 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } catch (JAXBException e) {
-            throw new IllegalStateException(e);
+            throw new UnrecoverableImportException("Unreadable archdesc xml: " + e.getMessage(), e);
         }
 
         var institution = institutionRepository.findByCode(iad.getInstitutionCode());
         if (institution == null) {
-            throw new IllegalStateException("The entry Institution code={" + iad.getInstitutionCode() + "} must exist.");
+            throw new UnrecoverableImportException(
+                    "The entry Institution code={" + iad.getInstitutionCode() + "} must exist.");
         }
 
         // Reuse the fund that importArchDesc above already resolved from the XML
@@ -241,7 +334,7 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         // "<institutionCode>-<nad>", so no Elza-published archdesc could import.
         var fund = fundRepository.findByUuidAndInstitution(iad.getFundApuUuid(), institution);
         if (fund == null) {
-            throw new IllegalStateException("The entry Fund uuid={" + iad.getFundApuUuid()
+            throw new UnrecoverableImportException("The entry Fund uuid={" + iad.getFundApuUuid()
                     + "}, institution={" + iad.getInstitutionCode() + "} must exist (directory " + fundCode + ").");
         }
         
@@ -259,20 +352,10 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
             apusrcBuilder.build(fos, new ApuValidator(configurationLoader.getConfig()));
         } catch (IOException ioEx) {
             throw new UncheckedIOException(ioEx);
-        } catch (JAXBException e) {
-            throw new IllegalStateException(e);
+        } catch (JAXBException | IllegalStateException e) {
+            throw new UnrecoverableImportException("Invalid apu source: " + e.getMessage(), e);
         }
 
-        String context = null;
-        var notifyPath = dir.resolve("notify.json");
-        if (Files.isRegularFile(archdescXmlPath)) {
-        	try {
-				context = Files.readString(notifyPath, StandardCharsets.UTF_8);
-			} catch (IOException e) {
-				log.error("Fail to read context", e);
-			}
-        }
-        
         Path dataDir;
         try {
             dataDir = storageService.moveToDataDir(dir);

@@ -34,18 +34,19 @@ public abstract class ImportDirProcessor implements ImportProcessor {
 				log.info("Files to process {}, processor {}", dirs.size(), this.getClass());
 			}
 
+			// one unprocessable directory must not hide the ones behind it: record the failure
+			// and carry on, the context still tells FileImportService to back off this cycle
 			for (Path dir : dirs) {
 				try {
 					if (!processDirectory(dir)) {
 						ic.setFailed(true);
 						log.warn("Fail to process directory {}, processor  {}", dir, this.getClass());
-						return;
+						continue;
 					}
 					ic.addProcessed();
 				} catch (Exception e) {
 					log.error("Failed to import data, path: {}", dir, e);
 					ic.setFailed(true);
-					return;
 				}
 			}
 		} catch (Exception e) {

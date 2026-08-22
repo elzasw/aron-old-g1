@@ -29,13 +29,13 @@ import cz.tacr.elza.ApiException;
  * {@link ElzaUpdateArchDescProcessor}), downloads the corresponding publication XML from ELZA, and
  * stages it into the standard {@code archdesc} import directory so the regular
  * {@code ImportArchDescService} picks it up. Alongside the XML it writes a {@code notify.json}
- * carrying the publication id, which later drives {@link NotifyPublicationCommand} once the archdesc
+ * carrying the publication id, which later drives {@link ReportPublicationStatusCommand} once the archdesc
  * has been uploaded to the ARON core.
  * <p>
  * The whole feature is active only when {@code elza.url} is configured.
  *
  * @see ElzaUpdateArchDescProcessor
- * @see NotifyPublicationCommand
+ * @see ReportPublicationStatusCommand
  */
 @ConditionalOnProperty(value = "elza.url")
 @Component
@@ -164,8 +164,12 @@ public class ImportPublicationCommand implements CommandProcessor {
 	 * Reads the {@code ZP2015} section, derives the directory name {@code archdesc-<institution>-<fundCode>},
 	 * creates it, writes {@code notify.json} (carrying the publication id) and moves the XML in as
 	 * {@code <name>.xml}. If the XML lacks the section or the fund number the command is moved to the error
-	 * directory and processing continues; on any other failure the temporary download and the partially
-	 * created directory are cleaned up and the command is retried.
+	 * directory and processing continues; on any other failure the temporary download and a directory this
+	 * call created are cleaned up and the command is retried.
+	 * <p>
+	 * A previous publication of the same fund that is still waiting to be imported is left alone and the
+	 * command is retried instead: the importer moves that directory away within a cycle or two, and
+	 * replacing it here would destroy data the import thread may be reading at that moment.
 	 *
 	 * @param srcXml downloaded publication XML (temporary file, consumed on success)
 	 * @param commandFile the originating command file
@@ -173,7 +177,7 @@ public class ImportPublicationCommand implements CommandProcessor {
 	 */
 	private void storeResult(Path srcXml, Path commandFile, Integer publicationId) {
 		var archDescPath = storageService.getInputPath().resolve("archdesc");
-		Path targetDir = null;
+		Path createdDir = null;
 		try (InputStream is = Files.newInputStream(srcXml)) {
 			ElzaXmlReader reader = ElzaXmlReader.read(is);
 			var edx = reader.getEdx();
@@ -193,8 +197,15 @@ public class ImportPublicationCommand implements CommandProcessor {
 			}
 			var fundCode = fundInfo.getNum().toString();
 			var name = "archdesc-" + institution + "-" + fundCode;
-			targetDir = archDescPath.resolve(name);
+			var targetDir = archDescPath.resolve(name);
+			if (Files.exists(targetDir)) {
+				log.info("Publication id {} not staged yet, {} is still waiting to be imported", publicationId,
+						targetDir);
+				deleteQuietly(srcXml);
+				throw new CommandProcessorException(CommandProcessorException.Result.CONTINUE_PROCESSING);
+			}
 			Files.createDirectory(targetDir);
+			createdDir = targetDir;
 
 			Map<String, Integer> notify = new HashMap<>();
 			notify.put("publicationId", publicationId);
@@ -203,12 +214,13 @@ public class ImportPublicationCommand implements CommandProcessor {
 			}
 			Files.move(srcXml, targetDir.resolve(name + ".xml"));
 		} catch (CommandProcessorException e) {
-			// validation failure: command file already moved to error, just drop the temp download
+			// command file already moved to error, or the staging is postponed: drop the temp download
 			deleteQuietly(srcXml);
+			deleteQuietly(createdDir);
 			throw e;
 		} catch (Exception e) {
 			deleteQuietly(srcXml);
-			deleteQuietly(targetDir);
+			deleteQuietly(createdDir);
 			log.error("Fail to store archdescs",e);
 			throw new CommandProcessorException(e);
 		}

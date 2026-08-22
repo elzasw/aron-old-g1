@@ -39,7 +39,7 @@ import cz.tacr.elza.client.PublicationApi;
  * resumes from where it left off. The whole feature is active only when {@code elza.url} is configured.
  *
  * @see ImportPublicationCommand
- * @see NotifyPublicationCommand
+ * @see ReportPublicationStatusCommand
  * @see ApiClientEx
  */
 @ConditionalOnProperty(value = "elza.syncpublication")

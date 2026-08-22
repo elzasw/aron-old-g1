@@ -67,6 +67,7 @@ import cz.aron.transfagent.peva.ImportPevaGeo;
 import cz.aron.transfagent.peva.ImportPevaOriginator;
 import cz.aron.transfagent.service.AttachmentSource.AttachmentDesc;
 import cz.aron.transfagent.service.LevelEnrichmentService;
+import cz.aron.transfagent.service.UnrecoverableImportException;
 import cz.aron.transfagent.transformation.ArchEntityInfo;
 import cz.aron.transfagent.transformation.ContextDataProvider;
 import cz.aron.transfagent.transformation.CoreTypes;
@@ -293,14 +294,14 @@ public class ImportArchDesc implements EdxItemCovertContext {
     	initMultiItemConvertor();
         Sections sections = elzaXmlReader.getEdx().getFs();
         if(sections==null||sections.getS().size()==0) {
-            throw new RuntimeException("Missing section data");
+            throw new UnrecoverableImportException("Missing section data");
         }
         if(sections.getS().size()>1) {
-            throw new RuntimeException("Exports with one section are supported");
+            throw new UnrecoverableImportException("Exports with one section are supported");
         }
         Section sect = sections.getS().get(0);
         if(sect.getLvls()==null) {
-            throw new RuntimeException("Missing levels.");
+            throw new UnrecoverableImportException("Missing levels.");
         }
         
         numLevels = sect.getLvls().getLvl().size();
@@ -309,10 +310,12 @@ public class ImportArchDesc implements EdxItemCovertContext {
         FundInfo fi = sect.getFi();
         institutionCode = fi.getIc();
         institutionInfo = dataProvider.getInstitutionApu(institutionCode);
+        if (institutionInfo == null || institutionInfo.getUuid() == null) {
+            throw new UnrecoverableImportException("Missing institution, code: " + institutionCode);
+        }
         instApuUuid = institutionInfo.getUuid();
         institutionName = institutionInfo.getName();
         institutionShortName = institutionInfo.getShortName();
-        Validate.notNull(instApuUuid, "Missing institution, code: %s", institutionCode);
 
 		if (fi.getC() != null) {
 			fundApuUuid = dataProvider.getFundApu(institutionCode, fi.getC());
@@ -325,8 +328,10 @@ public class ImportArchDesc implements EdxItemCovertContext {
 			fundApuUuid = dataProvider.getFundApu(institutionCode,
 					ArchiveFundId.createJaFaId(institutionCode, fi.getNum().toString(), null));
 		}
-		Validate.notNull(fundApuUuid, "Missing fund, code: %s, institution: %s,%s", fi.getC(), fi.getNum(),
-				institutionCode);
+		if (fundApuUuid == null) {
+			throw new UnrecoverableImportException("Missing fund, code: " + fi.getC() + ", NAD: " + fi.getNum()
+					+ ", institution: " + institutionCode);
+		}
 
 		Levels lvls = sect.getLvls();
 		var levelDuplicities = computeLevelDuplicities(lvls);        

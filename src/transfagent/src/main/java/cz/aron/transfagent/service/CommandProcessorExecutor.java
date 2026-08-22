@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
+import cz.aron.transfagent.config.ConfigAronFileImport;
+
 @Service
 public class CommandProcessorExecutor implements  SmartLifecycle, CommandProcessorContext {
 	
@@ -21,13 +23,17 @@ public class CommandProcessorExecutor implements  SmartLifecycle, CommandProcess
 	
 	private final List<CommandProcessor> commandProcessors;
 	
+	private final ConfigAronFileImport configAronFileImport;
+	
 	private ThreadStatus status;
 
 	private long importInterval = 5000;
 	
-	public CommandProcessorExecutor(StorageService storageService, List<CommandProcessor> commandProcessors) {
+	public CommandProcessorExecutor(StorageService storageService, List<CommandProcessor> commandProcessors,
+			ConfigAronFileImport configAronFileImport) {
 		this.storageService = storageService;
 		this.commandProcessors = commandProcessors;
+		this.configAronFileImport = configAronFileImport;
 	}
 
 	private void processCommands() {
@@ -81,6 +87,11 @@ public class CommandProcessorExecutor implements  SmartLifecycle, CommandProcess
 	
 	@Override
 	public void start() {
+		if (configAronFileImport.isFileImportDisabled()) {
+			log.info("Command processor service is disabled.");
+			status = ThreadStatus.STOPPED;
+			return;
+		}
 		 status = ThreadStatus.RUNNING;
 	        new Thread(() -> {
 	            run();
