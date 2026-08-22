@@ -25,6 +25,7 @@ import cz.aron.apux._2020.ApuType;
 import cz.aron.apux._2020.ItemDateRange;
 import cz.aron.apux._2020.Part;
 import cz.aron.transfagent.elza.datace.ItemDateRangeAppender;
+import cz.aron.transfagent.service.UnrecoverableImportException;
 import cz.aron.transfagent.transformation.ContextDataProvider;
 import cz.aron.transfagent.transformation.CoreTypes;
 import cz.aron.transfagent.transformation.PropertiesDataProvider;
@@ -106,10 +107,10 @@ public class ImportFundInfo {
 	private ApuSourceBuilder importFundInfo(UUID uuid) {
 		Sections sections = elzaXmlReader.getEdx().getFs();
 		if(sections==null||sections.getS().size()==0) {
-			throw new RuntimeException("Missing section data");
+			throw new UnrecoverableImportException("Missing section data");
 		}
 		if(sections.getS().size()>1) {
-			throw new RuntimeException("Exports with one section are supported");
+			throw new UnrecoverableImportException("Exports with one section are supported");
 		}
 
 		Section sect = sections.getS().get(0);
@@ -131,7 +132,7 @@ public class ImportFundInfo {
 		fundNad = fi.getNum() != null ? fi.getNum().intValue() : null;
 		var instInfo = dataProvider.getInstitutionApu(institutionCode);
 		if(instInfo==null) {
-            throw new RuntimeException("Missing institution: " + institutionCode);
+            throw new UnrecoverableImportException("Missing institution: " + institutionCode);
 		}
 
 		Part partFundInfo = ApuSourceBuilder.addPart(apu, CoreTypes.PT_FUND_INFO);
@@ -282,7 +283,7 @@ public class ImportFundInfo {
 		for(String xmlId: puvodciXmlId) {
 			AccessPoint ap = apMap.get(xmlId);
 			if(ap==null) {
-				throw new RuntimeException("Missing AP with ID: "+xmlId);
+				throw new UnrecoverableImportException("Missing AP with ID: "+xmlId);
 			}
 			puvodci.add(UUID.fromString(ap.getApe().getUuid()));
 		}

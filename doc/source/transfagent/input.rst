@@ -60,6 +60,12 @@ Funds
 Informace o archivních souborech. V jednotlivé datové podsložce musí být soubor 
 :file:`fund-<identifikace>.xml`. Soubor je v nativním formátu Elza.
 
+Pokud archivní soubor odkazuje na instituci, která v transformačním agentovi
+neexistuje, nelze vstup zpracovat ani při dalším pokusu. Je proto přesunut do
+složky :file:`error` a důvod je zapsán do souboru :file:`protokol.txt`. Vstup
+ponechaný ve vstupní složce by blokoval zpracování všech vstupů s nižší
+prioritou, tedy i archivních popisů.
+
 .. _ta_input_archdescs:
 
 Archdesc

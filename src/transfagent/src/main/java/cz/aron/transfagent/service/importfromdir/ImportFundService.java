@@ -1,5 +1,8 @@
 package cz.aron.transfagent.service.importfromdir;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -16,8 +19,10 @@ import cz.aron.transfagent.domain.Fund;
 import cz.aron.transfagent.domain.SourceType;
 import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.service.FileImportService;
+import cz.aron.transfagent.service.ImportProtocol;
 import cz.aron.transfagent.service.ReimportService;
 import cz.aron.transfagent.service.StorageService;
+import cz.aron.transfagent.service.UnrecoverableImportException;
 import cz.aron.transfagent.service.importfromdir.ImportFundService.FundImporter.ImportResult;
 import cz.aron.transfagent.transformation.DatabaseDataProvider;
 
@@ -76,6 +81,51 @@ public class ImportFundService extends ImportDirProcessor implements ReimportPro
      */
     @Override
     public boolean processDirectory(Path dir) {
+    	
+    	boolean imported = false;
+    	try {
+    		imported = importFund(dir);
+    	} catch (UnrecoverableImportException e) {
+    		rejectFund(dir, e.getMessage());
+    		// handled: a fund left in the input directory would block every importer below it,
+    		// and the archdesc that staged it reports the publication once it is retried
+    		imported = true;
+    	}
+    	return imported;
+    }
+
+    /**
+     * Park a fund that can never be imported, keeping the reason next to it.
+     * <p>
+     * Unlike an archival description a fund carries no context of its own, so nothing is reported
+     * from here: a fund staged from an Elza publication belongs to the description that staged it,
+     * and that description reports the publication when its own retry finds the fund still missing.
+     * Reporting here as well would only overwrite that with a less specific message.
+     *
+     * @param dir the staged directory
+     * @param errorMessage what is missing or wrong
+     */
+    private void rejectFund(Path dir, String errorMessage) {
+    	if (!Files.isDirectory(dir)) {
+    		// nothing left to park, the import got far enough to move the data away
+    		log.error("Fail to import fund {}: {}", dir, errorMessage);
+    		return;
+    	}
+    	try {
+    		new ImportProtocol(dir).add(errorMessage);
+    	} catch (Exception e) {
+    		log.error("Fail to write protocol to {}", dir, e);
+    	}
+    	try {
+    		var errorDir = storageService.moveToErrorDir(dir);
+    		log.error("Fund {} moved to error directory {}: {}", dir, errorDir, errorMessage);
+    	} catch (IOException e) {
+    		log.error("Fail to move {} to error directory.", dir, e);
+    		throw new UncheckedIOException(e);
+    	}
+    }
+
+    private boolean importFund(Path dir) {
     	
     	boolean imported = false;
     	out:for(var fundImporter:fundImporters) {    		

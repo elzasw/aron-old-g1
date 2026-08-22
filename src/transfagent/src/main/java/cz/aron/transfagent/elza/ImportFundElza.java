@@ -25,6 +25,7 @@ import cz.aron.transfagent.repository.FundRepository;
 import cz.aron.transfagent.repository.InstitutionRepository;
 import cz.aron.transfagent.service.FundService;
 import cz.aron.transfagent.service.StorageService;
+import cz.aron.transfagent.service.UnrecoverableImportException;
 import cz.aron.transfagent.service.importfromdir.ImportFundService.FundImporter;
 import cz.aron.transfagent.service.importfromdir.ReimportProcessor.Result;
 import cz.aron.transfagent.transformation.DatabaseDataProvider;
@@ -90,7 +91,7 @@ public class ImportFundElza implements FundImporter {
                 .findFirst();
 		
 		if (elzaFundXml.isEmpty()) {
-			log.warn("Directory not contail pevafund- file. Directory {}", path);
+			log.warn("Directory does not contain a fund- file. Directory {}", path);
             return ImportResult.FAIL;
 		}
 		
@@ -117,7 +118,7 @@ public class ImportFundElza implements FundImporter {
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		} catch (JAXBException e) {
-			throw new IllegalStateException(e);
+			throw new UnrecoverableImportException("Unreadable fund xml: " + e.getMessage(), e);
 		}
 
 		if (fund != null) {
@@ -127,15 +128,16 @@ public class ImportFundElza implements FundImporter {
 		var institutionCode = ifi.getInstitutionCode();
 		var institution = institutionRepository.findByCode(institutionCode);
 		if (institution == null) {
-			throw new IllegalStateException("The entry Institution code={" + institutionCode + "} must exist.");
+			throw new UnrecoverableImportException(
+					"The entry Institution code={" + institutionCode + "} must exist.");
 		}
 
 		try (var fos = Files.newOutputStream(dir.resolve("apusrc.xml"))) {
 			apusrcBuilder.build(fos, new ApuValidator(configurationLoader.getConfig()));
 		} catch (IOException ioEx) {
 			throw new UncheckedIOException(ioEx);
-		} catch (JAXBException e) {
-			throw new IllegalStateException(e);
+		} catch (JAXBException | IllegalStateException e) {
+			throw new UnrecoverableImportException("Invalid apu source: " + e.getMessage(), e);
 		}
 
 		Path dataDir;

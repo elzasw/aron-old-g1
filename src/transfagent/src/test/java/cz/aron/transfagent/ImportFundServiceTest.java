@@ -1,11 +1,16 @@
 package cz.aron.transfagent;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -52,6 +57,34 @@ public class ImportFundServiceTest extends AbstractCommonTest {
 
         // kontrola reimportu
         importFundService.reimport(apuSource);
+    }
+
+    /**
+     * A fund naming an institution the deployment does not have yet cannot be imported by any
+     * retry, so it is parked with its reason rather than left to fail every cycle - a fund waiting
+     * in the input directory holds up every importer of lower priority, the archival descriptions
+     * among them.
+     */
+    @Test
+    public void testFundWithoutInstitutionIsParked() throws IOException {
+        var dir = Path.of(DIR_TO_FUND, FUND_DIR);
+        FileUtils.deleteDirectory(dir.toFile());
+        FileUtils.copyDirectory(new File(DIR_FROM_FUND, FUND_DIR), dir.toFile());
+
+        assertTrue(importFundService.processDirectory(dir));
+
+        assertTrue(fundRepository.findAll().isEmpty());
+        assertFalse(Files.exists(dir), "the directory must leave the input directory for good");
+
+        var errorDateDir = Path.of(DIR_ERROR, getDateDir());
+        assertTrue(Files.isDirectory(errorDateDir), "nothing was parked in " + errorDateDir);
+        try (var stream = Files.list(errorDateDir)) {
+            var parked = stream.filter(p -> p.getFileName().toString().startsWith(FUND_DIR))
+                    .collect(Collectors.toList());
+            assertEquals(1, parked.size(), "expected exactly one parked " + FUND_DIR + ", got " + parked);
+            assertTrue(Files.readString(parked.get(0).resolve("protokol.txt"), StandardCharsets.UTF_8)
+                    .contains("Missing institution"));
+        }
     }
 
 }
