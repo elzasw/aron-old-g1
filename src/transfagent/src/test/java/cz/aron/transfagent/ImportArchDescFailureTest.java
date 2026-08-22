@@ -52,32 +52,12 @@ public class ImportArchDescFailureTest extends AbstractCommonTest {
     StorageService storageService;
 
     /**
-     * A published archdesc whose fund was never imported is parked, not retried, and ELZA is told why.
-     */
-    @Test
-    public void testMissingFundIsReportedAndParked() throws IOException {
-        FileUtils.copyDirectory(new File(DIR_FROM_INSTITUTION), new File(DIR_TO_INSTITUTION));
-        importInstitutionService.processDirectory(Path.of(DIR_TO_INSTITUTION, INSTITUTION_DIR));
-
-        var publicationId = 999_042;
-        var dir = stageArchDesc("archdesc-missing-fund", publicationId);
-
-        assertTrue(importArchDescService.processDirectory(dir));
-
-        assertTrue(archDescRepository.findAll().isEmpty());
-        assertFalse(Files.exists(dir), "the directory must leave the input directory for good");
-
-        var parked = parkedDir("archdesc-missing-fund");
-        assertTrue(Files.readString(parked.resolve("protokol.txt"), StandardCharsets.UTF_8).contains("Missing fund"));
-
-        var report = readReport(publicationId);
-        assertEquals(PublicationReportStatus.ERROR, report.getStatus());
-        assertTrue(report.getErrorMessage().contains("Missing fund"), report.getErrorMessage());
-        assertNotNull(report.getOccurredAt());
-    }
-
-    /**
-     * The same for an institution the deployment does not have.
+     * A published archdesc naming an institution the deployment does not have is parked, not retried,
+     * and ELZA is told why.
+     * <p>
+     * The institution stands in for every unrecoverable reason here: a missing <em>fund</em> is no
+     * longer one of them, the portal creates it from the export instead - see
+     * {@link ImportMissingFundTest}.
      */
     @Test
     public void testMissingInstitutionIsReportedAndParked() throws IOException {
@@ -87,13 +67,16 @@ public class ImportArchDescFailureTest extends AbstractCommonTest {
         assertTrue(importArchDescService.processDirectory(dir));
 
         assertTrue(archDescRepository.findAll().isEmpty());
-        assertFalse(Files.exists(dir));
-        assertTrue(Files.readString(parkedDir("archdesc-missing-institution").resolve("protokol.txt"),
-                StandardCharsets.UTF_8).contains("Missing institution"));
+        assertFalse(Files.exists(dir), "the directory must leave the input directory for good");
+
+        var parked = parkedDir("archdesc-missing-institution");
+        assertTrue(Files.readString(parked.resolve("protokol.txt"), StandardCharsets.UTF_8)
+                .contains("Missing institution"));
 
         var report = readReport(publicationId);
         assertEquals(PublicationReportStatus.ERROR, report.getStatus());
         assertTrue(report.getErrorMessage().contains("Missing institution"), report.getErrorMessage());
+        assertNotNull(report.getOccurredAt());
     }
 
     /**
@@ -151,6 +134,8 @@ public class ImportArchDescFailureTest extends AbstractCommonTest {
      */
     private Path stageArchDesc(String dirName, Integer publicationId) throws IOException {
         var dir = Path.of(DIR_TO_ARCH_DESC, dirName);
+        // copyDirectory merges, so a directory a previous run left behind would keep its markers
+        FileUtils.deleteDirectory(dir.toFile());
         FileUtils.copyDirectory(new File(DIR_FROM_ARCH_DESC, ARCH_DESC_DIR), dir.toFile());
         if (publicationId != null) {
             try (var os = Files.newOutputStream(dir.resolve("notify.json"))) {

@@ -6,6 +6,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,6 +46,7 @@ import cz.aron.transfagent.elza.ImportArchDescDescBuilder;
 import cz.aron.transfagent.elza.ImportArchDescNameBuilder;
 import cz.aron.transfagent.elza.ImportArchDescRefreshEntitiesCommand;
 import cz.aron.transfagent.elza.ImportArchDescResultBuilder;
+import cz.aron.transfagent.elza.MissingFundException;
 import cz.aron.transfagent.elza.dao.ArchDescLevelDaoImporter;
 import cz.aron.transfagent.repository.ArchDescRepository;
 import cz.aron.transfagent.repository.CoreQueueRepository;
@@ -120,6 +122,9 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
     private final List<ImportFailureNotify> importFailureNotifies;
 
     final private String ARCHDESC_DIR = "archdesc";
+
+    /** Records that the fund this archdesc names was already staged once, so it is not staged again. */
+    private static final String FUND_STAGED_MARKER = "fund-staged";
 
     public ImportArchDescService(ApTypeService apTypeService, ApuSourceService apuSourceService,
             ReimportService reimportService, StorageService storageService, FundRepository fundRepository,
@@ -212,10 +217,78 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
                importArchDesc(t, dir, fundCode, archdescXml.get(), context);
                return null;
             });
+        } catch (MissingFundException e) {
+            if (stageMissingFund(dir, archdescXml.get(), e)) {
+                // handled for this cycle: ImportFundService has the higher priority, so the fund is
+                // created first and this directory is picked up again once it exists
+                return true;
+            }
+            rejectArchDesc(dir, context, e.getMessage());
         } catch (UnrecoverableImportException e) {
             rejectArchDesc(dir, context, e.getMessage());
         }
         return true;
+    }
+
+    /**
+     * Stage the fund the archival description names but this transfagent does not have, so that
+     * {@link ImportFundService} creates it from the very export that arrived.
+     * <p>
+     * The export carries the whole fund info, so no second download is needed - it is copied into the
+     * {@code fund} input directory under the identifier the next import will look the fund up by. The
+     * copy is written under a temporary name and renamed, so the fund importer never sees a
+     * half-written file.
+     * <p>
+     * Staging is attempted <b>once</b> per archival description, recorded by a marker file that
+     * survives a restart. Should the staged fund not import either, the description is rejected the
+     * next time round rather than deferred again - a deferral that cannot end is the retry loop this
+     * whole mechanism exists to avoid.
+     *
+     * @return {@code true} when the fund was staged and the description should be retried later,
+     *         {@code false} when it has to be rejected
+     */
+    private boolean stageMissingFund(Path dir, Path archdescXmlPath, MissingFundException e) {
+        if (!configArchDesc.isImportMissingFund()) {
+            return false;
+        }
+        if (e.getFundCode() == null) {
+            log.error("Cannot create fund from {}, the export identifies it by neither code nor NAD", dir);
+            return false;
+        }
+        if (!isUsableAsDirectoryName(e.getFundCode())) {
+            // the code becomes a directory name, and it comes from the export, not from us
+            log.error("Cannot create fund from {}, its code {} is not usable as a directory name", dir,
+                    e.getFundCode());
+            return false;
+        }
+        var marker = dir.resolve(FUND_STAGED_MARKER);
+        if (Files.exists(marker)) {
+            log.error("Fund {} was already staged from {} and still does not exist", e.getFundCode(), dir);
+            return false;
+        }
+        var fundName = "fund-" + e.getFundCode();
+        var fundDir = storageService.getInputPath().resolve("fund").resolve(fundName);
+        try {
+            Files.createDirectories(fundDir);
+            var tmpFile = fundDir.resolve(fundName + ".xml.tmp");
+            Files.copy(archdescXmlPath, tmpFile, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(tmpFile, fundDir.resolve(fundName + ".xml"), StandardCopyOption.REPLACE_EXISTING);
+            Files.createFile(marker);
+        } catch (IOException ioEx) {
+            log.error("Fail to stage fund {} from {}", e.getFundCode(), dir, ioEx);
+            return false;
+        }
+        log.info("Fund {} staged from {}, archdesc import postponed", fundDir, dir);
+        return true;
+    }
+
+    /**
+     * @return whether the fund code can name a directory of the input directory - it must not reach
+     *         out of it, and must not be a relative path of its own
+     */
+    private boolean isUsableAsDirectoryName(String fundCode) {
+        return !fundCode.isEmpty() && fundCode.indexOf('/') < 0 && fundCode.indexOf('\\') < 0
+                && fundCode.indexOf(':') < 0 && !".".equals(fundCode) && !"..".equals(fundCode);
     }
 
     /**

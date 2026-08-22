@@ -68,9 +68,17 @@ Archdesc
 Informace o jednotkách popisu. V jednotlivé datové podsložce musí být soubor 
 :file:`archdesc-<identifikace>.xml`. Soubor je ve formátu dle schématu Elza.
 
-Pokud archivní popis odkazuje na archivní soubor nebo instituci, které
-v transformačním agentovi neexistují, nelze vstup zpracovat ani při dalším
-pokusu. Takový vstup je proto přesunut do složky :file:`error`, důvod je
-zapsán do souboru :file:`protokol.txt` a zpracování se již neopakuje.
-Pokud data pocházejí z publikace Elzy, je publikace v Elze označena jako
-chybná (stav ``PUBLISH_ERROR``) včetně uvedeného důvodu.
+Pokud archivní popis odkazuje na archivní soubor, který v transformačním
+agentovi neexistuje, je archivní soubor vytvořen z přijatého archivního popisu -
+ten obsahuje i údaje o archivním souboru. Popis se zpracuje v některém
+z následujících cyklů, až archivní soubor vznikne. Vytvoření se zkouší jednou;
+pokud archivní soubor ani potom neexistuje, je archivní popis odmítnut. Chování
+lze vypnout volbou ``archdesc.import-missing-fund`` (ve výchozím stavu zapnuto),
+například tam, kde archivní soubory dodává PEvA.
+
+Odmítnutý vstup - chybějící instituce, poškozené XML nebo neúspěšné vytvoření
+archivního souboru - nelze zpracovat ani při dalším pokusu. Je proto přesunut do
+složky :file:`error`, důvod je zapsán do souboru :file:`protokol.txt`
+a zpracování se již neopakuje. Pokud data pocházejí z publikace Elzy, je
+publikace v Elze označena jako chybná (stav ``PUBLISH_ERROR``) včetně uvedeného
+důvodu.

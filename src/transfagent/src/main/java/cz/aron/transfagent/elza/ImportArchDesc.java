@@ -329,8 +329,13 @@ public class ImportArchDesc implements EdxItemCovertContext {
 					ArchiveFundId.createJaFaId(institutionCode, fi.getNum().toString(), null));
 		}
 		if (fundApuUuid == null) {
-			throw new UnrecoverableImportException("Missing fund, code: " + fi.getC() + ", NAD: " + fi.getNum()
-					+ ", institution: " + institutionCode);
+			// the code the fund has to be created under is the one the lookup above will use next
+			// time: fi/@c when the export carries it, otherwise the NAD-based jafa id
+			var missingFundCode = fi.getC() != null ? fi.getC()
+					: (fi.getNum() != null ? ArchiveFundId.createJaFaId(institutionCode, fi.getNum().toString(), null)
+							: null);
+			throw new MissingFundException(missingFundCode,
+					"Missing fund, code: " + fi.getC() + ", NAD: " + fi.getNum() + ", institution: " + institutionCode);
 		}
 
 		Levels lvls = sect.getLvls();

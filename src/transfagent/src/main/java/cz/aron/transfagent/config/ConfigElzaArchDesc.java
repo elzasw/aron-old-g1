@@ -61,6 +61,9 @@ public class ConfigElzaArchDesc {
     
     private boolean addExtensionToAttachment = false;
 
+    // vytvorit chybejici archivni soubor z prijateho archivniho popisu
+    private boolean importMissingFund = true;
+
     public boolean isAddDateToName() {
         return addDateToName;
     }
@@ -237,6 +240,14 @@ public class ConfigElzaArchDesc {
 
 	public void setAddExtensionToAttachment(boolean addExtensionToAttachment) {
 		this.addExtensionToAttachment = addExtensionToAttachment;
+	}
+
+	public boolean isImportMissingFund() {
+		return importMissingFund;
+	}
+
+	public void setImportMissingFund(boolean importMissingFund) {
+		this.importMissingFund = importMissingFund;
 	}
 
 }
