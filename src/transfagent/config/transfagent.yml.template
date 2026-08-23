@@ -61,6 +61,16 @@ dao:
   # maximalni pocet dao vygenerovanych na disku cekajicich na odeslani
   queueSize: 10
 
+# Souborove digitalni repozitare Elzy: mapovani kodu repozitare z exportu
+# (<dao><rep>KOD</rep>...) na lokalne dostupny koren (typicky mount).
+# Bez teto sekce se fs-link dao ignoruji.
+#elzafs:
+#  repos:
+#    - code: DiskRepo
+#      path: /mnt/elza-disk-repo
+#  # odkaz na adresar s vice soubory se odmitne (typicky omylem na koren repozitare)
+#  maxFiles: 200
+
 tile:
   # slozka s tiles, pokud je nastaveno generuji se tiles primo do vysledne slozky a do aroncore se prenasi pouze reference
   folder: D:/projects/aron/data/tiles

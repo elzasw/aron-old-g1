@@ -46,7 +46,7 @@ public class ImportArchDescTest {
     public void testImportArchDesc() throws IOException, JAXBException {
         Path inputFile = Path.of(ARCHDESC_DIR, ARCHDESC_FILE);
         
-		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, new ConfigElzaArchDesc(),
+		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, null, new ConfigElzaArchDesc(),
 				Collections.emptyList(), null, null, null, null, Collections.emptyMap());
 		ApuSourceBuilder builder = iad.importArchDesc(inputFile, ARCHDESC_DIR + "/" + PROPERTIES_FILE);
 

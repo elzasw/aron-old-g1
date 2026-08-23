@@ -66,6 +66,7 @@ import cz.aron.transfagent.peva.ArchiveFundId;
 import cz.aron.transfagent.peva.ImportPevaGeo;
 import cz.aron.transfagent.peva.ImportPevaOriginator;
 import cz.aron.transfagent.service.AttachmentSource.AttachmentDesc;
+import cz.aron.transfagent.service.DaoElzaFsService;
 import cz.aron.transfagent.service.LevelEnrichmentService;
 import cz.aron.transfagent.service.UnrecoverableImportException;
 import cz.aron.transfagent.transformation.ArchEntityInfo;
@@ -177,7 +178,9 @@ public class ImportArchDesc implements EdxItemCovertContext {
     private final ApTypeService apTypeService;
     
     private final LevelEnrichmentService levelEnrichmentService;
-    
+
+    private final DaoElzaFsService daoElzaFsService;
+
     private final List<ArchDescLevelDaoImporter> levelDaoImporters;
     
     private final ConfigElzaArchDesc configArchDesc;
@@ -198,12 +201,14 @@ public class ImportArchDesc implements EdxItemCovertContext {
 
     public ImportArchDesc(ApTypeService apTypeService,
                           LevelEnrichmentService levelEnrichmentService,
+                          DaoElzaFsService daoElzaFsService,
                           ConfigElzaArchDesc configArchDesc, List<ArchDescLevelDaoImporter> levelDaoImporters,
                           TypesConfiguration typesConfig, @Nullable ImportArchDescResultBuilder resultBuilder,
                           ImportArchDescNameBuilder nameBuilder, ImportArchDescDescBuilder descBuilder,
                           Map<String,String> attachmentNameToUuid) {
         this.apTypeService = apTypeService;
         this.levelEnrichmentService = levelEnrichmentService;
+        this.daoElzaFsService = daoElzaFsService;
         this.configArchDesc = configArchDesc;
         this.levelDaoImporters = levelDaoImporters;
         this.typesConfig = typesConfig;
@@ -256,7 +261,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
 
 	public static void main(String[] args) {
 		Path inputFile = Path.of(args[0]);
-		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, new ConfigElzaArchDesc(),
+		ImportArchDesc iad = new ImportArchDesc(new ApTypeService(), null, null, new ConfigElzaArchDesc(),
 				Collections.emptyList(), null, null, null, null, null);
 		try {
 			ApuSourceBuilder apusrcBuilder = iad.importArchDesc(inputFile, args[1]);
@@ -526,11 +531,23 @@ public class ImportArchDesc implements EdxItemCovertContext {
 		if (daos != null && daos.getDao().size() > 0) {
 			for (DigitalArchivalObject dao : daos.getDao()) {
 				var daoHandle = dao.getDoid();
-				addDaoRef("dspace", null, daoHandle);
-				UUID daoUuid = dataProvider.getDao(daoHandle);
-				if (daoUuid != null) {
-					ApuSourceBuilder.addDao(activeApu, daoUuid);
-					daoExist = true;
+				// an Elza filesystem repository is dispatched by its exported code;
+				// everything else keeps the historical dspace source
+				if (daoElzaFsService != null && daoElzaFsService.isConfiguredRepository(dao.getRep())) {
+					var handle = DaoElzaFsService.createHandle(dao.getRep(), lvl.getUuid(), daoHandle);
+					if (handle != null) {
+						UUID daoUuid = DaoElzaFsService.daoUuidOf(handle);
+						addDaoRef(DaoElzaFsService.SOURCE, daoUuid, handle);
+						ApuSourceBuilder.addDao(activeApu, daoUuid);
+						daoExist = true;
+					}
+				} else {
+					addDaoRef("dspace", null, daoHandle);
+					UUID daoUuid = dataProvider.getDao(daoHandle);
+					if (daoUuid != null) {
+						ApuSourceBuilder.addDao(activeApu, daoUuid);
+						daoExist = true;
+					}
 				}
 			}
 		}
