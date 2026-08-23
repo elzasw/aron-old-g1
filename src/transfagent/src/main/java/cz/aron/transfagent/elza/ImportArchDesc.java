@@ -533,9 +533,10 @@ public class ImportArchDesc implements EdxItemCovertContext {
 				// dispatched by the exported repository code; a dao of an unconfigured
 				// repository is skipped - there is nothing that could serve its files
 				if (daoElzaFsService != null && daoElzaFsService.isConfiguredRepository(dao.getRep())) {
-					var handle = DaoElzaFsService.createHandle(dao.getRep(), lvl.getUuid(), dao.getDoid());
+					var handle = DaoElzaFsService.createHandle(dao.getRep(), dao.getDoid());
 					if (handle != null) {
-						UUID daoUuid = DaoElzaFsService.daoUuidOf(handle);
+						// the published uuid comes from the persistent dao_uuid_map
+						UUID daoUuid = daoElzaFsService.uuidFor(dao.getRep(), dao.getDoid());
 						addDaoRef(DaoElzaFsService.SOURCE, daoUuid, handle);
 						ApuSourceBuilder.addDao(activeApu, daoUuid);
 						daoExist = true;

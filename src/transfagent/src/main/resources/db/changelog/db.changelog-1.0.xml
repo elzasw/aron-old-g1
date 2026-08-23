@@ -636,4 +636,26 @@
     </addColumn>
  </changeSet>
 
+ <!-- Persistent identity of daos delivered by reference (repository code +
+      id/path within it -> uuid). Rows are created on first import and may be
+      pre-loaded from an external source to dictate the published uuids. -->
+ <changeSet author="petr.pytelka@lightcomp.cz" id="24">
+    <createTable tableName="dao_uuid_map">
+      <column name="dao_uuid_map_id" type="int" autoIncrement="true">
+        <constraints primaryKey="true" />
+      </column>
+      <column name="repository" type="varchar(50)">
+        <constraints nullable="false" />
+      </column>
+      <column name="handle" type="varchar(1000)">
+        <constraints nullable="false" />
+      </column>
+      <column name="uuid" type="uuid">
+        <constraints nullable="false" unique="true" />
+      </column>
+    </createTable>
+    <addUniqueConstraint tableName="dao_uuid_map" columnNames="repository, handle"
+      constraintName="uq_dao_uuid_map_repository_handle" />
+ </changeSet>
+
 </databaseChangeLog>

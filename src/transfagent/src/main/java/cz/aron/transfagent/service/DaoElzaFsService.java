@@ -1,7 +1,6 @@
 package cz.aron.transfagent.service;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -16,11 +15,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileSystemUtils;
 
 import cz.aron.transfagent.config.ConfigElzaFs;
 import cz.aron.transfagent.domain.Dao;
 import cz.aron.transfagent.domain.DaoState;
+import cz.aron.transfagent.domain.DaoUuidMap;
+import cz.aron.transfagent.repository.DaoUuidMapRepository;
 import cz.aron.transfagent.service.DaoImportService.DaoImporter;
 import cz.aron.transfagent.service.importfromdir.TransformService;
 
@@ -30,16 +32,18 @@ import cz.aron.transfagent.service.importfromdir.TransformService;
  * this importer materializes the referenced file or directory from the locally
  * accessible root configured for the repository code ({@code elzafs.repos}).
  *
- * <p>The dao handle is {@code repCode|levelUuid|path} - the level uuid is part
- * of it because a DAO belongs to one APU, so the same path linked from two
- * levels must become two daos. The dao uuid derives deterministically from the
- * handle, so a re-publication reuses it and the APUX reference always matches
- * the dao row.
+ * <p>The dao's published uuid comes from the persistent {@code dao_uuid_map}
+ * table keyed by (repository code, path): assigned randomly on first import,
+ * fixed forever after, so a re-publication reuses it - and pre-loadable from
+ * an external source when the uuids are dictated from outside. One (repository,
+ * path) is one dao identity: linking the same path from several levels yields
+ * one dao, which the portal attaches to one APU.
  *
- * <p>An unreachable repository root (typically an unmounted network share)
- * throws: the import cycle fails and retries later, and the dao stays
- * ACCESSIBLE - never mistaken for a deleted one. A path missing under a
- * reachable root is INACCESSIBLE, as is a directory over {@code elzafs.maxFiles}.
+ * <p>The dao handle is {@code repCode|path}. An unreachable repository root
+ * (typically an unmounted network share) throws: the import cycle fails and
+ * retries later, and the dao stays ACCESSIBLE - never mistaken for a deleted
+ * one. A path missing under a reachable root is INACCESSIBLE, as is a
+ * directory over {@code elzafs.maxFiles}.
  */
 @ConditionalOnProperty(value = "elzafs.repos[0].code")
 @Service
@@ -56,11 +60,15 @@ public class DaoElzaFsService implements DaoImporter {
 
     private final ConfigElzaFs config;
 
+    private final DaoUuidMapRepository daoUuidMapRepository;
+
     private final Map<String, Path> rootsByCode = new HashMap<>();
 
-    public DaoElzaFsService(TransformService transformService, ConfigElzaFs config) {
+    public DaoElzaFsService(TransformService transformService, ConfigElzaFs config,
+            DaoUuidMapRepository daoUuidMapRepository) {
         this.transformService = transformService;
         this.config = config;
+        this.daoUuidMapRepository = daoUuidMapRepository;
         for (var repo : config.getRepos()) {
             rootsByCode.put(repo.getCode(), repo.getPath().toAbsolutePath().normalize());
         }
@@ -81,8 +89,8 @@ public class DaoElzaFsService implements DaoImporter {
      * Handle of one exported dao, or {@code null} when it cannot be stored
      * (over the column limit) - the dao is then skipped, with a WARN.
      */
-    public static String createHandle(String repositoryCode, String levelUuid, String path) {
-        var handle = repositoryCode + "|" + levelUuid + "|" + path;
+    public static String createHandle(String repositoryCode, String path) {
+        var handle = repositoryCode + "|" + path;
         if (handle.length() > MAX_HANDLE_LENGTH) {
             log.warn("Dao handle too long (over {} chars), dao skipped: {}", MAX_HANDLE_LENGTH, handle);
             return null;
@@ -91,21 +99,30 @@ public class DaoElzaFsService implements DaoImporter {
     }
 
     /**
-     * Deterministic dao uuid: a re-publication reuses it, keeping published
-     * references stable. The name-based uuid is version 3, which the APUX
-     * schema's Uuid pattern rejects (it allows versions 1 and 4 only), so the
-     * version nibble is forced to 4 - still a pure function of the handle.
+     * The dao's published uuid: the stored mapping when one exists (created by
+     * an earlier import, or pre-loaded from an external source), a fresh
+     * random one stored on first sight otherwise. Joins the import's
+     * transaction, so a failed import stores nothing.
      */
-    public static UUID daoUuidOf(String handle) {
-        UUID base = UUID.nameUUIDFromBytes((SOURCE + "|" + handle).getBytes(StandardCharsets.UTF_8));
-        long mostSignificant = (base.getMostSignificantBits() & ~0xF000L) | 0x4000L;
-        return new UUID(mostSignificant, base.getLeastSignificantBits());
+    @Transactional
+    public UUID uuidFor(String repositoryCode, String path) {
+        return daoUuidMapRepository.findByRepositoryAndHandle(repositoryCode, path)
+                .map(DaoUuidMap::getUuid)
+                .orElseGet(() -> {
+                    var mapping = new DaoUuidMap();
+                    mapping.setRepository(repositoryCode);
+                    mapping.setHandle(path);
+                    mapping.setUuid(UUID.randomUUID());
+                    daoUuidMapRepository.save(mapping);
+                    log.info("Dao uuid {} assigned to {}|{}", mapping.getUuid(), repositoryCode, path);
+                    return mapping.getUuid();
+                });
     }
 
     @Override
     public void importDaoFile(Dao dao, Path daoDir) {
-        String[] parts = dao.getHandle().split("\\|", 3);
-        if (parts.length != 3) {
+        String[] parts = dao.getHandle().split("\\|", 2);
+        if (parts.length != 2) {
             log.error("Malformed elzafs dao handle: {}", dao.getHandle());
             dao.setState(DaoState.INACCESSIBLE);
             return;
@@ -123,10 +140,10 @@ public class DaoElzaFsService implements DaoImporter {
             throw new IllegalStateException("Elza filesystem repository root not accessible: " + root);
         }
 
-        Path target = root.resolve(parts[2]).normalize();
+        Path target = root.resolve(parts[1]).normalize();
         if (!target.startsWith(root)) {
             // the path is data from the export; nothing may escape the root
-            log.warn("Dao path escapes its repository root, dao {} inaccessible: {}", dao.getUuid(), parts[2]);
+            log.warn("Dao path escapes its repository root, dao {} inaccessible: {}", dao.getUuid(), parts[1]);
             dao.setState(DaoState.INACCESSIBLE);
             return;
         }
@@ -141,7 +158,7 @@ public class DaoElzaFsService implements DaoImporter {
                 }
             } else {
                 log.warn("Dao path does not exist under its repository, dao {} inaccessible: {}", dao.getUuid(),
-                        parts[2]);
+                        parts[1]);
                 markInaccessible(dao, daoDir);
                 return;
             }
