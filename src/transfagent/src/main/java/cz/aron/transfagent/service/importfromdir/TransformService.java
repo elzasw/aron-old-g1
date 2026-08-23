@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
-import javax.json.Json;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -34,7 +32,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
 import org.apache.tika.Tika;
-import org.jsoup.helper.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,14 +52,12 @@ import cz.aron.transfagent.config.ConfigDao;
 import cz.aron.transfagent.config.ConfigDao.SendType;
 import cz.aron.transfagent.controller.vo.AttachmentDefVO;
 import cz.aron.transfagent.controller.vo.DaoFileDefVO;
-import cz.aron.transfagent.config.ConfigDspace;
 import cz.aron.transfagent.domain.ApuSource;
 import cz.aron.transfagent.domain.Attachment;
 import cz.aron.transfagent.domain.Transform;
 import cz.aron.transfagent.domain.TransformState;
 import cz.aron.transfagent.repository.TransformRepository;
 import cz.aron.transfagent.service.StorageService;
-import cz.aron.transfagent.transformation.DSpaceConsts;
 import gov.nist.isg.archiver.DirectoryArchiver;
 import gov.nist.isg.archiver.FilesArchiver;
 import gov.nist.isg.archiver.ZipMemoryArchiver;
@@ -92,8 +87,6 @@ public class TransformService {
 	public static String TRANSFORM_IDENTITY = "identity";
 
 	private final StorageService storageService;
-
-	private final ConfigDspace configDspace;
 
 	private final ConfigDao configDao;
 
@@ -127,11 +120,10 @@ public class TransformService {
 	@Value("${thumbnail.async:false}")
 	private boolean thumbnailAsync;
 
-	public TransformService(StorageService storageService, ConfigDspace configDspace, ConfigDao configDao,
+	public TransformService(StorageService storageService, ConfigDao configDao,
 			TransformRepository transformRepository, TransactionTemplate transactionTemplate,
 			EntityManager em) {
 		this.storageService = storageService;
-		this.configDspace = configDspace;
 		this.configDao = configDao;
 		this.transformRepository = transformRepository;
 		this.transactionTemplate = transactionTemplate;
@@ -481,53 +473,14 @@ public class TransformService {
 	 */
 	private List<Path> prepareFileList(Path dir) {
 		List<Path> files;
-		var bitstreamJson = dir.resolve(DSpaceConsts.BITSTREAM_JSON);
-		if (Files.exists(bitstreamJson)) {
-			files = readBitstreamJson(dir, bitstreamJson);
-			try (Stream<Path> stream = Files.list(dir)) {
-				stream.filter(f -> Files.isRegularFile(f) && !files.contains(f)).map(f -> f.toFile())
-						.forEach(File::delete);
-			} catch (IOException e) {
-				log.error("Error getting file list from {} ", dir, e);
-				throw new RuntimeException(e);
-			}
-		} else {
-			try (Stream<Path> stream = Files.list(dir)) {
-				files = stream.filter(f -> Files.isRegularFile(f)).collect(Collectors.toList());
-			} catch (IOException e) {
-				log.error("Error getting file list from {} ", dir, e);
-				throw new RuntimeException(e);
-			}
-			files.sort((p1, p2) -> p1.getFileName().compareTo(p2.getFileName()));
-		}
-		return files;
-	}
-
-	private List<Path> readBitstreamJson(Path dir, Path bitstreamJson) {
-		var filterBundle = configDspace.getBundleName();
-		Map<Integer, Path> filesMap = new HashMap<>();
-		try {
-			var jsonReader = Json.createReader(Files.newInputStream(bitstreamJson));
-			var jsonValue = jsonReader.readValue();
-			for (var value : jsonValue.asJsonArray()) {
-				var object = value.asJsonObject();
-
-				if (filterBundle == null || filterBundle.equals(object.getString(DSpaceConsts.BUNDLE_NAME))) {
-					var name = object.getString(DSpaceConsts.NAME);
-					var id = object.getInt(DSpaceConsts.SEQUENCE_ID);
-
-					Validate.notNull(name, "Název souboru nesmí být prázdný");
-					Validate.notNull(id, "SequenceId nesmí být prázdný");
-
-					filesMap.put(id, dir.resolve(name));
-				}
-			}
+		try (Stream<Path> stream = Files.list(dir)) {
+			files = stream.filter(f -> Files.isRegularFile(f)).collect(Collectors.toList());
 		} catch (IOException e) {
-			log.error("Error reading file {} ", bitstreamJson, e);
+			log.error("Error getting file list from {} ", dir, e);
 			throw new RuntimeException(e);
 		}
-		return filesMap.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).map(Map.Entry::getValue)
-				.collect(Collectors.toList());
+		files.sort((p1, p2) -> p1.getFileName().compareTo(p2.getFileName()));
+		return files;
 	}
 
 	private void processThumbNail(Path file, Path filesDir, DaoBundle thumbnails, int pos,

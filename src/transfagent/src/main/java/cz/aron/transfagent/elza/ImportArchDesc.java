@@ -530,11 +530,10 @@ public class ImportArchDesc implements EdxItemCovertContext {
 		DigitalArchivalObjects daos = lvl.getDaos();
 		if (daos != null && daos.getDao().size() > 0) {
 			for (DigitalArchivalObject dao : daos.getDao()) {
-				var daoHandle = dao.getDoid();
-				// an Elza filesystem repository is dispatched by its exported code;
-				// everything else keeps the historical dspace source
+				// dispatched by the exported repository code; a dao of an unconfigured
+				// repository is skipped - there is nothing that could serve its files
 				if (daoElzaFsService != null && daoElzaFsService.isConfiguredRepository(dao.getRep())) {
-					var handle = DaoElzaFsService.createHandle(dao.getRep(), lvl.getUuid(), daoHandle);
+					var handle = DaoElzaFsService.createHandle(dao.getRep(), lvl.getUuid(), dao.getDoid());
 					if (handle != null) {
 						UUID daoUuid = DaoElzaFsService.daoUuidOf(handle);
 						addDaoRef(DaoElzaFsService.SOURCE, daoUuid, handle);
@@ -542,12 +541,8 @@ public class ImportArchDesc implements EdxItemCovertContext {
 						daoExist = true;
 					}
 				} else {
-					addDaoRef("dspace", null, daoHandle);
-					UUID daoUuid = dataProvider.getDao(daoHandle);
-					if (daoUuid != null) {
-						ApuSourceBuilder.addDao(activeApu, daoUuid);
-						daoExist = true;
-					}
+					log.warn("Dao of an unconfigured repository '{}' skipped, level {}, doid {}", dao.getRep(),
+							lvl.getUuid(), dao.getDoid());
 				}
 			}
 		}

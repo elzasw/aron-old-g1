@@ -476,7 +476,6 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
 		var daoSources = new ArrayList<DaoSource>();
 		iad.getDaoRefs().forEach((s, r) -> {
 			switch (s) {
-			case "dspace":
 			case DaoElzaFsService.SOURCE:
 			case "file":
 			case "file2":

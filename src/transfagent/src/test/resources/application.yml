@@ -42,14 +42,6 @@ elza:
   soapLogging: false
   disabled: true
 
-dspace:
-  url: http://10.2.0.27/dspace
-  user: x
-  password: x
-  # vybrat pouze soubory se zadaným bundle
-  #bundleName: ORIGINAL
-  disabled: true
-
 logging:
   level:
     cz.aron.transfagent: DEBUG
