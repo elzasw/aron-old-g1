@@ -90,9 +90,16 @@ public class DaoElzaFsService implements DaoImporter {
         return handle;
     }
 
-    /** Deterministic dao uuid: a re-publication reuses it, keeping published references stable. */
+    /**
+     * Deterministic dao uuid: a re-publication reuses it, keeping published
+     * references stable. The name-based uuid is version 3, which the APUX
+     * schema's Uuid pattern rejects (it allows versions 1 and 4 only), so the
+     * version nibble is forced to 4 - still a pure function of the handle.
+     */
     public static UUID daoUuidOf(String handle) {
-        return UUID.nameUUIDFromBytes((SOURCE + "|" + handle).getBytes(StandardCharsets.UTF_8));
+        UUID base = UUID.nameUUIDFromBytes((SOURCE + "|" + handle).getBytes(StandardCharsets.UTF_8));
+        long mostSignificant = (base.getMostSignificantBits() & ~0xF000L) | 0x4000L;
+        return new UUID(mostSignificant, base.getLeastSignificantBits());
     }
 
     @Override
