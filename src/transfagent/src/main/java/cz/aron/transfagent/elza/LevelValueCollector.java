@@ -23,7 +23,7 @@ import cz.tacr.elza.schema.v2.DescriptionItemUnitDate;
 import cz.tacr.elza.schema.v2.DescriptionItemUriRef;
 import cz.tacr.elza.schema.v2.StructuredObject;
 
-public class LevelValueCollector implements LevelNameDescValues, LevelResultValues {
+public class LevelValueCollector implements LevelResultValues {
 	
 	private static final Set<String> GEO_ROLES = new HashSet<>(Arrays.asList("ZP2015_ENTITY_ROLE_80", "ZP2015_ENTITY_ROLE_86",
 			"ZP2015_ENTITY_ROLE_56", "ZP2015_ENTITY_ROLE_57", "ZP2015_ENTITY_ROLE_88", "ZP2015_ENTITY_ROLE_58",
@@ -80,6 +80,24 @@ public class LevelValueCollector implements LevelNameDescValues, LevelResultValu
 	private boolean zemreli = false;
 	private boolean zemreliIndex = false;
 	
+	private String nameStr;
+	private int nameStrLevel = Integer.MAX_VALUE; 
+	private String formalTitleStr;
+	private int formalTitleStrLevel = Integer.MAX_VALUE;
+	private String contentStr;
+	private int contentStrLevel = Integer.MAX_VALUE;
+	private String unitContentStr;
+	private int unitContentStrLevel = Integer.MAX_VALUE;
+
+	private String parentNameStr;
+	private int parentNameStrLevel = Integer.MAX_VALUE; 
+	private String parentFormalTitleStr;
+	private int parentFormalTitleStrLevel = Integer.MAX_VALUE;
+	private String parentContentStr;
+	private int parentContentStrLevel = Integer.MAX_VALUE;
+	private String parentUnitContentStr;
+	private int parentUnitContentStrLevel = Integer.MAX_VALUE;	
+	
 	public LevelValueCollector(ElzaXmlReader elzaXmlReader) {
 		this.elzaXmlReader = elzaXmlReader;
 	}
@@ -90,19 +108,41 @@ public class LevelValueCollector implements LevelNameDescValues, LevelResultValu
 		collectInheritedAttributes(context);		
 		createTypZaznamu();
 		
-		// fallback pro sarsi pomucky
+		computeTitleAndParent();
+		
+		// fallback pro starsi pomucky
 		if (title == null) {			
 			title = content;
 		}
 	}
 
-	
+	private void computeTitleAndParent() {
+		int titleLevel = Integer.MAX_VALUE;
+		if (nameStrLevel!=Integer.MAX_VALUE) {
+			title = nameStr;
+			titleLevel = nameStrLevel;
+		} else if (formalTitleStrLevel!=Integer.MAX_VALUE) {
+			title = formalTitleStr;
+			titleLevel = formalTitleStrLevel;
+		} else if (contentStrLevel!=Integer.MAX_VALUE) {
+			title = contentStr;
+			titleLevel = contentStrLevel;
+		} else if (unitContentStrLevel!=Integer.MAX_VALUE) {
+			title = unitContentStr;
+			titleLevel = unitContentStrLevel;
+		}
+		if (parentNameStrLevel!=Integer.MAX_VALUE&&parentNameStrLevel>titleLevel) {
+			parentTitle = parentNameStr;
+		} else if (parentFormalTitleStrLevel!=Integer.MAX_VALUE&&parentFormalTitleStrLevel>titleLevel) {
+			parentTitle = parentFormalTitleStr;
+		} else if (parentContentStrLevel!=Integer.MAX_VALUE&&parentContentStrLevel>titleLevel) {
+			parentTitle = parentContentStr;
+		} else if (parentUnitContentStrLevel!=Integer.MAX_VALUE&&parentUnitContentStrLevel>titleLevel) {
+			parentTitle = parentUnitContentStr;
+		}
+	}
+
 	private void collectLevelAttributes(LevelContext context) {
-		
-		String nameStr = null;
-		String formalTitleStr = null;
-		String contentStr = null;
-		String unitContentStr = null;
 		
 		// not inherited attributes
 		for (var pp : context.getLevel().getDdOrDoOrDp()) {			
@@ -118,16 +158,20 @@ public class LevelValueCollector implements LevelNameDescValues, LevelResultValu
 				break;
 			case ElzaTypes.ZP2015_NAME:
 				nameStr = ((DescriptionItemString) pp).getV();
+				nameStrLevel = 0;
 				break;
 			case ElzaTypes.ZP2015_FORMAL_TITLE:
 				formalTitleStr = ((DescriptionItemString) pp).getV();
+				formalTitleStrLevel = 0;
 				break;
 			case ElzaTypes.ZP2015_CONTENT:
 				contentStr = ((DescriptionItemString) pp).getV();
+				contentStrLevel = 0;
 				content = contentStr;
 				break;
 			case ElzaTypes.ZP2015_UNIT_CONTENT:
 				unitContentStr = ((DescriptionItemString) pp).getV();
+				unitContentStrLevel = 0;
 				unitContent = unitContentStr;
 				break;
 			case ElzaTypes.ZP2015_UNIT_DATE:
@@ -203,42 +247,49 @@ public class LevelValueCollector implements LevelNameDescValues, LevelResultValu
 				break;
 			}
 		}
-		title = StringUtils.firstNonBlank(nameStr/*, formalTitleStr, contentStr, unitContentStr*/);
 	}
 	
 	private void collectInheritedAttributes(LevelContext context) {
-		
-		String nameStr = null;
-		String formalTitleStr = null;
-		String contentStr = null;;
-		String unitContentStr = null;
 				
 		// inherited attributes
+		int level = 1;
 		while ((context = context.getParentContext()) != null) {
 			for (var pp : context.getLevel().getDdOrDoOrDp()) {
 				switch (pp.getT()) {
 				case ElzaTypes.ZP2015_NAME:
-					if (title == null || parentTitle == null) {
+					if (nameStr == null) {
 						nameStr = ((DescriptionItemString) pp).getV();
+						nameStrLevel = level;
+					} else if (parentNameStr==null) {
+						parentNameStr = ((DescriptionItemString) pp).getV();
+						parentNameStrLevel = level;
 					}
 					break;
 				case ElzaTypes.ZP2015_FORMAL_TITLE:
-					if (title == null || parentTitle == null) {
+					if (formalTitleStr==null) {
 						formalTitleStr = ((DescriptionItemString) pp).getV();
+						formalTitleStrLevel = level;
+					} else if (parentFormalTitleStr==null) {
+						parentFormalTitleStr = ((DescriptionItemString) pp).getV();
+						parentFormalTitleStrLevel = level;
 					}
 					break;
 				case ElzaTypes.ZP2015_CONTENT:
-					if (title == null || parentTitle == null) {
+					if (contentStr==null) {
 						contentStr = ((DescriptionItemString) pp).getV();
-					}
-					if (content == null) {
-						content = ((DescriptionItemString) pp).getV();
-						contentInherited = true;
+						contentStrLevel = level;
+					} else if (parentContentStr==null) {
+						parentContentStr = ((DescriptionItemString) pp).getV();
+						parentContentStrLevel = level;
 					}
 					break;
 				case ElzaTypes.ZP2015_UNIT_CONTENT:
-					if (title == null || parentTitle == null) {
+					if (unitContentStr==null) {
 						unitContentStr = ((DescriptionItemString) pp).getV();
+						unitContentStrLevel = level;
+					} else if (parentUnitContentStr==null) {
+						parentUnitContentStr = ((DescriptionItemString) pp).getV();
+						parentUnitContentStrLevel = level;
 					}
 					break;
 				case ElzaTypes.ZP2015_UNIT_DATE:
@@ -283,19 +334,8 @@ public class LevelValueCollector implements LevelNameDescValues, LevelResultValu
 					}
 					break;
 				}				
-			}			
-			if (title==null) {
-				title = StringUtils.firstNonBlank(nameStr/*, formalTitleStr, contentStr, unitContentStr*/);				
-				if (title!=null) {
-					nameStr = null;
-					formalTitleStr = null;
-					contentStr = null;
-					unitContentStr = null;
-					titleInherited = true;
-				}				
-			} else if (parentTitle==null) {
-				parentTitle = StringUtils.firstNonBlank(nameStr/*, formalTitleStr, contentStr, unitContentStr*/);
 			}
+			level++;
 		}
 	}
 	
@@ -356,11 +396,6 @@ public class LevelValueCollector implements LevelNameDescValues, LevelResultValu
 	}
 
 	@Override
-	public ElzaXmlReader getElzaXmlReader() {
-		return elzaXmlReader;
-	}
-
-	@Override
 	public DescriptionItemEnum getLevelType() {
 		return levelType;
 	}
@@ -376,33 +411,13 @@ public class LevelValueCollector implements LevelNameDescValues, LevelResultValu
 	}
 
 	@Override
-	public boolean isTitleInherited() {
-		return titleInherited;
-	}
-
-	@Override
 	public String getUkladaciJednotka() {
 		return ukladaciJednotka;
 	}
 
 	@Override
-	public boolean isUkladaciJednotkaInherited() {
-		return ukladaciJednotkaInherited;
-	}
-
-	@Override
 	public Integer getUkladaciJednotkaPoradi() {
 		return ukladaciJednotkaPoradi;
-	}
-
-	@Override
-	public String getDatace() {
-		return datace;
-	}
-
-	@Override
-	public boolean isDataceInherited() {
-		return dataceInherited;
 	}
 
 	@Override
@@ -448,11 +463,6 @@ public class LevelValueCollector implements LevelNameDescValues, LevelResultValu
 	@Override
 	public List<UUID> getUuids() {
 		return uuids;
-	}
-
-	@Override
-	public boolean isRoot() {
-		return root;
 	}
 
 	@Override
