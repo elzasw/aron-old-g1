@@ -39,6 +39,12 @@ import cz.tacr.elza.client.vo.PublicationReportStatus;
 @SpringBootTest
 public class ImportArchDescFailureTest extends AbstractCommonTest {
 
+    /** A description item type no mapping covers - the situation this class pins for the archdesc importer. */
+    private static final String UNSUPPORTED_TYPE = "ZP2015_NAME_PUBLIC";
+
+    /** The fixture level the unmapped item is added to. */
+    private static final String UNSUPPORTED_ITEM_LEVEL_UUID = "1f414a83-f5cf-4be6-8e00-d14401013dcf";
+
     @Autowired
     ObjectMapper objectMapper;
 
@@ -77,6 +83,37 @@ public class ImportArchDescFailureTest extends AbstractCommonTest {
         assertEquals(PublicationReportStatus.ERROR, report.getStatus());
         assertTrue(report.getErrorMessage().contains("Missing institution"), report.getErrorMessage());
         assertNotNull(report.getOccurredAt());
+    }
+
+    /**
+     * An export carrying a description item type this transfagent has no mapping for is parked and
+     * reported too - the type is in the data, so every retry fails on it again.
+     * <p>
+     * Institution and fund have to exist here: the unmapped item is only reached while the levels are
+     * converted, which is after both are resolved.
+     */
+    @Test
+    public void testUnsupportedItemTypeIsReportedAndParked() throws IOException {
+        var publicationId = 999_046;
+        importInstitutionAndFund();
+        var dir = stageArchDesc("archdesc-unsupported-item", publicationId);
+        addUnsupportedItem(dir.resolve(ARCH_DESC_DIR + ".xml"));
+
+        assertTrue(importArchDescService.processDirectory(dir));
+
+        assertTrue(archDescRepository.findAll().isEmpty());
+        assertFalse(Files.exists(dir), "the directory must leave the input directory for good");
+
+        var parked = parkedDir("archdesc-unsupported-item");
+        assertTrue(Files.readString(parked.resolve("protokol.txt"), StandardCharsets.UTF_8)
+                .contains(UNSUPPORTED_TYPE));
+
+        var report = readReport(publicationId);
+        assertEquals(PublicationReportStatus.ERROR, report.getStatus());
+        assertTrue(report.getErrorMessage().contains("Unsupported item type: " + UNSUPPORTED_TYPE),
+                report.getErrorMessage());
+        // the report is what an archivist acts on, so it has to name the level carrying the item
+        assertTrue(report.getErrorMessage().contains(UNSUPPORTED_ITEM_LEVEL_UUID), report.getErrorMessage());
     }
 
     /**
@@ -122,6 +159,26 @@ public class ImportArchDescFailureTest extends AbstractCommonTest {
 
         assertFalse(Files.exists(marker));
         assertEquals(PublicationReportStatus.OK, readReport(publicationId).getStatus());
+    }
+
+    private void importInstitutionAndFund() throws IOException {
+        FileUtils.copyDirectory(new File(DIR_FROM_INSTITUTION), new File(DIR_TO_INSTITUTION));
+        importInstitutionService.processDirectory(Path.of(DIR_TO_INSTITUTION, INSTITUTION_DIR));
+        FileUtils.copyDirectory(new File(DIR_FROM_FUND), new File(DIR_TO_FUND));
+        importFundService.processDirectory(Path.of(DIR_TO_FUND, FUND_DIR));
+    }
+
+    /**
+     * Add a description item of an unmapped type to one known level of the staged export, so it stays
+     * schema-valid and fails for exactly one reason. Patching the shared fixture beats copying it:
+     * a second copy could disagree with it about what a valid archdesc is.
+     */
+    private void addUnsupportedItem(Path archdescXml) throws IOException {
+        var levelTag = "<lvl id=\"6408\" pid=\"6407\" uuid=\"" + UNSUPPORTED_ITEM_LEVEL_UUID + "\">";
+        var content = Files.readString(archdescXml, StandardCharsets.UTF_8);
+        assertTrue(content.contains(levelTag), "the fixture no longer carries the level the item is added to");
+        Files.writeString(archdescXml, content.replace(levelTag, levelTag + "<ds id=\"999999\" t=\""
+                + UNSUPPORTED_TYPE + "\"><v>Karel Novak</v></ds>"), StandardCharsets.UTF_8);
     }
 
     /**

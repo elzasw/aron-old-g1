@@ -29,6 +29,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.tika.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.lang.Nullable;
 
 import cz.aron.apux.ApuSourceBuilder;
@@ -432,7 +433,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
 				if (lvl.getPid() != null) {
 					parentContext = apuContexts.get(lvl.getPid());
 					if (parentContext == null) {
-						throw new RuntimeException("Missing parent for level: " + lvl.getPid());
+						throw new UnrecoverableImportException("Missing parent for level: " + lvl.getPid());
 					}
 				}
 				var context = new LevelContext(lvl, null, parentContext);
@@ -488,7 +489,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
         if(lvl.getPid()!=null) {
             parentContext = apuContexts.get(lvl.getPid());                       
             if(parentContext==null) {
-                throw new RuntimeException("Missing parent for level: "+lvl.getPid());
+                throw new UnrecoverableImportException("Missing parent for level: "+lvl.getPid());
             }
             parentApu = parentContext.getApu();
             apu.setPrnt(parentApu.getUuid());
@@ -763,7 +764,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
 
 		EdxItemConvertor convertor = stringTypeMap.get(item.getT());
 		if (convertor != null) {
-			convertor.convert(this, item);
+			convertItem(convertor, this, item, currentContext.getLevel());
 			usedTypes.add(typeSpec);
 			if(configArchDesc.isInherited(typeSpec)) {
 				currentContext.addInheritedConvertor(convertor, item, typeSpec);
@@ -776,12 +777,52 @@ public class ImportArchDesc implements EdxItemCovertContext {
 			if (usedMultiConvertors.contains(multiConvertor)) {
 				return;
 			} else {
-				multiConvertor.convert(this, item);
+				convertItem(multiConvertor, this, item, currentContext.getLevel());
 				usedMultiConvertors.add(multiConvertor);
 				return;
 			}
 		}
-		throw new RuntimeException("Unsupported item type: " + item.getT());
+		throw new UnrecoverableImportException(
+				"Unsupported item type: " + item.getT() + ", " + itemLocation(item, currentContext.getLevel()));
+	}
+
+	/**
+	 * Run one item convertor, classifying everything it can fail on.
+	 * <p>
+	 * A mapping that cannot digest the value it was given fails the same way on every retry - the
+	 * value is in the export and the export does not change - so the failure is unrecoverable and the
+	 * whole publication is parked and reported back rather than retried for ever. The infrastructure a
+	 * convertor reaches on the way (the database behind the data provider, the file system) is the
+	 * exception: an outage there is transient and must keep being retried.
+	 *
+	 * @param level the level the item was read from, named in the message so the archivist can find it
+	 */
+	private static void convertItem(EdxItemConvertor convertor, EdxItemCovertContext ctx, DescriptionItem item,
+			Level level) {
+		try {
+			convertor.convert(ctx, item);
+		} catch (UnrecoverableImportException | DataAccessException | UncheckedIOException e) {
+			throw e;
+		} catch (RuntimeException e) {
+			throw new UnrecoverableImportException("Cannot convert item type: " + item.getT() + ", "
+					+ itemLocation(item, level) + ": " + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * @return where in the export the item sits - read by an operator and forwarded to the source
+	 *         system, so it has to name what that system can look the item up by
+	 */
+	private static String itemLocation(DescriptionItem item, Level level) {
+		var location = new StringBuilder();
+		if (item.getS() != null) {
+			location.append("spec: ").append(item.getS()).append(", ");
+		}
+		if (item.getId() != null) {
+			location.append("item id: ").append(item.getId()).append(", ");
+		}
+		return location.append("level id: ").append(level.getId()).append(", uuid: ").append(level.getUuid())
+				.toString();
 	}
 
     private void addEntityClasses(Part part) {
@@ -1164,7 +1205,7 @@ public class ImportArchDesc implements EdxItemCovertContext {
 		}
 		
 		public void convert() {
-			convertor.convert(levelContext, item);
+			convertItem(convertor, levelContext, item, levelContext.getLevel());
 		}
     	
     }
