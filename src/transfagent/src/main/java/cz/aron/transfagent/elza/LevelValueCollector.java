@@ -43,6 +43,8 @@ public class LevelValueCollector implements LevelResultValues {
 
 	private String parentTitle;
 	
+	private String parentUuid;
+	
 	private String unitContent;
 	
 	private String content;
@@ -104,15 +106,15 @@ public class LevelValueCollector implements LevelResultValues {
 		collectInheritedAttributes(context);		
 		createTypZaznamu();
 		
-		computeTitleAndParent();
+		computeTitleAndParent(context);
 		
 		// fallback pro starsi pomucky
-		if (title == null) {			
+		if (title == null) {
 			title = content;
 		}
 	}
 
-	private void computeTitleAndParent() {
+	private void computeTitleAndParent(LevelContext levelContext) {
 		int titleLevel = Integer.MAX_VALUE;
 		if (nameStrLevel!=Integer.MAX_VALUE) {
 			title = nameStr;
@@ -127,15 +129,37 @@ public class LevelValueCollector implements LevelResultValues {
 			title = unitContentStr;
 			titleLevel = unitContentStrLevel;
 		}
+		int parentLevel = Integer.MAX_VALUE;
 		if (parentNameStrLevel!=Integer.MAX_VALUE&&parentNameStrLevel>titleLevel) {
 			parentTitle = parentNameStr;
+			parentLevel = parentNameStrLevel;
 		} else if (parentFormalTitleStrLevel!=Integer.MAX_VALUE&&parentFormalTitleStrLevel>titleLevel) {
 			parentTitle = parentFormalTitleStr;
+			parentLevel = parentFormalTitleStrLevel;
 		} else if (parentContentStrLevel!=Integer.MAX_VALUE&&parentContentStrLevel>titleLevel) {
 			parentTitle = parentContentStr;
+			parentLevel = parentContentStrLevel;
 		} else if (parentUnitContentStrLevel!=Integer.MAX_VALUE&&parentUnitContentStrLevel>titleLevel) {
 			parentTitle = parentUnitContentStr;
+			parentLevel = parentUnitContentStrLevel;
 		}
+		
+		if (parentLevel != Integer.MAX_VALUE) {
+			computeParentUuid(levelContext, parentLevel);
+		}
+	}
+	
+	private void computeParentUuid(LevelContext levelContext, int level) {
+		LevelContext parentContext = levelContext;
+		while (level>0) {
+			parentContext = parentContext.getParentContext();
+			level--;
+			if (parentContext==null) {
+				// nemelo by nastat
+				return;
+			}
+		}
+		parentUuid = parentContext.getLevel().getUuid();
 	}
 
 	private void collectLevelAttributes(LevelContext context) {
@@ -487,6 +511,11 @@ public class LevelValueCollector implements LevelResultValues {
 	@Override
 	public String getParentName() {
 		return parentTitle;
+	}
+	
+	@Override
+	public String getParentUuid() {
+		return parentUuid;
 	}
 
 	@Override

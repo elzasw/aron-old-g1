@@ -37,6 +37,11 @@ public interface LevelResultValues {
 	String getName();
 
 	String getParentName();
+	
+	/**
+	 * @Note existuje pouze pokud getParentName nevrati null
+	 */
+	String getParentUuid();
 
 	boolean isMatrika();
 

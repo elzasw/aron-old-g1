@@ -362,7 +362,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 			contextItem.setT("J_C");
 			var itemValue = new ResultRowItemValue();
 			itemValue.setV(parentTitle);
-			itemValue.id(levelContext.getParentContext().getLevel().getUuid().toString());
+			itemValue.id(valueCollector.getParentUuid());
 			contextItem.addVItem(itemValue);
 			result.addLItem(Arrays.asList(contextItem));
 		}
@@ -492,6 +492,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 
 		String title = null;
 		String parentTitle = null;
+		String parentUuid;
 		
 		boolean matrika = false;
 		
@@ -609,7 +610,11 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 				} else if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
 					title = ((DescriptionItemString) pp).getV();
 				}  else if (parentTitle == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
-					parentTitle = ((DescriptionItemString) pp).getV();
+					parentTitle = ((DescriptionItemString) pp).getV();					
+					var parentContext = levelContext.getParentContext();
+					if (parentContext!=null) {
+						parentUuid = parentContext.getLevel().getUuid();
+					}
 				} else if (unitDateText == null && unitDate == null && ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())||ElzaTypes.ZP2015_UNIT_DATE.equals(pp.getT()))) {
 					if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
 						unitDateText = ((DescriptionItemString) pp).getV();
@@ -762,6 +767,11 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		@Override
 		public String getParentName() {
 			return parentTitle;
+		}
+		
+		@Override
+		public String getParentUuid() {
+			return parentUuid;
 		}
 
 		@Override
