@@ -46,6 +46,7 @@ import cz.aron.transfagent.elza.ImportArchDescDescBuilder;
 import cz.aron.transfagent.elza.ImportArchDescNameBuilder;
 import cz.aron.transfagent.elza.ImportArchDescRefreshEntitiesCommand;
 import cz.aron.transfagent.elza.ImportArchDescResultBuilder;
+import cz.aron.transfagent.elza.ImportFundElza;
 import cz.aron.transfagent.elza.MissingFundException;
 import cz.aron.transfagent.elza.dao.ArchDescLevelDaoImporter;
 import cz.aron.transfagent.repository.ArchDescRepository;
@@ -415,7 +416,7 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
             throw new UnrecoverableImportException("The entry Fund uuid={" + iad.getFundApuUuid()
                     + "}, institution={" + iad.getInstitutionCode() + "} must exist (directory " + fundCode + ").");
         }
-        
+        refreshFundExport(fund, iad, archdescXmlPath);
         // reimportuji fond, aby se vytvorila vazba fond->archdescs
         fund.getApuSource().setReimport(true);
 
@@ -463,6 +464,40 @@ public class ImportArchDescService extends ImportDirProcessor implements Reimpor
         if (configArchDesc.isRefreshEntities()) {
         	refreshEntitiesCommand.scheduleRefresh(archDesc.getId());	
         }
+    }
+
+    /**
+     * An Elza fund is described by the same export as its archival description: the fund is created
+     * from one (see {@link #stageMissingFund}) and its package is regenerated from the stored copy on
+     * every reimport, root level reference and name included. A newer publication of the fund may
+     * carry another root level or another name, so the copy is replaced before the reimport is
+     * requested; otherwise the regenerated fund would keep pointing at a root the portal no longer
+     * has. Funds from other sources keep their own export.
+     */
+    private void refreshFundExport(Fund fund, ImportArchDesc iad, Path archdescXmlPath) {
+        if (!ImportFundElza.FUND_SOURCE.equals(fund.getSource())) {
+            return;
+        }
+        var fundExport = storageService.getApuDataDir(fund.getApuSource().getDataDir())
+                .resolve("fund-" + fund.getCode() + ".xml");
+        if (!Files.isRegularFile(fundExport)) {
+            log.warn("Fund code={} has no stored export at {}, its package is not refreshed", fund.getCode(),
+                    fundExport);
+            return;
+        }
+        try {
+            var tmpFile = fundExport.resolveSibling(fundExport.getFileName() + ".tmp");
+            Files.copy(archdescXmlPath, tmpFile, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(tmpFile, fundExport, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ioEx) {
+            throw new UncheckedIOException(ioEx);
+        }
+        var fi = iad.getElzaXmlReader().getEdx().getFs().getS().get(0).getFi();
+        fund.setName(fi.getN());
+        if (fi.getNum() != null) {
+            fund.setNad(fi.getNum().intValue());
+        }
+        log.info("Fund export refreshed code={}, from {}", fund.getCode(), archdescXmlPath);
     }
 
     private void insertToCoreQueue(ApuSource apuSource, String context) {

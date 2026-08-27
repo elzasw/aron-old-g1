@@ -37,7 +37,7 @@ public class ImportFundElza implements FundImporter {
 
 	private static final String PREFIX = "fund-";
 	
-	private static final String FUND_SOURCE = "elza";
+	public static final String FUND_SOURCE = "elza";
 	
 	private final FundService fundService;
 	

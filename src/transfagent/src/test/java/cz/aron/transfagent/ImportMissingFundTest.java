@@ -21,7 +21,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cz.aron.transfagent.config.ConfigElzaArchDesc;
+import cz.aron.transfagent.elza.ImportFundElza;
 import cz.aron.transfagent.elza.synchronization.PublicationReport;
+import cz.aron.transfagent.service.importfromdir.ReimportProcessor;
 import cz.aron.transfagent.service.StorageService;
 import cz.tacr.elza.client.vo.PublicationReportStatus;
 
@@ -40,6 +42,14 @@ import cz.tacr.elza.client.vo.PublicationReportStatus;
 public class ImportMissingFundTest extends AbstractCommonTest {
 
     private static final String FUND_CODE = "CR2303";
+
+    /** Root level of the fixture export and the one a second publication replaces it with. */
+    private static final String ORIGINAL_ROOT_UUID = "752288f9-6c89-4a04-aa3c-906efc294250";
+
+    private static final String REPLACED_ROOT_UUID = "0f4c1d2e-3a4b-4c5d-8e6f-70a1b2c3d4e5";
+
+    @Autowired
+    ImportFundElza importFundElza;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -134,6 +144,51 @@ public class ImportMissingFundTest extends AbstractCommonTest {
         assertFalse(Files.exists(dir));
         assertFalse(Files.exists(fundInputDir()), "no fund may be staged when the option is off");
         assertEquals(PublicationReportStatus.ERROR, readReport(publicationId).getStatus());
+    }
+
+    /**
+     * A later publication of the same fund - here with another root level and another name - must
+     * reach the fund too: its package is regenerated from the stored export, so the export is
+     * refreshed and the reimport requested. Without that the fund would keep referencing a root the
+     * portal has just replaced.
+     */
+    @Test
+    public void testNewerPublicationRefreshesTheFund() throws IOException {
+        importInstitution();
+        var first = stageArchDesc("archdesc-fund-refresh-1", 999_053);
+        assertTrue(importArchDescService.processDirectory(first));
+        assertTrue(importFundService.processDirectory(fundInputDir()));
+        assertTrue(importArchDescService.processDirectory(first));
+
+        var fund = fundRepository.findByCode(FUND_CODE);
+        var fundSource = apuSourceRepository.findById(fund.getApuSource().getId()).orElseThrow();
+        assertEquals("Test datace", fund.getName());
+
+        var second = stageArchDesc("archdesc-fund-refresh-2", 999_054);
+        var xml = second.resolve(ARCH_DESC_DIR + ".xml");
+        var content = Files.readString(xml)
+                .replace(ORIGINAL_ROOT_UUID, REPLACED_ROOT_UUID)
+                .replace("n=\"Test datace\"", "n=\"Test datace v2\"");
+        Files.writeString(xml, content);
+
+        assertTrue(importArchDescService.processDirectory(second));
+
+        fund = fundRepository.findByCode(FUND_CODE);
+        assertEquals("Test datace v2", fund.getName());
+        fundSource = apuSourceRepository.findById(fundSource.getId()).orElseThrow();
+        assertTrue(fundSource.isReimport(), "the fund package has to be regenerated");
+        var fundDataDir = storageService.getApuDataDir(fundSource.getDataDir());
+        var fundExport = Files.readString(fundDataDir.resolve("fund-" + FUND_CODE + ".xml"));
+        assertTrue(fundExport.contains(REPLACED_ROOT_UUID), "the stored fund export follows the publication");
+        assertFalse(Files.exists(fundDataDir.resolve("fund-" + FUND_CODE + ".xml.tmp")));
+
+        // what the reimport then produces is the point: the fund references the new root
+        assertEquals(ReimportProcessor.Result.REIMPORTED,
+                importFundElza.reimport(fundSource, fund, Path.of(fundSource.getDataDir())));
+        var apusrc = Files.readString(fundDataDir.resolve("apusrc.xml"));
+        assertTrue(apusrc.contains(">" + REPLACED_ROOT_UUID + "<"), apusrc);
+        assertFalse(apusrc.contains(ORIGINAL_ROOT_UUID), "no reference to the replaced root may survive");
+        assertTrue(apusrc.contains("Test datace v2"));
     }
 
     private void importInstitution() throws IOException {
