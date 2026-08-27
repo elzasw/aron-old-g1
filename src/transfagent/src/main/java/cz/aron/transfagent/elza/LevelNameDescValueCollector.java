@@ -92,7 +92,12 @@ public class LevelNameDescValueCollector implements LevelNameDescValues {
 					}	
 				}								
 			} else {
-				name = StringUtils.firstNonBlank(nameStr, formalTitleStr, contentStr, unitContentStr);
+				if (nameStrLevel>0&&formalTitleStrLevel==0) {
+					// pokud mam formalni nazev a nemam nazev na aktualni urovni, tak nededim
+					name = formalTitleStr;
+				} else {
+					name = StringUtils.firstNonBlank(nameStr, formalTitleStr, contentStr, unitContentStr);
+				}
 			}
 		}
 	}

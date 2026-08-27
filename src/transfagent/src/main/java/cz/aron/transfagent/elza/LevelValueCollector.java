@@ -116,7 +116,12 @@ public class LevelValueCollector implements LevelResultValues {
 
 	private void computeTitleAndParent(LevelContext levelContext) {
 		int titleLevel = Integer.MAX_VALUE;
-		if (nameStrLevel!=Integer.MAX_VALUE) {
+		
+		if (nameStrLevel>0&&formalTitleStrLevel==0) {
+			// pokud mam formalni nazev a nemam nazev na aktualni urovni, tak nededim
+			title = formalTitleStr;
+			titleLevel = formalTitleStrLevel;
+		} else if (nameStrLevel!=Integer.MAX_VALUE) {
 			title = nameStr;
 			titleLevel = nameStrLevel;
 		} else if (formalTitleStrLevel!=Integer.MAX_VALUE) {
