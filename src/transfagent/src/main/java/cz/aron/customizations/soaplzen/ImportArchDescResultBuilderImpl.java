@@ -161,6 +161,20 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		}
 		rowItem.addVItem(itemValue);
 		result.addLItem(Arrays.asList(rowItem));
+		
+		generateContent(result, valueCollector, title);
+	}
+	
+	private void generateContent(Result result, LevelResultValues valueCollector, String title) {
+		var content = valueCollector.getContent();
+		if (content != null && !Objects.equals(title, content)) {
+			var rowItem = new ResultRowItem();
+			rowItem.setT("C");
+			var itemValue = new ResultRowItemValue();
+			itemValue.setV(StringUtils.abbreviate(content, MAX_CONTENT_LENGTH));
+			rowItem.addVItem(itemValue);
+			result.addLItem(Arrays.asList(rowItem));
+		}
 	}
 	
 	public void generateNameMatrika(Result result, LevelContext levelContext, Section sect,
@@ -778,6 +792,11 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 		@Override
 		public String getDaoId() {
 			return daoId;
+		}
+
+		@Override
+		public String getContent() {
+			return null;
 		}
 		
 	}

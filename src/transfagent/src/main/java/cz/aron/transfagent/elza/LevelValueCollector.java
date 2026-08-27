@@ -40,21 +40,17 @@ public class LevelValueCollector implements LevelResultValues {
 	private boolean matrika = false;
 
 	private String title = null;
-	private boolean titleInherited = false;
 
 	private String parentTitle;
 	
 	private String unitContent;
 	
 	private String content;
-	private boolean contentInherited = false;
 
 	private String ukladaciJednotka = null;
-	private boolean ukladaciJednotkaInherited = false;
 	private Integer ukladaciJednotkaPoradi = null;
 	
 	private String datace = null;
-	private boolean dataceInherited = false;
 	
 	private String unitDateText = null;
 	
@@ -295,7 +291,6 @@ public class LevelValueCollector implements LevelResultValues {
 				case ElzaTypes.ZP2015_UNIT_DATE:
 					if (datace == null && (pp instanceof DescriptionItemUnitDate)) {
 						datace = UnitDateConvertor.convertToString2((DescriptionItemUnitDate) pp);
-						dataceInherited = true;
 					}
 					break;
 				case ElzaTypes.ZP2015_UNIT_DATE_TEXT:
@@ -309,7 +304,6 @@ public class LevelValueCollector implements LevelResultValues {
 						StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
 						if (so!=null) {
 							ukladaciJednotka = so.getV();
-							ukladaciJednotkaInherited = true;
 						}
 					}
 					break;
@@ -495,5 +489,9 @@ public class LevelValueCollector implements LevelResultValues {
 		return parentTitle;
 	}
 
+	@Override
+	public String getContent() {
+		return content;
+	}
 
 }

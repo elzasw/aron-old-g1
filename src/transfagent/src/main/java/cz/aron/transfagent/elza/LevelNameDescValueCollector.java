@@ -131,6 +131,15 @@ public class LevelNameDescValueCollector implements LevelNameDescValues {
 		return sj.toString();
 	}
 
+	/**
+	 * Popisny prvek nese pouzitelnou hodnotu, tj. je to string a neni prazdny.
+	 * Prazdna hodnota se nesmi zapsat ani do hodnoty, ani do jeji urovne, jinak
+	 * by vyhrala v {@link #collect(LevelContext)} nad neprazdnou hodnotou z jineho prvku.
+	 */
+	private static boolean hasValue(DescriptionItem pp) {
+		return (pp instanceof DescriptionItemString) && StringUtils.isNotBlank(((DescriptionItemString) pp).getV());
+	}
+
 	private void collectLevelAttributes(LevelContext levelContext) {
 		for (var pp : levelContext.getLevel().getDdOrDoOrDp()) {
 			switch (pp.getT()) {
@@ -146,20 +155,28 @@ public class LevelNameDescValueCollector implements LevelNameDescValues {
 				}
 				break;
 			case ElzaTypes.ZP2015_NAME:
-				nameStr = ((DescriptionItemString) pp).getV();
-				nameStrLevel = 0;
+				if (hasValue(pp)) {
+					nameStr = ((DescriptionItemString) pp).getV();
+					nameStrLevel = 0;
+				}
 				break;
 			case ElzaTypes.ZP2015_FORMAL_TITLE:
-				formalTitleStr = ((DescriptionItemString) pp).getV();
-				formalTitleStrLevel = 0;
+				if (hasValue(pp)) {
+					formalTitleStr = ((DescriptionItemString) pp).getV();
+					formalTitleStrLevel = 0;
+				}
 				break;
 			case ElzaTypes.ZP2015_CONTENT:
-				contentStr = ((DescriptionItemString) pp).getV();
-				contentStrLevel = 0;
+				if (hasValue(pp)) {
+					contentStr = ((DescriptionItemString) pp).getV();
+					contentStrLevel = 0;
+				}
 				break;
 			case ElzaTypes.ZP2015_UNIT_CONTENT:
-				unitContentStr = ((DescriptionItemString) pp).getV();
-				unitContentStrLevel = 0;
+				if (hasValue(pp)) {
+					unitContentStr = ((DescriptionItemString) pp).getV();
+					unitContentStrLevel = 0;
+				}
 				break;
 			case ElzaTypes.ZP2015_RECORD_TYPE:
 				if (!typZaznamuSet && (pp instanceof DescriptionItemEnum)) {
@@ -203,33 +220,33 @@ public class LevelNameDescValueCollector implements LevelNameDescValues {
 
 	private void collectInheritedAttributes(LevelContext levelContext) {
 		var context = levelContext.getParentContext();
+		int level = 1;
 		while (context != null) {
-			int level = 1;
 			for (var pp : context.getLevel().getDdOrDoOrDp()) {
 				switch (pp.getT()) {
 				case ElzaTypes.ZP2015_NAME:
-					if (nameStr==null) {
+					if (nameStr==null && hasValue(pp)) {
 						nameStr = ((DescriptionItemString) pp).getV();
 						nameStrLevel = level;
 					}
 					break;
 				case ElzaTypes.ZP2015_FORMAL_TITLE:
-					if (formalTitleStr==null) {
+					if (formalTitleStr==null && hasValue(pp)) {
 						formalTitleStr = ((DescriptionItemString) pp).getV();
 						formalTitleStrLevel = level;
 					}
 					break;
 				case ElzaTypes.ZP2015_CONTENT:
-					if (contentStr==null) {
+					if (contentStr==null && hasValue(pp)) {
 						contentStr = ((DescriptionItemString) pp).getV();
 						contentStrLevel = level;
-					}					
+					}
 					break;
 				case ElzaTypes.ZP2015_UNIT_CONTENT:
-					if (unitContentStr==null) {
+					if (unitContentStr==null && hasValue(pp)) {
 						unitContentStr = ((DescriptionItemString) pp).getV();
 						unitContentStrLevel = level;
-					}					
+					}
 					break;
 				case ElzaTypes.ZP2015_RECORD_TYPE:
 					if (!typZaznamuSet && (pp instanceof DescriptionItemEnum)) {
@@ -237,10 +254,13 @@ public class LevelNameDescValueCollector implements LevelNameDescValues {
 					}
 					break;
 				case ElzaTypes.ZP2015_STORAGE_ID:
-					DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;
-					StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
-					if (so != null) {
-						ukladaciJednotka = so.getV();
+					if (ukladaciJednotka == null && (pp instanceof DescriptionItemStructObjectRef)) {
+						DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;
+						StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
+						if (so != null) {
+							ukladaciJednotka = so.getV();
+							ukladaciJednotkaInherited = true;
+						}
 					}
 					break;
 				case ElzaTypes.ZP2015_UNIT_DATE:

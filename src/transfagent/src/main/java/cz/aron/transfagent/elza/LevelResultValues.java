@@ -49,5 +49,7 @@ public interface LevelResultValues {
 	String getDaoLink();
 
 	String getDaoId();
+	
+	String getContent();
 
 }
