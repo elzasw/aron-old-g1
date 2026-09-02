@@ -466,7 +466,7 @@ public abstract class ElzaTypes {
         roleSpecTextMap.put("ZP2015_ENTITY_ROLE_87", "ENTITY_ROLE_87_T");
         roleSpecTextMap.put("ZP2015_ENTITY_ROLE_88", "ENTITY_ROLE_88_T");
         roleSpecTextMap.put("ZP2015_ENTITY_ROLE_89", "ENTITY_ROLE_89_T");    	
-        roleSpecTextMap.put("ZP2015_ENTITY_ROLE_89", "ENTITY_ROLE_90_T");
+        roleSpecTextMap.put("ZP2015_ENTITY_ROLE_90", "ENTITY_ROLE_90_T");
     }
     
     public static Map<String, String> dateOtherMap = new HashMap<>();
