@@ -250,7 +250,7 @@ public class LevelValueCollector implements LevelResultValues {
 				ukladaciCislo = ((DescriptionItemInteger) pp).getV().toString();
 				break;
 			case ElzaTypes.ZP2015_ENTITY_ROLE:
-				if (GEO_ROLES.contains(pp.getS())) {
+				if (GEO_ROLES.contains(pp.getS())&&pp instanceof DescriptionItemAPRef) {
 					var apRef = (DescriptionItemAPRef) pp;
 					var accessPoint = elzaXmlReader.getApMap().get(apRef.getApid());
 					if (accessPoint != null) {
