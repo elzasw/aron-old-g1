@@ -20,6 +20,12 @@ public class ConfigDaoFileStore {
 	
 	private String daoUrlPrefix;
 
+	/**
+	 * Pokud je false, pouziji se jiz vygenerovane dzi a nahledy a vytvori se jen
+	 * popis dao
+	 */
+	private boolean regenerate = true;
+
 	public Path getPath() {
 		return path;
 	}
@@ -58,6 +64,14 @@ public class ConfigDaoFileStore {
 
 	public void setDaoUrlPrefix(String daoUrlPrefix) {
 		this.daoUrlPrefix = daoUrlPrefix;
+	}
+
+	public boolean isRegenerate() {
+		return regenerate;
+	}
+
+	public void setRegenerate(boolean regenerate) {
+		this.regenerate = regenerate;
 	}
 
 }

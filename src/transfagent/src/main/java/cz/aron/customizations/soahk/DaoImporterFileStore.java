@@ -104,7 +104,7 @@ public class DaoImporterFileStore implements DaoImporter {
 
 		daoPaths.sort((p1, p2) -> p1.getFileName().compareTo(p2.getFileName()));
 		var daoElement = presentationBuilder.buildDaoPresentation(daoPaths, dao.getUuid().toString(),
-				config.getDaoPath(), config.getDaoUrlPrefix(), null);
+				config.getDaoPath(), config.getDaoUrlPrefix(), null, config.isRegenerate());
 		try {
 			var marshaller = ApuxFactory.createMarshaller();
 			try (var os = Files.newOutputStream(daoUuidXmlFile)) {
