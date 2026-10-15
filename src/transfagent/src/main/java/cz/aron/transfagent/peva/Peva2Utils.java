@@ -68,17 +68,26 @@ public class Peva2Utils {
     	}
     }
 
+    /**
+     * Vrati index oddelovace intervalu ('-' nebo '/')
+     * @param date datace
+     * @return index oddelovace nebo -1
+     */
+    private static int getIntervalSeparatorIndex(String date) {
+    	return StringUtils.indexOfAny(date, '-', '/');
+    }
+
     private static String getIntervalStart(String date) {
-    	var index = date.indexOf("-");
+    	var index = getIntervalSeparatorIndex(date);
     	if (index==-1) {
     		return date;
     	} else {
-    		return date.substring(index);
+    		return date.substring(0, index);
     	}
     }
     
     private static String getIntervalEnd(String date) {
-    	var index = date.indexOf("-");
+    	var index = getIntervalSeparatorIndex(date);
     	if (index==-1) {
     		return date;
     	} else {
