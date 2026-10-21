@@ -55,7 +55,7 @@ public class NameDescValueCollector implements LevelNameDescValues {
 				if (ElzaTypes.ZP2015_LEVEL_ROOT.equals(levelType.getS())) {
 					root = true;
 				}
-			} else if (ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
+			} else if (ElzaTypes.ZP2015_TITLE.equals(pp.getT()) && hasValue(pp)) {
 				DescriptionItemString titleItem = (DescriptionItemString) pp;
 				title = titleItem.getV();
 			} else if (pp.getT().equals(ElzaTypes.ZP2015_UNIT_DATE) && (pp instanceof DescriptionItemUnitDate)) {
@@ -65,7 +65,9 @@ public class NameDescValueCollector implements LevelNameDescValues {
 					&& (pp instanceof DescriptionItemStructObjectRef)) {
 				DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;
 				StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
-				ukladaciJednotka = so.getV();
+				if (so != null && StringUtils.isNotBlank(so.getV())) {
+					ukladaciJednotka = so.getV();
+				}
 			} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT()) && "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())) {
 				matrika = true;
 			} else if (ElzaTypes.ZP2015_RECORD_TYPE.equals(pp.getT()) && (pp instanceof DescriptionItemEnum)) {
@@ -76,7 +78,7 @@ public class NameDescValueCollector implements LevelNameDescValues {
 		// inherited attributes
 		while ((context = context.getParentContext()) != null) {
 			for (var pp : context.getLevel().getDdOrDoOrDp()) {
-				if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
+				if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT()) && hasValue(pp)) {
 					DescriptionItemString titleItem = (DescriptionItemString) pp;
 					title = titleItem.getV();
 					titleInherited = true;
@@ -89,8 +91,10 @@ public class NameDescValueCollector implements LevelNameDescValues {
 						&& (pp instanceof DescriptionItemStructObjectRef)) {
 					DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;
 					StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
-					ukladaciJednotka = so.getV();
-					ukladaciJednotkaInherited = true;
+					if (so != null && StringUtils.isNotBlank(so.getV())) {
+						ukladaciJednotka = so.getV();
+						ukladaciJednotkaInherited = true;
+					}
 				} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT())
 						&& "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())) {
 					matrika = true;
@@ -104,6 +108,15 @@ public class NameDescValueCollector implements LevelNameDescValues {
 		createTypZaznamu();
 	}
 	
+	/**
+	 * Popisny prvek nese pouzitelnou hodnotu, tj. je to string a neni prazdny.
+	 * Prazdna hodnota se nesmi zapsat, jinak by zablokovala dedeni neprazdne
+	 * hodnoty z nadrazene urovne.
+	 */
+	private static boolean hasValue(DescriptionItem pp) {
+		return (pp instanceof DescriptionItemString) && StringUtils.isNotBlank(((DescriptionItemString) pp).getV());
+	}
+
 	private void processRecordType(DescriptionItem pp) {
 		DescriptionItemEnum rt = (DescriptionItemEnum) pp;
 		switch (rt.getS()) {
