@@ -373,6 +373,7 @@ public abstract class ElzaTypes {
         roleSpecMap.put("ZP2015_ENTITY_ROLE_87", "ENTITY_ROLE_87");
         roleSpecMap.put("ZP2015_ENTITY_ROLE_88", "ENTITY_ROLE_88");
         roleSpecMap.put("ZP2015_ENTITY_ROLE_89", "ENTITY_ROLE_89");
+        roleSpecMap.put("ZP2015_ENTITY_ROLE_90", "ENTITY_ROLE_90");
     }
 
     public static Map<String, String> roleSpecTextMap = new HashMap<>();

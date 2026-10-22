@@ -33,7 +33,11 @@ public class ImportArchDescDescBuilderDefault implements ImportArchDescDescBuild
         String datace = null;
         StringBuilder sb = new StringBuilder();
         for (DescriptionItem item : levelContext.getLevel().getDdOrDoOrDp()) {
-            if (item.getT().equals("ZP2015_TITLE")) {
+            if (titleStr==null&&item.getT().equals("ZP2015_TITLE")) {
+                DescriptionItemString title = (DescriptionItemString) item;
+                titleStr = title.getV();
+            }
+            if (titleStr==null&&item.getT().equals("ZP2015_CONTENT")) {
                 DescriptionItemString title = (DescriptionItemString) item;
                 titleStr = title.getV();
             }
