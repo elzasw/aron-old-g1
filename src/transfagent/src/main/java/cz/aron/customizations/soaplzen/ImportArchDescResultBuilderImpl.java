@@ -26,6 +26,7 @@ import cz.aron.core.api.rest.model.ResultRowItemValue;
 import cz.aron.transfagent.domain.EntityStatus;
 import cz.aron.transfagent.elza.ElzaTypes;
 import cz.aron.transfagent.elza.ElzaXmlReader;
+import cz.aron.transfagent.elza.ElzaXmlUtils;
 import cz.aron.transfagent.elza.ImportArchDesc.LevelContext;
 import cz.aron.transfagent.elza.ImportArchDescResultBuilder;
 import cz.aron.transfagent.elza.LevelResultValues;
@@ -535,7 +536,7 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					unitType = (DescriptionItemEnum) pp;
 				} else if ("ZP2015_UNIT_CONTENT".equals(pp.getT())) {
 					unitContent = ((DescriptionItemString) pp).getV();
-				} else if (ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
+				} else if (ElzaTypes.ZP2015_TITLE.equals(pp.getT()) && ElzaXmlUtils.hasContent(pp)) {
 					title = ((DescriptionItemString) pp).getV();
 				} else if ("ZP2015_UNIT_DATE_TEXT".equals(pp.getT())) {
 					unitDateText = ((DescriptionItemString) pp).getV();
@@ -607,9 +608,9 @@ public class ImportArchDescResultBuilderImpl implements ImportArchDescResultBuil
 					if (refOzn == null && invCislo == null) {
 						invCislo = ((DescriptionItemString) pp).getV();
 					}
-				} else if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
+				} else if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT()) && ElzaXmlUtils.hasContent(pp)) {
 					title = ((DescriptionItemString) pp).getV();
-				}  else if (parentTitle == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
+				}  else if (parentTitle == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT()) && ElzaXmlUtils.hasContent(pp)) {
 					parentTitle = ((DescriptionItemString) pp).getV();					
 					var parentContext = levelContext.getParentContext();
 					if (parentContext!=null) {

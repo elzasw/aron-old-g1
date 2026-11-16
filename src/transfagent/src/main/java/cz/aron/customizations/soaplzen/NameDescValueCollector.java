@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import cz.aron.transfagent.elza.ElzaTypes;
 import cz.aron.transfagent.elza.ElzaXmlReader;
+import cz.aron.transfagent.elza.ElzaXmlUtils;
 import cz.aron.transfagent.elza.ImportArchDesc.LevelContext;
 import cz.aron.transfagent.elza.LevelNameDescValues;
 import cz.aron.transfagent.elza.convertor.UnitDateConvertor;
@@ -55,7 +56,7 @@ public class NameDescValueCollector implements LevelNameDescValues {
 				if (ElzaTypes.ZP2015_LEVEL_ROOT.equals(levelType.getS())) {
 					root = true;
 				}
-			} else if (ElzaTypes.ZP2015_TITLE.equals(pp.getT()) && hasValue(pp)) {
+			} else if (ElzaTypes.ZP2015_TITLE.equals(pp.getT()) && ElzaXmlUtils.hasContent(pp)) {
 				DescriptionItemString titleItem = (DescriptionItemString) pp;
 				title = titleItem.getV();
 			} else if (pp.getT().equals(ElzaTypes.ZP2015_UNIT_DATE) && (pp instanceof DescriptionItemUnitDate)) {
@@ -78,7 +79,7 @@ public class NameDescValueCollector implements LevelNameDescValues {
 		// inherited attributes
 		while ((context = context.getParentContext()) != null) {
 			for (var pp : context.getLevel().getDdOrDoOrDp()) {
-				if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT()) && hasValue(pp)) {
+				if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT()) && ElzaXmlUtils.hasContent(pp)) {
 					DescriptionItemString titleItem = (DescriptionItemString) pp;
 					title = titleItem.getV();
 					titleInherited = true;
@@ -106,15 +107,6 @@ public class NameDescValueCollector implements LevelNameDescValues {
 		}
 		
 		createTypZaznamu();
-	}
-	
-	/**
-	 * Popisny prvek nese pouzitelnou hodnotu, tj. je to string a neni prazdny.
-	 * Prazdna hodnota se nesmi zapsat, jinak by zablokovala dedeni neprazdne
-	 * hodnoty z nadrazene urovne.
-	 */
-	private static boolean hasValue(DescriptionItem pp) {
-		return (pp instanceof DescriptionItemString) && StringUtils.isNotBlank(((DescriptionItemString) pp).getV());
 	}
 
 	private void processRecordType(DescriptionItem pp) {
