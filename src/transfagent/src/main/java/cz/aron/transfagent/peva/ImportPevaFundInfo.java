@@ -161,7 +161,7 @@ public class ImportPevaFundInfo {
 		dataProvider = cdp;
 		this.codeListProvider = codeListProvider;
 		this.archDescRoot = archDescRoot;
-		GetNadSheetResponse gnsr = Peva2XmlReader.unmarshalGetNadSheetResponse(inputFile);
+		GetNadSheetResponse gnsr = Peva2XmlReader.unmarshalGetNadSheetResponseFromFundFile(inputFile);
 				
 		if (gnsr.getNadPrimarySheet() != null) {
 			valid = Boolean.TRUE.equals(gnsr.getNadPrimarySheet().isValid());

@@ -1,9 +1,12 @@
 package cz.aron.transfagent.peva;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.zip.ZipFile;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -18,6 +21,8 @@ import cz.aron.peva2.wsdl.GetFindingAidResponse;
 import cz.aron.peva2.wsdl.GetGeoObjectResponse;
 import cz.aron.peva2.wsdl.GetNadSheetResponse;
 import cz.aron.peva2.wsdl.GetOriginatorResponse;
+import cz.aron.peva2.wsdl.ListExternalChangeResponse;
+import cz.aron.peva2.wsdl.ListInternalChangeResponse;
 import cz.aron.peva2.wsdl.NadSheet;
 import cz.aron.peva2.wsdl.ObjectFactory;
 
@@ -28,6 +33,8 @@ public class Peva2XmlReader {
     private static JAXBContext JAXB_CONTEXT;
     
     protected static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
+
+    private static final String ZIP_EXT = ".zip";
     
     static {
         try {
@@ -60,8 +67,74 @@ public class Peva2XmlReader {
         }
     }
 
-	public static void marshalGetNadSheetResponse(GetNadSheetResponse gnsr, Path fileName) throws JAXBException {						
+	public static void marshalGetNadSheetResponse(GetNadSheetResponse gnsr, Path fileName) throws JAXBException {
 		JAXB_CONTEXT.createMarshaller().marshal(OBJECT_FACTORY.createGetNadSheetResponse(gnsr), fileName.toFile());
+	}
+
+	/**
+	 * Zapise GetNadSheetResponse do streamu, stream nezavira
+	 */
+	public static void marshalGetNadSheetResponse(GetNadSheetResponse gnsr, OutputStream os) throws JAXBException {
+		JAXB_CONTEXT.createMarshaller().marshal(OBJECT_FACTORY.createGetNadSheetResponse(gnsr), os);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static GetNadSheetResponse unmarshalGetNadSheetResponse(InputStream is) throws JAXBException {
+		return ((JAXBElement<GetNadSheetResponse>) JAXB_CONTEXT.createUnmarshaller().unmarshal(is)).getValue();
+	}
+
+	/**
+	 * Nacte GetNadSheetResponse ze souboru fondu. Soubor je bud zip
+	 * (pevafund-${jafa}.zip obsahujici pevafund-${jafa}.xml) nebo primo xml.
+	 *
+	 * @param path
+	 *            cesta k zip nebo xml souboru
+	 * @return GetNadSheetResponse
+	 */
+	public static GetNadSheetResponse unmarshalGetNadSheetResponseFromFundFile(Path path)
+			throws IOException, JAXBException {
+		var fileName = path.getFileName().toString();
+		if (!fileName.endsWith(ZIP_EXT)) {
+			return unmarshalGetNadSheetResponse(path);
+		}
+		var entryName = fileName.substring(0, fileName.length() - ZIP_EXT.length()) + ".xml";
+		try (var zipFile = new ZipFile(path.toFile())) {
+			var entry = zipFile.getEntry(entryName);
+			if (entry == null) {
+				throw new FileNotFoundException("Entry " + entryName + " not found in " + path);
+			}
+			try (InputStream is = zipFile.getInputStream(entry)) {
+				return unmarshalGetNadSheetResponse(is);
+			}
+		}
+	}
+
+	/**
+	 * Zapise ListInternalChangeResponse do streamu, stream nezavira
+	 */
+	public static void marshalListInternalChangeResponse(ListInternalChangeResponse licr, OutputStream os)
+			throws JAXBException {
+		JAXB_CONTEXT.createMarshaller().marshal(OBJECT_FACTORY.createListInternalChangeResponse(licr), os);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static ListInternalChangeResponse unmarshalListInternalChangeResponse(InputStream is)
+			throws JAXBException {
+		return ((JAXBElement<ListInternalChangeResponse>) JAXB_CONTEXT.createUnmarshaller().unmarshal(is)).getValue();
+	}
+
+	/**
+	 * Zapise ListExternalChangeResponse do streamu, stream nezavira
+	 */
+	public static void marshalListExternalChangeResponse(ListExternalChangeResponse lecr, OutputStream os)
+			throws JAXBException {
+		JAXB_CONTEXT.createMarshaller().marshal(OBJECT_FACTORY.createListExternalChangeResponse(lecr), os);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static ListExternalChangeResponse unmarshalListExternalChangeResponse(InputStream is)
+			throws JAXBException {
+		return ((JAXBElement<ListExternalChangeResponse>) JAXB_CONTEXT.createUnmarshaller().unmarshal(is)).getValue();
 	}
 	
 	public static void marshalGetFindingAidResponse(GetFindingAidResponse gfar, Path fileName) throws JAXBException {

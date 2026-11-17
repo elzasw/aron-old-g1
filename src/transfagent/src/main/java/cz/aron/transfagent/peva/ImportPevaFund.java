@@ -164,29 +164,33 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 	
 	
 	private static Optional<Path> getPevaFundXmlPath(Path path) {
-		List<Path> xmls;
+		// fond je ulozen v pevafund-${jafa}.zip, starsi data primo v pevafund-${jafa}.xml
+		List<Path> files;
 		try (var stream = Files.list(path)) {
-            xmls = stream
+            files = stream
                     .filter(f -> Files.isRegularFile(f) &&  f.getFileName().toString().startsWith(PREFIX)
-                            && f.getFileName().toString().endsWith(".xml"))
+                            && (f.getFileName().toString().endsWith(".zip")
+                                    || f.getFileName().toString().endsWith(".xml")))
                     .collect(Collectors.toList());
         } catch (IOException ioEx) {
         	log.error("Fail to find peva fund xml path={}",path);
             throw new UncheckedIOException(ioEx);
         }
-		
-		return xmls.stream()
-                .filter(p -> p.getFileName().toString().startsWith(PREFIX)
-                        && p.getFileName().toString().endsWith(".xml"))
-                .findFirst();	
+
+		var zip = files.stream().filter(p -> p.getFileName().toString().endsWith(".zip")).findFirst();
+		if (zip.isPresent()) {
+			return zip;
+		}
+		return files.stream().findFirst();
 	}
 	
 
 	private boolean processFundPeva(Path dir, Path fundXml) {
         var fileName = fundXml.getFileName().toString();
         var tmp = fileName.substring(PREFIX.length());
+        // pripona je .zip nebo .xml
         var fundCode = tmp.substring(0, tmp.length() - ".xml".length());
-        
+
         var fund = fundRepository.findByCode(fundCode);
         UUID fundUuid = (fund!=null)?fund.getUuid():null;
         
@@ -376,7 +380,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
             throw new FileNotFoundException("pevafund-*.xml");
 		}
 		
-		GetNadSheetResponse gnsr = Peva2XmlReader.unmarshalGetNadSheetResponse(pevaFundXml.get());
+		GetNadSheetResponse gnsr = Peva2XmlReader.unmarshalGetNadSheetResponseFromFundFile(pevaFundXml.get());
 		return gnsr.getNadPrimarySheet();	
 	}
 
@@ -407,8 +411,10 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 		ApuSourceBuilder apuSourceBuilder;
 		var ifi = new ImportPevaFundInfo(configPeva2.getFundProperties(), apTypeService, storageService, resultBuilder);
 		try {			
-			var archDescRoot = getArchDescUUID(fund);			
-			apuSourceBuilder = ifi.importFundInfo(apuPath.resolve(fileName), fund.getUuid(), databaseDataProvider, this,
+			var archDescRoot = getArchDescUUID(fund);
+			// zip nebo xml (starsi data)
+			var fundFile = getPevaFundXmlPath(apuPath).orElse(apuPath.resolve(fileName));
+			apuSourceBuilder = ifi.importFundInfo(fundFile, fund.getUuid(), databaseDataProvider, this,
 					codeListProvider, entityDownloader, archDescRoot);
 			apuSourceBuilder.setUuid(apuSource.getUuid());
 			
