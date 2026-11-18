@@ -136,7 +136,57 @@ public class Peva2XmlReader {
 			throws JAXBException {
 		return ((JAXBElement<ListExternalChangeResponse>) JAXB_CONTEXT.createUnmarshaller().unmarshal(is)).getValue();
 	}
-	
+
+	/**
+	 * Nacte vnejsi zmeny ze souboru fondu (pevafund-${jafa}.zip, polozka
+	 * external_changes.xml).
+	 *
+	 * @param path
+	 *            cesta k zip nebo xml souboru fondu
+	 * @return ListExternalChangeResponse nebo null, pokud soubor zmeny neobsahuje
+	 *         (starsi data ulozena primo v xml)
+	 */
+	public static ListExternalChangeResponse unmarshalListExternalChangeResponseFromFundFile(Path path)
+			throws IOException, JAXBException {
+		if (!path.getFileName().toString().endsWith(ZIP_EXT)) {
+			return null;
+		}
+		try (var zipFile = new ZipFile(path.toFile())) {
+			var entry = zipFile.getEntry(Peva2ImportFunds.EXTERNAL_CHANGES_XML);
+			if (entry == null) {
+				return null;
+			}
+			try (InputStream is = zipFile.getInputStream(entry)) {
+				return unmarshalListExternalChangeResponse(is);
+			}
+		}
+	}
+
+	/**
+	 * Nacte vnitrni zmeny ze souboru fondu (pevafund-${jafa}.zip, polozka
+	 * internal_changes.xml).
+	 *
+	 * @param path
+	 *            cesta k zip nebo xml souboru fondu
+	 * @return ListInternalChangeResponse nebo null, pokud soubor zmeny neobsahuje
+	 *         (starsi data ulozena primo v xml)
+	 */
+	public static ListInternalChangeResponse unmarshalListInternalChangeResponseFromFundFile(Path path)
+			throws IOException, JAXBException {
+		if (!path.getFileName().toString().endsWith(ZIP_EXT)) {
+			return null;
+		}
+		try (var zipFile = new ZipFile(path.toFile())) {
+			var entry = zipFile.getEntry(Peva2ImportFunds.INTERNAL_CHANGES_XML);
+			if (entry == null) {
+				return null;
+			}
+			try (InputStream is = zipFile.getInputStream(entry)) {
+				return unmarshalListInternalChangeResponse(is);
+			}
+		}
+	}
+
 	public static void marshalGetFindingAidResponse(GetFindingAidResponse gfar, Path fileName) throws JAXBException {
 		JAXB_CONTEXT.createMarshaller().marshal(OBJECT_FACTORY.createGetFindingAidResponse(gfar), fileName.toFile());
 	}

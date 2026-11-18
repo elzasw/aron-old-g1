@@ -219,8 +219,11 @@ public class ImportPevaFund implements FundImporter, FundProvider {
             throw new IllegalStateException("The entry Institution code={" + institutionCode + "} must exist.");
         }
 		
-		if (ifi.getState()==State.MOVED) {
-			processInvalidFund(fund, fundCode, apusrcBuilder, dir, fundXml, institution, ifi.getFundName(), ifi.getPrimarySheetNumberInt(), ifi.getSubSheetNumber());
+		// fond presunut nebo odstranen vnejsi zmenou DE_52
+		boolean removedByChange = ifi.isRemovedByChange();
+		if (ifi.getState()==State.MOVED || removedByChange) {
+			processInvalidFund(fund, fundCode, apusrcBuilder, dir, fundXml, institution, ifi.getFundName(),
+					ifi.getPrimarySheetNumberInt(), ifi.getSubSheetNumber(), removedByChange);
 			return true;
 		}
         
@@ -323,9 +326,11 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 	 * @param apusrcBuilder
 	 * @param dir
 	 * @param fundXml path source file
+	 * @param removedByChange fond je odstranen vnejsi zmenou DE_52, smaze se i
+	 *                        souvisejici archivni popis a archivni pomucky
 	 */
 	private void processInvalidFund(Fund fund, String fundCode, ApuSourceBuilder apusrcBuilder, Path dir,
-			Path fundXml, Institution institution, String name, Integer nad, Integer subNad) {
+			Path fundXml, Institution institution, String name, Integer nad, Integer subNad, boolean removedByChange) {
 		// vygeneruji apusource.xml
 		try (var fos = Files.newOutputStream(dir.resolve(StorageService.APUSRC_XML))) {
 			apusrcBuilder.build(fos, new ApuValidator(configurationLoader.getConfig()));
@@ -351,6 +356,10 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			tt.executeWithoutResult(t -> {
 				var fund2 = fundRepository.findByCode(fundCode);
 				if (fund2 != null) {
+					if (removedByChange) {
+						// nejdrive archivni popis a pomucky, potom fond
+						fundService.deleteFundRelated(fund2, isSendFindingAids());
+					}
 					fund2.getApuSource().setDeleted(true);
 					fundService.updateFund(fund2, dataDir, dir, true, 0, 0);
 					// delete attachments
@@ -364,10 +373,27 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 					log.info("Fund not inserted because is not valid, code={}", fundCode);
 				}
 			});
+		} else if (removedByChange) {
+			// fond odstraneny zmenou DE_52 vytvorim v databazi jako smazany,
+			// aby nebyl publikovan
+			tt.executeWithoutResult(t -> {
+				var created = fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE,
+						name, nad, subNad, 0, 0);
+				created.getApuSource().setDeleted(true);
+				log.info("Fund created as deleted {}", fundCode);
+			});
 		} else {
 			// vytvorim fond v databazi
 			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE, name, nad, subNad, 0, 0);
 		}
+	}
+
+	/**
+	 * @return true pokud se archivni pomucky posilaji do AronCore
+	 */
+	private boolean isSendFindingAids() {
+		var faProperties = configPeva2.getFindingAidProperties();
+		return faProperties == null || !faProperties.isDontSend();
 	}
 
 
@@ -418,7 +444,15 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 					codeListProvider, entityDownloader, archDescRoot);
 			apuSourceBuilder.setUuid(apuSource.getUuid());
 			
-			if (ifi.getState()==State.MOVED) {
+			if (ifi.getState()==State.MOVED || ifi.isRemovedByChange()) {
+				if (ifi.isRemovedByChange()) {
+					// fond odstranen vnejsi zmenou DE_52, smazu archivni popis a pomucky
+					// (i pokud je fond uz smazany, mohly byt naimportovany pozdeji)
+					tt.executeWithoutResult(t -> {
+						fundRepository.findById(fund.getId())
+								.ifPresent(f -> fundService.deleteFundRelated(f, isSendFindingAids()));
+					});
+				}
 				if (apuSource.isDeleted()) {
 					// je ve stavu deleted neposilam do aron core
 					return ReimportProcessor.Result.NOCHANGES;

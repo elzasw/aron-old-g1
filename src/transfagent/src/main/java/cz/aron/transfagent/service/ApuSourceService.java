@@ -84,6 +84,30 @@ public class ApuSourceService {
 		});
 	}
 
+	/**
+	 * Oznaci ApuSource jako smazany, pokud jeste smazany neni.
+	 *
+	 * @param apuSource
+	 *            ApuSource pripojeny k aktualni transakci
+	 * @param insertToCoreQueue
+	 *            pokud je true, vlozi udalost do CoreQueue (smazani z AronCore)
+	 * @return true pokud byl stav zmenen, false pokud uz byl smazany
+	 */
+	@Transactional
+	public boolean markDeleted(ApuSource apuSource, boolean insertToCoreQueue) {
+		if (apuSource.isDeleted()) {
+			return false;
+		}
+		apuSource.setDeleted(true);
+		if (insertToCoreQueue) {
+			var coreQueue = new CoreQueue();
+			coreQueue.setApuSource(apuSource);
+			coreQueueRepository.save(coreQueue);
+		}
+		log.info("Apu source id={}, uuid={} mark to be deleted.", apuSource.getId(), apuSource.getUuid());
+		return true;
+	}
+
 	@Transactional
 	public void deleteByUuid(String uuid) {
 		apuSourceRepository.findByUuid(UUID.fromString(uuid)).ifPresentOrElse(apuSource->{

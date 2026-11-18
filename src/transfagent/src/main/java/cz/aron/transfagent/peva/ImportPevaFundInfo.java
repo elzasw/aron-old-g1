@@ -40,8 +40,12 @@ import cz.aron.apux._2020.Part;
 import cz.aron.peva2.wsdl.DigitalUnitType;
 import cz.aron.peva2.wsdl.EvidenceUnit;
 import cz.aron.peva2.wsdl.EvidenceUnitProcedure;
+import cz.aron.peva2.wsdl.ExternalChangeTypeCode;
 import cz.aron.peva2.wsdl.GetNadSheetResponse;
 import cz.aron.peva2.wsdl.LengthUnitType;
+import cz.aron.peva2.wsdl.InternalChangeTypeCode;
+import cz.aron.peva2.wsdl.ListExternalChangeResponse;
+import cz.aron.peva2.wsdl.ListInternalChangeResponse;
 import cz.aron.peva2.wsdl.NadHeader;
 import cz.aron.peva2.wsdl.NadPrimarySheet;
 import cz.aron.peva2.wsdl.NadSheet;
@@ -101,6 +105,8 @@ public class ImportPevaFundInfo {
     private boolean valid;
     
     private State state;
+
+    private boolean removedByChange;
     
     private String fundName;
     
@@ -166,6 +172,9 @@ public class ImportPevaFundInfo {
 		if (gnsr.getNadPrimarySheet() != null) {
 			valid = Boolean.TRUE.equals(gnsr.getNadPrimarySheet().isValid());
 			state = gnsr.getNadPrimarySheet().getState();
+			removedByChange = isRemovedByChange(
+					Peva2XmlReader.unmarshalListExternalChangeResponseFromFundFile(inputFile),
+					Peva2XmlReader.unmarshalListInternalChangeResponseFromFundFile(inputFile));
 			importPrimarySheet(gnsr.getNadPrimarySheet());
 		} else {
 			valid = Boolean.TRUE.equals(gnsr.getNadSubsheet().isValid());			
@@ -1271,7 +1280,40 @@ public class ImportPevaFundInfo {
 
 	public State getState() {
 		return state;
-	}	
+	}
+
+	/**
+	 * @return true pokud fond obsahuje prepsanou vnejsi zmenu DE_52 (ubytek delimitaci
+	 *         celeho archivniho souboru) nebo prepsanou vnitrni zmenu DE_12, DE_13,
+	 *         DE_23 (vnitrni ubytek nebo presun celeho archivniho souboru)
+	 */
+	public boolean isRemovedByChange() {
+		return removedByChange;
+	}
+
+	/**
+	 * Zjisti, zda zmeny obsahuji zmenu, ktera znamena odstraneni fondu: vnejsi
+	 * DE_52 nebo vnitrni DE_12, DE_13, DE_23. Pocita se jen prepsana zmena
+	 * (committed je vyplneno).
+	 *
+	 * @param externalChanges
+	 *            vnejsi zmeny, muze byt null
+	 * @param internalChanges
+	 *            vnitrni zmeny, muze byt null
+	 */
+	static boolean isRemovedByChange(ListExternalChangeResponse externalChanges,
+			ListInternalChangeResponse internalChanges) {
+		if (externalChanges != null && externalChanges.getExternalChanges() != null
+				&& externalChanges.getExternalChanges().getExternalChange().stream().anyMatch(
+						ec -> ec.getType() == ExternalChangeTypeCode.DE_52 && ec.getCommitted() != null)) {
+			return true;
+		}
+		return internalChanges != null && internalChanges.getInternalChanges() != null
+				&& internalChanges.getInternalChanges().getInternalChange().stream().anyMatch(
+						ic -> ic.getCommitted() != null && (ic.getType() == InternalChangeTypeCode.DE_12
+								|| ic.getType() == InternalChangeTypeCode.DE_13
+								|| ic.getType() == InternalChangeTypeCode.DE_23));
+	}
 
 	public String getFundName() {
 		return fundName;
