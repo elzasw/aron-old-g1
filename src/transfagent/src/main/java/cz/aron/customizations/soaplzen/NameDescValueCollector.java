@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import cz.aron.transfagent.elza.ElzaTypes;
 import cz.aron.transfagent.elza.ElzaXmlReader;
+import cz.aron.transfagent.elza.ElzaXmlUtils;
 import cz.aron.transfagent.elza.ImportArchDesc.LevelContext;
 import cz.aron.transfagent.elza.LevelNameDescValues;
 import cz.aron.transfagent.elza.convertor.UnitDateConvertor;
@@ -55,7 +56,7 @@ public class NameDescValueCollector implements LevelNameDescValues {
 				if (ElzaTypes.ZP2015_LEVEL_ROOT.equals(levelType.getS())) {
 					root = true;
 				}
-			} else if (ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
+			} else if (ElzaTypes.ZP2015_TITLE.equals(pp.getT()) && ElzaXmlUtils.hasContent(pp)) {
 				DescriptionItemString titleItem = (DescriptionItemString) pp;
 				title = titleItem.getV();
 			} else if (pp.getT().equals(ElzaTypes.ZP2015_UNIT_DATE) && (pp instanceof DescriptionItemUnitDate)) {
@@ -65,7 +66,9 @@ public class NameDescValueCollector implements LevelNameDescValues {
 					&& (pp instanceof DescriptionItemStructObjectRef)) {
 				DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;
 				StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
-				ukladaciJednotka = so.getV();
+				if (so != null && StringUtils.isNotBlank(so.getV())) {
+					ukladaciJednotka = so.getV();
+				}
 			} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT()) && "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())) {
 				matrika = true;
 			} else if (ElzaTypes.ZP2015_RECORD_TYPE.equals(pp.getT()) && (pp instanceof DescriptionItemEnum)) {
@@ -76,7 +79,7 @@ public class NameDescValueCollector implements LevelNameDescValues {
 		// inherited attributes
 		while ((context = context.getParentContext()) != null) {
 			for (var pp : context.getLevel().getDdOrDoOrDp()) {
-				if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT())) {
+				if (title == null && ElzaTypes.ZP2015_TITLE.equals(pp.getT()) && ElzaXmlUtils.hasContent(pp)) {
 					DescriptionItemString titleItem = (DescriptionItemString) pp;
 					title = titleItem.getV();
 					titleInherited = true;
@@ -89,8 +92,10 @@ public class NameDescValueCollector implements LevelNameDescValues {
 						&& (pp instanceof DescriptionItemStructObjectRef)) {
 					DescriptionItemStructObjectRef uklJ = (DescriptionItemStructObjectRef) pp;
 					StructuredObject so = elzaXmlReader.getSoMap().get(uklJ.getSoid());
-					ukladaciJednotka = so.getV();
-					ukladaciJednotkaInherited = true;
+					if (so != null && StringUtils.isNotBlank(so.getV())) {
+						ukladaciJednotka = so.getV();
+						ukladaciJednotkaInherited = true;
+					}
 				} else if (ElzaTypes.ZP2015_UNIT_SUBTYPE.equals(pp.getT())
 						&& "ZP2015_UNIT_SUBTYPE_MTR".equals(pp.getS())) {
 					matrika = true;
@@ -103,7 +108,7 @@ public class NameDescValueCollector implements LevelNameDescValues {
 		
 		createTypZaznamu();
 	}
-	
+
 	private void processRecordType(DescriptionItem pp) {
 		DescriptionItemEnum rt = (DescriptionItemEnum) pp;
 		switch (rt.getS()) {

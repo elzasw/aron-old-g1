@@ -103,7 +103,9 @@ public class ReimportService implements ImportProcessor {
 								cq.setApuSource(apuSource);
 								coreQueueRepository.save(cq);
 							}
-						});							
+						});
+						log.info("Reimported apuSource: id={}, uuid={}, status={}", apuSource.getId(), apuSource.getUuid(), result);
+						continue apuSourceLabel;
 					}
 				}
 

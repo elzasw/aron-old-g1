@@ -32,6 +32,7 @@ import cz.aron.transfagent.domain.Fund;
 import cz.aron.transfagent.domain.Institution;
 import cz.aron.transfagent.domain.SourceType;
 import cz.aron.transfagent.repository.ApuSourceRepository;
+import cz.aron.transfagent.repository.ArchDescRepository;
 import cz.aron.transfagent.repository.AttachmentRepository;
 import cz.aron.transfagent.repository.CoreQueueRepository;
 import cz.aron.transfagent.repository.FundRepository;
@@ -51,12 +52,15 @@ public class FundService {
 	private final CoreQueueRepository coreQueueRepository;
 	
 	private final AttachmentRepository attachmentRepository;
-	
+
+	private final ArchDescRepository archDescRepository;
+
 	private final EntityManager em;
 
 	public FundService(ApuSourceService apuSourceService, ApuSourceRepository apuSourceRepository,
 			FundRepository fundRepository, CoreQueueRepository coreQueueRepository,
-			AttachmentRepository attachmentRepository, EntityManager em) {
+			AttachmentRepository attachmentRepository, ArchDescRepository archDescRepository, EntityManager em) {
+		this.archDescRepository = archDescRepository;
 		this.apuSourceService = apuSourceService;
 		this.apuSourceRepository = apuSourceRepository;
 		this.fundRepository = fundRepository;
@@ -135,7 +139,39 @@ public class FundService {
 		log.info("Fund updated code={}, uuid={}, original data dir {}", fund.getCode(), fund.getUuid(), oldDir);
 	}
 	
-	
+	/**
+	 * Oznaci jako smazany archivni popis a archivni pomucky fondu a vlozi udalosti
+	 * do CoreQueue. Samotny fond nemeni.
+	 *
+	 * Zaznamy, ktere uz smazane jsou, se preskoci. Archivni pomucka svazana s
+	 * vice fondy se smaze, az kdyz jsou smazane vsechny jeji ostatni fondy.
+	 *
+	 * @param fund             odstranovany fond, pripojeny k aktualni transakci
+	 * @param sendFindingAids  pokud je false, archivni pomucky se do CoreQueue
+	 *                         nevkladaji (neposilaji se do AronCore)
+	 */
+	@Transactional
+	public void deleteFundRelated(Fund fund, boolean sendFindingAids) {
+		var archDesc = archDescRepository.findByFund(fund);
+		if (archDesc != null && archDesc.getApuSource() != null) {
+			if (apuSourceService.markDeleted(archDesc.getApuSource(), true)) {
+				log.info("ArchDesc id={} marked deleted, fund code={}", archDesc.getId(), fund.getCode());
+			}
+		}
+		for (FindingAid findingAid : fund.getFindingAids()) {
+			boolean usedByOtherFund = findingAid.getFunds().stream()
+					.anyMatch(f -> !f.getId().equals(fund.getId()) && !f.getApuSource().isDeleted());
+			if (usedByOtherFund) {
+				log.info("FindingAid code={} not deleted, related to another fund, fund code={}",
+						findingAid.getCode(), fund.getCode());
+				continue;
+			}
+			if (apuSourceService.markDeleted(findingAid.getApuSource(), sendFindingAids)) {
+				log.info("FindingAid code={} marked deleted, fund code={}", findingAid.getCode(), fund.getCode());
+			}
+		}
+	}
+
 	public static class FundAttachments {
 		
 		private final Fund fund;

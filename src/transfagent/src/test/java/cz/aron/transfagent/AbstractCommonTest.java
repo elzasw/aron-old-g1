@@ -143,6 +143,7 @@ public abstract class AbstractCommonTest {
         coreQueueRepository.deleteAll();
         archDescRepository.deleteAll();
         fundRepository.deleteAll();
+        findingAidRepository.deleteAll();
         institutionRepository.deleteAll();
         apuSourceRepository.deleteAll();
     }

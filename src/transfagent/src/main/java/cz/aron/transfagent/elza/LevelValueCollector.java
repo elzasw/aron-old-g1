@@ -116,7 +116,12 @@ public class LevelValueCollector implements LevelResultValues {
 
 	private void computeTitleAndParent(LevelContext levelContext) {
 		int titleLevel = Integer.MAX_VALUE;
-		if (nameStrLevel!=Integer.MAX_VALUE) {
+		
+		if (nameStrLevel>0&&formalTitleStrLevel==0) {
+			// pokud mam formalni nazev a nemam nazev na aktualni urovni, tak nededim
+			title = formalTitleStr;
+			titleLevel = formalTitleStrLevel;
+		} else if (nameStrLevel!=Integer.MAX_VALUE) {
 			title = nameStr;
 			titleLevel = nameStrLevel;
 		} else if (formalTitleStrLevel!=Integer.MAX_VALUE) {
@@ -245,7 +250,7 @@ public class LevelValueCollector implements LevelResultValues {
 				ukladaciCislo = ((DescriptionItemInteger) pp).getV().toString();
 				break;
 			case ElzaTypes.ZP2015_ENTITY_ROLE:
-				if (GEO_ROLES.contains(pp.getS())) {
+				if (GEO_ROLES.contains(pp.getS())&&pp instanceof DescriptionItemAPRef) {
 					var apRef = (DescriptionItemAPRef) pp;
 					var accessPoint = elzaXmlReader.getApMap().get(apRef.getApid());
 					if (accessPoint != null) {

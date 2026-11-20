@@ -92,7 +92,12 @@ public class LevelNameDescValueCollector implements LevelNameDescValues {
 					}	
 				}								
 			} else {
-				name = StringUtils.firstNonBlank(nameStr, formalTitleStr, contentStr, unitContentStr);
+				if (nameStrLevel>0&&formalTitleStrLevel==0) {
+					// pokud mam formalni nazev a nemam nazev na aktualni urovni, tak nededim
+					name = formalTitleStr;
+				} else {
+					name = StringUtils.firstNonBlank(nameStr, formalTitleStr, contentStr, unitContentStr);
+				}
 			}
 		}
 	}
@@ -131,15 +136,6 @@ public class LevelNameDescValueCollector implements LevelNameDescValues {
 		return sj.toString();
 	}
 
-	/**
-	 * Popisny prvek nese pouzitelnou hodnotu, tj. je to string a neni prazdny.
-	 * Prazdna hodnota se nesmi zapsat ani do hodnoty, ani do jeji urovne, jinak
-	 * by vyhrala v {@link #collect(LevelContext)} nad neprazdnou hodnotou z jineho prvku.
-	 */
-	private static boolean hasValue(DescriptionItem pp) {
-		return (pp instanceof DescriptionItemString) && StringUtils.isNotBlank(((DescriptionItemString) pp).getV());
-	}
-
 	private void collectLevelAttributes(LevelContext levelContext) {
 		for (var pp : levelContext.getLevel().getDdOrDoOrDp()) {
 			switch (pp.getT()) {
@@ -155,25 +151,25 @@ public class LevelNameDescValueCollector implements LevelNameDescValues {
 				}
 				break;
 			case ElzaTypes.ZP2015_NAME:
-				if (hasValue(pp)) {
+				if (ElzaXmlUtils.hasContent(pp)) {
 					nameStr = ((DescriptionItemString) pp).getV();
 					nameStrLevel = 0;
 				}
 				break;
 			case ElzaTypes.ZP2015_FORMAL_TITLE:
-				if (hasValue(pp)) {
+				if (ElzaXmlUtils.hasContent(pp)) {
 					formalTitleStr = ((DescriptionItemString) pp).getV();
 					formalTitleStrLevel = 0;
 				}
 				break;
 			case ElzaTypes.ZP2015_CONTENT:
-				if (hasValue(pp)) {
+				if (ElzaXmlUtils.hasContent(pp)) {
 					contentStr = ((DescriptionItemString) pp).getV();
 					contentStrLevel = 0;
 				}
 				break;
 			case ElzaTypes.ZP2015_UNIT_CONTENT:
-				if (hasValue(pp)) {
+				if (ElzaXmlUtils.hasContent(pp)) {
 					unitContentStr = ((DescriptionItemString) pp).getV();
 					unitContentStrLevel = 0;
 				}
@@ -225,25 +221,25 @@ public class LevelNameDescValueCollector implements LevelNameDescValues {
 			for (var pp : context.getLevel().getDdOrDoOrDp()) {
 				switch (pp.getT()) {
 				case ElzaTypes.ZP2015_NAME:
-					if (nameStr==null && hasValue(pp)) {
+					if (nameStr==null && ElzaXmlUtils.hasContent(pp)) {
 						nameStr = ((DescriptionItemString) pp).getV();
 						nameStrLevel = level;
 					}
 					break;
 				case ElzaTypes.ZP2015_FORMAL_TITLE:
-					if (formalTitleStr==null && hasValue(pp)) {
+					if (formalTitleStr==null && ElzaXmlUtils.hasContent(pp)) {
 						formalTitleStr = ((DescriptionItemString) pp).getV();
 						formalTitleStrLevel = level;
 					}
 					break;
 				case ElzaTypes.ZP2015_CONTENT:
-					if (contentStr==null && hasValue(pp)) {
+					if (contentStr==null && ElzaXmlUtils.hasContent(pp)) {
 						contentStr = ((DescriptionItemString) pp).getV();
 						contentStrLevel = level;
 					}
 					break;
 				case ElzaTypes.ZP2015_UNIT_CONTENT:
-					if (unitContentStr==null && hasValue(pp)) {
+					if (unitContentStr==null && ElzaXmlUtils.hasContent(pp)) {
 						unitContentStr = ((DescriptionItemString) pp).getV();
 						unitContentStrLevel = level;
 					}

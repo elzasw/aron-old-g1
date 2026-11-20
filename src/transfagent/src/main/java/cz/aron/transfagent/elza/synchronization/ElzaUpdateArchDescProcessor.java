@@ -137,36 +137,50 @@ public class ElzaUpdateArchDescProcessor implements ImportProcessor {
      * {@link ImportContext#addProcessed() processed} for each newly created marker, and
      * {@link ImportContext#setFailed(boolean) failed} (without advancing the watermark) if login or the
      * ELZA call fails, so {@link FileImportService} backs off and retries the same window next cycle.
+     * A {@code 401} answer means the Elza session expired, so the cached session is dropped and the
+     * call is retried once with a fresh login.
      *
      * @param ic shared import context for this polling cycle
      */
     @Override
     public void importData(ImportContext ic) {
 
-    	if (!loginIfNeed()) {
-    		ic.setFailed(true);
-    		return;
-    	}
-
-    	var lastTransactionProp = propertyRepository.findByName(ELZA_LAST_ARCHDESC_TRANSACTION);
-    	var lastTransaction = lastTransactionProp == null ? null: lastTransactionProp.getValue();
+        var lastTransactionProp = propertyRepository.findByName(ELZA_LAST_ARCHDESC_TRANSACTION);
+        var lastTransaction = lastTransactionProp == null ? null : lastTransactionProp.getValue();
         log.info("Elza archdesc synchronization initialized, last transaction: {}", lastTransaction);
 
-        try {
-			var availablePublications = publicationApi.publicationGetAvailablePublications(configElza.getSystemName(), lastTransaction);
-			for(var availablePublication: availablePublications.getItems()) {
-				var publicationId = availablePublication.getPublicationId();
-				if (createPublicationCommand(publicationId.toString())) {
-					ic.addProcessed();
-				}
-			}
-			if (!Objects.equals(lastTransaction, availablePublications.getNextTransaction())) {
-				storeLastTransaction(availablePublications.getNextTransaction());
-			}
-		} catch (ApiException e) {
-			log.error("Fail to get available publications from Elza, last transaction: {}", lastTransaction, e);
-			ic.setFailed(true);
-		}
+        // Elza authenticates by a session cookie. When the session dies on the server side (timeout,
+        // restart) the cookie is still cached here, loginIfNeed() is a no-op and every following call
+        // keeps failing with 401 until restart. So on 401 drop the session and log in again once.
+        for (int attempt = 0; attempt < 2; attempt++) {
+            if (!loginIfNeed()) {
+                ic.setFailed(true);
+                return;
+            }
+            try {
+                var availablePublications = publicationApi
+                        .publicationGetAvailablePublications(configElza.getSystemName(), lastTransaction);
+                for (var availablePublication : availablePublications.getItems()) {
+                    var publicationId = availablePublication.getPublicationId();
+                    if (createPublicationCommand(publicationId.toString())) {
+                        ic.addProcessed();
+                    }
+                }
+                if (!Objects.equals(lastTransaction, availablePublications.getNextTransaction())) {
+                    storeLastTransaction(availablePublications.getNextTransaction());
+                }
+                return;
+            } catch (ApiException e) {
+                apiClient.clearCookie();
+                if (e.getCode() == 401 && attempt == 0) {
+                    log.info("Elza session expired, logging in again");
+                    continue;
+                }
+                log.error("Fail to get available publications from Elza, last transaction: {}", lastTransaction, e);
+                ic.setFailed(true);
+                return;
+            }
+        }
     }
     
     /**

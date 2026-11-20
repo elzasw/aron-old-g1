@@ -67,34 +67,53 @@ public class DaoPresentationBuilderService {
 	}
 	
 	public JAXBElement<Dao> buildDaoPresentation(List<Path> sourceFiles, String daoUuid, Path daosDir, String urlPrefix, String license) {
-		
-		var daoBuilder = new DaoBuilder();		
+		return buildDaoPresentation(sourceFiles, daoUuid, daosDir, urlPrefix, license, true);
+	}
+
+	/**
+	 * Build dao presentation
+	 *
+	 * @param regenerate if false, already generated dzi and thumbnails are reused
+	 *                   and only dao description is created
+	 */
+	public JAXBElement<Dao> buildDaoPresentation(List<Path> sourceFiles, String daoUuid, Path daosDir, String urlPrefix,
+			String license, boolean regenerate) {
+
+		var daoBuilder = new DaoBuilder();
         daoBuilder.setUuid(daoUuid);
 		daoBuilder.selLicense(license);
         var hiResView = daoBuilder.createDaoBundle(DaoBundleType.HIGH_RES_VIEW);
         var thumbnailView  = daoBuilder.createDaoBundle(DaoBundleType.THUMBNAIL);
-		
-		var tika = new Tika();		
+
+		var tika = new Tika();
 		var daoDir = getDaoDir(daoUuid, daosDir);
 		var daoUrl = urlPrefix + "/" + daoUuid;
-		
+
 		var toDelete = new ArrayList<Path>();
-		
+
 		try {
-			Files.createDirectories(daoDir);			
-			var mappings = getExistingMappings(daoUuid);					
-			try(var zos = new ZipOutputStream(Files.newOutputStream(daoDir.resolve(zeroUuid+".zip")))) {
+			Files.createDirectories(daoDir);
+			var mappings = getExistingMappings(daoUuid);
+			var images = new ArrayList<Path>();
+			for (var sourceFile : sourceFiles) {
+				var mimeType = tika.detect(sourceFile);
+				if (mimeType != null && mimeType.startsWith("image/")) {
+					images.add(sourceFile);
+				}
+			}
+			var thumbnailZip = daoDir.resolve(zeroUuid + ".zip");
+			var reuseThumbnails = !regenerate && Files.isRegularFile(thumbnailZip) && images.stream()
+					.allMatch(p -> mappings.containsKey(new FileTransformKey(p.getFileName().toString(),
+							TransformService.TRANSFORM_IDENTITY)));
+			try (var zos = reuseThumbnails ? null : new ZipOutputStream(Files.newOutputStream(thumbnailZip))) {
 				int pos = 1;
-				for(var sourceFile: sourceFiles) {
+				for (var sourceFile : images) {
 					var fileName = sourceFile.getFileName().toString();
-					var mimeType = tika.detect(sourceFile);										
-					if (mimeType != null && mimeType.startsWith("image/")) {																	
-						buildDzi(sourceFile, fileName, daoUrl, hiResView, mappings, pos, daoDir, toDelete);						
-						buildThumbnail(sourceFile, fileName, daoUrl, thumbnailView, mappings, pos, zos);												
-						pos++;
-					}
-				}	
-			}			
+					buildDzi(sourceFile, fileName, daoUrl, hiResView, mappings, pos, daoDir, toDelete, regenerate);
+					buildThumbnail(sourceFile, fileName, daoUrl, thumbnailView, mappings, pos, zos);
+					pos++;
+				}
+			}
 			synchronizeMappings(daoUuid, mappings);			
 			toDelete.clear();						
 			return daoBuilder.build();
@@ -117,7 +136,8 @@ public class DaoPresentationBuilderService {
 	
 	
 	private void buildDzi(Path sourceFile, String fileName, String daoUrl, DaoBundle hiResView,
-			Map<FileTransformKey, String> mappings, int pos, Path daoDir, List<Path> toDelete) throws IOException {
+			Map<FileTransformKey, String> mappings, int pos, Path daoDir, List<Path> toDelete, boolean regenerate)
+			throws IOException {
 		var dziKey = new FileTransformKey(fileName + ".dzi", TransformService.TRANSFORM_IDENTITY);
 		var dziUuid = mappings.get(dziKey);
 		if (dziUuid == null) {
@@ -126,7 +146,10 @@ public class DaoPresentationBuilderService {
 			mappings.put(dziKey, dziUuid);
 			toDelete.add(daoDir.resolve(dziUuid + ".zip"));
 		}
-		DziUtils.createDziZip(sourceFile, daoDir.resolve(dziUuid + ".zip"), dziUuid);
+		var dziZip = daoDir.resolve(dziUuid + ".zip");
+		if (regenerate || !Files.isRegularFile(dziZip)) {
+			DziUtils.createDziZip(sourceFile, dziZip, dziUuid);
+		}
 		processHttp(daoUrl + "/" + dziUuid + "/image.dzi", hiResView, pos, false, null, "application/xml", dziUuid);
 	}
 	
@@ -139,6 +162,12 @@ public class DaoPresentationBuilderService {
 			// assign new uuid
 			tnUuid = UUID.randomUUID().toString();
 			mappings.put(tnKey, tnUuid);
+		}
+		if (zos == null) {
+			// existing thumbnails are reused
+			processHttp(daoUrl + "/" + zeroUuid + "/" + tnUuid + ".jpg", thumbnailView, pos, false, null, "image/jpg",
+					tnUuid);
+			return;
 		}
 		var baos = new ByteArrayOutputStream();
 		Thumbnails.of(sourceFile.toFile()).outputFormat("jpg").size(120, 120).toOutputStream(baos);
