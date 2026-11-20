@@ -139,10 +139,15 @@ public class Peva2ImportFundIds  extends Peva2Downloader {
 				InstitutionReference ir = nps.getInstitution();
 				String fundId = ArchiveFundId.createJaFaId(ir.getExternalId(),nps.getEvidenceNumber(),null);							
 				try {
-					Path name = fundIdsInputDir.resolve(fundId+"#"+ir.getId()+"#"+nps.getId()+".xml");					
+					// zmeny se ctou podle id uvedenych na listu NAD
+					var externalChanges = Peva2ImportFunds.downloadExternalChanges(peva2, config,
+							nps.getExternalChanges() != null ? nps.getExternalChanges().getExternalChange() : null);
+					var internalChanges = Peva2ImportFunds.downloadInternalChanges(peva2, config,
+							nps.getInternalChanges() != null ? nps.getInternalChanges().getInternalChange() : null);
 					GetNadSheetResponse gnsr = new GetNadSheetResponse();
-					gnsr.setNadPrimarySheet(nps);					
-					Peva2XmlReader.marshalGetNadSheetResponse(gnsr, name);
+					gnsr.setNadPrimarySheet(nps);
+					Peva2ImportFunds.storeZip(fundIdsInputDir, fundId + "#" + ir.getId() + "#" + nps.getId(), gnsr,
+							externalChanges, internalChanges);
 				} catch (Exception e) {
 					log.error("Fail to store pevafund {} to input dir",gnsRespMain.getNadPrimarySheet().getId(),e);
 					throw new IllegalStateException(e);
@@ -162,10 +167,12 @@ public class Peva2ImportFundIds  extends Peva2Downloader {
 				InstitutionReference ir = nss.getInstitution();
 				var fundId = ArchiveFundId.createJaFaId(ir.getExternalId(),evidenceNumber,""+nss.getNumber());							
 				try {
-					Path name = fundIdsInputDir.resolve(fundId+"#"+ir.getId()+"#"+nss.getId()+".xml");					
 					GetNadSheetResponse gnsr = new GetNadSheetResponse();
-					gnsr.setNadSubsheet(nss);					
-					Peva2XmlReader.marshalGetNadSheetResponse(gnsr, name);
+					gnsr.setNadSubsheet(nss);
+					// dilci list nema zmeny, do zipu se ulozi prazdne seznamy
+					Peva2ImportFunds.storeZip(fundIdsInputDir, fundId + "#" + ir.getId() + "#" + nss.getId(), gnsr,
+							Peva2ImportFunds.downloadExternalChanges(peva2, config, null),
+							Peva2ImportFunds.downloadInternalChanges(peva2, config, null));
 				} catch (Exception e) {
 					log.error("Fail to store pevafund {} to input dir",gnsRespMain.getNadSubsheet().getId(),e);
 					throw new IllegalStateException(e);
@@ -232,7 +239,7 @@ public class Peva2ImportFundIds  extends Peva2Downloader {
 			
 			jafa.forEach((j,p)->{				
 				try {
-					GetNadSheetResponse gnsr = Peva2XmlReader.unmarshalGetNadSheetResponse(p);
+					GetNadSheetResponse gnsr = Peva2XmlReader.unmarshalGetNadSheetResponseFromFundFile(p);
 					
 					if (gnsr.getNadPrimarySheet()!=null) {
 						var primary = gnsr.getNadPrimarySheet();

@@ -219,7 +219,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
             throw new IllegalStateException("The entry Institution code={" + institutionCode + "} must exist.");
         }
 		
-		// fond presunut nebo odstranen vnejsi zmenou DE_52
+		// fond presunut nebo odstranen zmenou (vnejsi DE_52, DE_54, DE_55, vnitrni DE_12, DE_13, DE_23)
 		boolean removedByChange = ifi.isRemovedByChange();
 		if (ifi.getState()==State.MOVED || removedByChange) {
 			processInvalidFund(fund, fundCode, apusrcBuilder, dir, fundXml, institution, ifi.getFundName(),
@@ -326,7 +326,8 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 	 * @param apusrcBuilder
 	 * @param dir
 	 * @param fundXml path source file
-	 * @param removedByChange fond je odstranen vnejsi zmenou DE_52, smaze se i
+	 * @param removedByChange fond je odstranen zmenou (viz
+	 *                        ImportPevaFundInfo.isRemovedByChange), smaze se i
 	 *                        souvisejici archivni popis a archivni pomucky
 	 */
 	private void processInvalidFund(Fund fund, String fundCode, ApuSourceBuilder apusrcBuilder, Path dir,
@@ -374,7 +375,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 				}
 			});
 		} else if (removedByChange) {
-			// fond odstraneny zmenou DE_52 vytvorim v databazi jako smazany,
+			// fond odstraneny zmenou vytvorim v databazi jako smazany,
 			// aby nebyl publikovan
 			tt.executeWithoutResult(t -> {
 				var created = fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE,
@@ -446,7 +447,7 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			
 			if (ifi.getState()==State.MOVED || ifi.isRemovedByChange()) {
 				if (ifi.isRemovedByChange()) {
-					// fond odstranen vnejsi zmenou DE_52, smazu archivni popis a pomucky
+					// fond odstranen zmenou, smazu archivni popis a pomucky
 					// (i pokud je fond uz smazany, mohly byt naimportovany pozdeji)
 					tt.executeWithoutResult(t -> {
 						fundRepository.findById(fund.getId())

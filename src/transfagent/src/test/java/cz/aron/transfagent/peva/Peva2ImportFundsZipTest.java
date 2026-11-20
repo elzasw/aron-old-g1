@@ -86,6 +86,47 @@ public class Peva2ImportFundsZipTest {
 				Peva2XmlReader.unmarshalGetNadSheetResponseFromFundFile(zip).getNadPrimarySheet().getId());
 	}
 
+	/**
+	 * Zip zapisovany Peva2ImportFundIds, jmeno ${jafa}#${institutionId}#${uuid}
+	 */
+	@Test
+	public void testStoreAndReadFundIdsZip(@TempDir Path dir) throws Exception {
+		var baseName = FUND_ID + "#0a0a0a0a-0000-0000-0000-000000000009#" + FUND_UUID;
+
+		// xml ve starem formatu, po ulozeni zipu ma byt odstraneno
+		var oldXml = dir.resolve(baseName + ".xml");
+		Peva2XmlReader.marshalGetNadSheetResponse(createFund(), oldXml);
+
+		var externalChanges = new ListExternalChangeResponse();
+		externalChanges.setExternalChanges(new ListExternalChangeResponse.ExternalChanges());
+		externalChanges.getExternalChanges().getExternalChange()
+				.add(createExternalChange("0a0a0a0a-0000-0000-0000-000000000002", ExternalChangeTypeCode.DE_51));
+
+		Peva2ImportFunds.storeZip(dir, baseName, createFund(), externalChanges,
+				createInternalChanges(createInternalChange(InternalChangeTypeCode.DE_11)));
+
+		var zip = dir.resolve(baseName + ".zip");
+		assertTrue(Files.isRegularFile(zip));
+		assertFalse(Files.exists(oldXml));
+		try (var files = Files.list(dir)) {
+			assertEquals(1, files.count());
+		}
+
+		List<String> names = new ArrayList<>();
+		try (var zipFile = new ZipFile(zip.toFile())) {
+			zipFile.stream().forEach(e -> names.add(e.getName()));
+		}
+		Collections.sort(names);
+		assertEquals(List.of(baseName + ".xml", "external_changes.xml", "internal_changes.xml"), names);
+
+		assertEquals(FUND_UUID,
+				Peva2XmlReader.unmarshalGetNadSheetResponseFromFundFile(zip).getNadPrimarySheet().getId());
+		assertEquals(1, Peva2XmlReader.unmarshalListExternalChangeResponseFromFundFile(zip).getExternalChanges()
+				.getExternalChange().size());
+		assertEquals(1, Peva2XmlReader.unmarshalListInternalChangeResponseFromFundFile(zip).getInternalChanges()
+				.getInternalChange().size());
+	}
+
 	@Test
 	public void testRemovedByChange(@TempDir Path dir) throws Exception {
 		var internalChanges = new ListInternalChangeResponse();
@@ -117,6 +158,42 @@ public class Peva2ImportFundsZipTest {
 		assertNull(Peva2XmlReader.unmarshalListExternalChangeResponseFromFundFile(oldXml));
 		assertNull(Peva2XmlReader.unmarshalListInternalChangeResponseFromFundFile(oldXml));
 		assertFalse(ImportPevaFundInfo.isRemovedByChange(null, null));
+	}
+
+	@Test
+	public void testRemovedByExternalChange(@TempDir Path dir) throws Exception {
+		var internalChanges = new ListInternalChangeResponse();
+		internalChanges.setInternalChanges(new ListInternalChangeResponse.InternalChanges());
+		var zip = dir.resolve("pevafund-" + FUND_ID + ".zip");
+
+		// zmeny casti archivniho souboru a ulozeni mimo archiv, fond neni odstranen
+		// ani po prepsani
+		for (var type : List.of(ExternalChangeTypeCode.DE_51, ExternalChangeTypeCode.DE_53,
+				ExternalChangeTypeCode.DE_56)) {
+			var change = createExternalChange("0a0a0a0a-0000-0000-0000-000000000004", type);
+			change.setCommitted(DatatypeFactory.newInstance().newXMLGregorianCalendar(COMMITTED));
+			Peva2ImportFunds.storeFundZip(dir, FUND_ID, createFund(), createExternalChanges(change), internalChanges);
+			assertFalse(isRemovedByChange(zip), type.toString());
+		}
+
+		// ubytek celeho archivniho souboru, fond je odstranen az po prepsani
+		for (var type : List.of(ExternalChangeTypeCode.DE_52, ExternalChangeTypeCode.DE_54,
+				ExternalChangeTypeCode.DE_55)) {
+			var change = createExternalChange("0a0a0a0a-0000-0000-0000-000000000004", type);
+			Peva2ImportFunds.storeFundZip(dir, FUND_ID, createFund(), createExternalChanges(change), internalChanges);
+			assertFalse(isRemovedByChange(zip), type.toString());
+
+			change.setCommitted(DatatypeFactory.newInstance().newXMLGregorianCalendar(COMMITTED));
+			Peva2ImportFunds.storeFundZip(dir, FUND_ID, createFund(), createExternalChanges(change), internalChanges);
+			assertTrue(isRemovedByChange(zip), type.toString());
+		}
+	}
+
+	private static ListExternalChangeResponse createExternalChanges(ExternalChange externalChange) {
+		var externalChanges = new ListExternalChangeResponse();
+		externalChanges.setExternalChanges(new ListExternalChangeResponse.ExternalChanges());
+		externalChanges.getExternalChanges().getExternalChange().add(externalChange);
+		return externalChanges;
 	}
 
 	@Test

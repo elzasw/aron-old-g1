@@ -1283,9 +1283,10 @@ public class ImportPevaFundInfo {
 	}
 
 	/**
-	 * @return true pokud fond obsahuje prepsanou vnejsi zmenu DE_52 (ubytek delimitaci
-	 *         celeho archivniho souboru) nebo prepsanou vnitrni zmenu DE_12, DE_13,
-	 *         DE_23 (vnitrni ubytek nebo presun celeho archivniho souboru)
+	 * @return true pokud fond obsahuje prepsanou vnejsi zmenu DE_52, DE_54, DE_55
+	 *         (ubytek delimitaci nebo vydanim celeho archivniho souboru) nebo
+	 *         prepsanou vnitrni zmenu DE_12, DE_13, DE_23 (vnitrni ubytek nebo
+	 *         presun celeho archivniho souboru)
 	 */
 	public boolean isRemovedByChange() {
 		return removedByChange;
@@ -1293,7 +1294,7 @@ public class ImportPevaFundInfo {
 
 	/**
 	 * Zjisti, zda zmeny obsahuji zmenu, ktera znamena odstraneni fondu: vnejsi
-	 * DE_52 nebo vnitrni DE_12, DE_13, DE_23. Pocita se jen prepsana zmena
+	 * DE_52, DE_54, DE_55 nebo vnitrni DE_12, DE_13, DE_23. Pocita se jen prepsana zmena
 	 * (committed je vyplneno).
 	 *
 	 * @param externalChanges
@@ -1305,7 +1306,9 @@ public class ImportPevaFundInfo {
 			ListInternalChangeResponse internalChanges) {
 		if (externalChanges != null && externalChanges.getExternalChanges() != null
 				&& externalChanges.getExternalChanges().getExternalChange().stream().anyMatch(
-						ec -> ec.getType() == ExternalChangeTypeCode.DE_52 && ec.getCommitted() != null)) {
+						ec -> ec.getCommitted() != null && (ec.getType() == ExternalChangeTypeCode.DE_52
+								|| ec.getType() == ExternalChangeTypeCode.DE_54
+								|| ec.getType() == ExternalChangeTypeCode.DE_55))) {
 			return true;
 		}
 		return internalChanges != null && internalChanges.getInternalChanges() != null

@@ -23,7 +23,7 @@ import cz.aron.transfagent.domain.SourceType;
 import cz.aron.transfagent.service.FundService;
 
 /**
- * Smazani archivniho popisu a archivnich pomucek fondu odstraneneho zmenou DE_52
+ * Smazani archivniho popisu a archivnich pomucek fondu odstraneneho zmenou
  */
 @SpringBootTest
 public class FundServiceDeleteRelatedTest extends AbstractCommonTest {

@@ -189,6 +189,14 @@ public class Peva2ImportFunds extends Peva2Downloader {
 		}
     }
 
+	private ListInternalChangeResponse downloadInternalChanges(List<String> ids) {
+		return downloadInternalChanges(peva2, config, ids);
+	}
+
+	private ListExternalChangeResponse downloadExternalChanges(List<String> ids) {
+		return downloadExternalChanges(peva2, config, ids);
+	}
+
 	/**
 	 * Nacte vnitrni zmeny podle id.
 	 *
@@ -197,7 +205,8 @@ public class Peva2ImportFunds extends Peva2Downloader {
 	 * @return odpoved obsahujici vsechny nalezene zmeny (vsechny stranky), pro
 	 *         prazdny seznam id prazdna odpoved bez volani PEvA
 	 */
-	private ListInternalChangeResponse downloadInternalChanges(List<String> ids) {
+	static ListInternalChangeResponse downloadInternalChanges(PEvA2Connection peva2, ConfigPeva2 config,
+			List<String> ids) {
 		var result = new ListInternalChangeResponse();
 		var changes = new ListInternalChangeResponse.InternalChanges();
 		result.setInternalChanges(changes);
@@ -215,7 +224,7 @@ public class Peva2ImportFunds extends Peva2Downloader {
 					changes.getInternalChange().addAll(resp.getInternalChanges().getInternalChange());
 				}
 				searchAfter = resp.getSearchAfter();
-				if (isLastPage(pageSize, searchAfter, changes.getInternalChange().size(), ids.size())) {
+				if (isLastPage(config, pageSize, searchAfter, changes.getInternalChange().size(), ids.size())) {
 					break;
 				}
 			}
@@ -236,7 +245,8 @@ public class Peva2ImportFunds extends Peva2Downloader {
 	 * @return odpoved obsahujici vsechny nalezene zmeny (vsechny stranky), pro
 	 *         prazdny seznam id prazdna odpoved bez volani PEvA
 	 */
-	private ListExternalChangeResponse downloadExternalChanges(List<String> ids) {
+	static ListExternalChangeResponse downloadExternalChanges(PEvA2Connection peva2, ConfigPeva2 config,
+			List<String> ids) {
 		var result = new ListExternalChangeResponse();
 		var changes = new ListExternalChangeResponse.ExternalChanges();
 		result.setExternalChanges(changes);
@@ -254,7 +264,7 @@ public class Peva2ImportFunds extends Peva2Downloader {
 					changes.getExternalChange().addAll(resp.getExternalChanges().getExternalChange());
 				}
 				searchAfter = resp.getSearchAfter();
-				if (isLastPage(pageSize, searchAfter, changes.getExternalChange().size(), ids.size())) {
+				if (isLastPage(config, pageSize, searchAfter, changes.getExternalChange().size(), ids.size())) {
 					break;
 				}
 			}
@@ -275,7 +285,8 @@ public class Peva2ImportFunds extends Peva2Downloader {
 		return filters;
 	}
 
-	private boolean isLastPage(int pageSize, String searchAfter, int numDownloaded, int numExpected) {
+	private static boolean isLastPage(ConfigPeva2 config, int pageSize, String searchAfter, int numDownloaded,
+			int numExpected) {
 		return pageSize == 0 || pageSize < config.getBatchSize() || searchAfter == null
 				|| numDownloaded >= numExpected;
 	}
@@ -290,11 +301,24 @@ public class Peva2ImportFunds extends Peva2Downloader {
 	static void storeFundZip(Path fundDir, String fundId, GetNadSheetResponse gnsr,
 			ListExternalChangeResponse externalChanges, ListInternalChangeResponse internalChanges)
 			throws IOException, JAXBException {
-		Path zipPath = fundDir.resolve(PREFIX_DASH + fundId + ".zip");
-		Path tmpPath = fundDir.resolve(PREFIX_DASH + fundId + ".zip.tmp");
+		storeZip(fundDir, PREFIX_DASH + fundId, gnsr, externalChanges, internalChanges);
+	}
+
+	/**
+	 * Ulozi list NAD a jeho zmeny do ${baseName}.zip v adresari dir.
+	 *
+	 * Zip obsahuje ${baseName}.xml, external_changes.xml a
+	 * internal_changes.xml. Zapisuje se do docasneho souboru, ktery se po
+	 * dokonceni prejmenuje.
+	 */
+	static void storeZip(Path dir, String baseName, GetNadSheetResponse gnsr,
+			ListExternalChangeResponse externalChanges, ListInternalChangeResponse internalChanges)
+			throws IOException, JAXBException {
+		Path zipPath = dir.resolve(baseName + ".zip");
+		Path tmpPath = dir.resolve(baseName + ".zip.tmp");
 		try {
 			try (var zos = new ZipOutputStream(Files.newOutputStream(tmpPath))) {
-				zos.putNextEntry(new ZipEntry(PREFIX_DASH + fundId + ".xml"));
+				zos.putNextEntry(new ZipEntry(baseName + ".xml"));
 				Peva2XmlReader.marshalGetNadSheetResponse(gnsr, zos);
 				zos.closeEntry();
 				zos.putNextEntry(new ZipEntry(EXTERNAL_CHANGES_XML));
@@ -309,7 +333,7 @@ public class Peva2ImportFunds extends Peva2Downloader {
 			Files.deleteIfExists(tmpPath);
 		}
 		// xml z predchoziho (nezpracovaneho) stazeni ve starem formatu
-		Files.deleteIfExists(fundDir.resolve(PREFIX_DASH + fundId + ".xml"));
+		Files.deleteIfExists(dir.resolve(baseName + ".xml"));
 	}
     
     private void copyAttachments(String institutionCode, String fundCode, Integer subFundCode, Path fundDir)
