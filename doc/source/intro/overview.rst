@@ -45,7 +45,7 @@ Publikační systém je tvořen dvěma komponentami:
 Následující schéma ukazuje příklad instalace aplikace na virtuální server a jednotlivé komponenty 
 tvořící aplikaci. Součástí schématu je také propojení na další komponenty.
 
-.. plantuml::
+.. uml::
     :caption: Příklad způsobu instalace
     :scale: 70%
     :align: center

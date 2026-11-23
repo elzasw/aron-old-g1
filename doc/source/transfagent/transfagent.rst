@@ -19,3 +19,4 @@ od jádra na zaslání daných APU.
    install.rst
    config.rst
    input.rst
+   peva.rst
