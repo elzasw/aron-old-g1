@@ -25,6 +25,7 @@ import cz.aron.peva2.wsdl.InternalChangeTypeCode;
 import cz.aron.peva2.wsdl.ListExternalChangeResponse;
 import cz.aron.peva2.wsdl.ListInternalChangeResponse;
 import cz.aron.peva2.wsdl.NadPrimarySheet;
+import cz.aron.peva2.wsdl.State;
 
 public class Peva2ImportFundsZipTest {
 
@@ -33,6 +34,19 @@ public class Peva2ImportFundsZipTest {
 	private static final String FUND_UUID = "0a0a0a0a-0000-0000-0000-000000000001";
 
 	private static final String COMMITTED = "2026-01-15T10:00:00";
+
+	/**
+	 * Stavy listu NAD, ktere vyrazuji fond z evidence (import i reimport).
+	 */
+	@Test
+	public void testRemovedByState() {
+		assertTrue(ImportPevaFund.isRemovedByState(State.MOVED));
+		assertTrue(ImportPevaFund.isRemovedByState(State.DESTROYED));
+		assertTrue(ImportPevaFund.isRemovedByState(State.NOT_FOUND));
+		assertFalse(ImportPevaFund.isRemovedByState(State.OK));
+		assertFalse(ImportPevaFund.isRemovedByState(State.PARTIALLY_NOT_FOUND));
+		assertFalse(ImportPevaFund.isRemovedByState(null));
+	}
 
 	@Test
 	public void testStoreAndReadFundZip(@TempDir Path dir) throws Exception {

@@ -219,9 +219,10 @@ public class ImportPevaFund implements FundImporter, FundProvider {
             throw new IllegalStateException("The entry Institution code={" + institutionCode + "} must exist.");
         }
 		
-		// fond presunut nebo odstranen zmenou (vnejsi DE_52, DE_54, DE_55, vnitrni DE_12, DE_13, DE_23)
+		// fond presunut, znicen, nedohledan nebo odstranen zmenou
+		// (vnejsi DE_52, DE_54, DE_55, vnitrni DE_12, DE_13, DE_23)
 		boolean removedByChange = ifi.isRemovedByChange();
-		if (ifi.getState()==State.MOVED || removedByChange) {
+		if (isRemovedByState(ifi.getState()) || removedByChange) {
 			processInvalidFund(fund, fundCode, apusrcBuilder, dir, fundXml, institution, ifi.getFundName(),
 					ifi.getPrimarySheetNumberInt(), ifi.getSubSheetNumber(), removedByChange);
 			return true;
@@ -326,9 +327,12 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 	 * @param apusrcBuilder
 	 * @param dir
 	 * @param fundXml path source file
+	 * Existujici fond se oznaci jako smazany a s nim i souvisejici archivni
+	 * popis a archivni pomucky, a to pri odstraneni zmenou i stavem listu NAD.
+	 *
 	 * @param removedByChange fond je odstranen zmenou (viz
-	 *                        ImportPevaFundInfo.isRemovedByChange), smaze se i
-	 *                        souvisejici archivni popis a archivni pomucky
+	 *                        ImportPevaFundInfo.isRemovedByChange); dosud
+	 *                        neexistujici fond se pak vytvori jako smazany
 	 */
 	private void processInvalidFund(Fund fund, String fundCode, ApuSourceBuilder apusrcBuilder, Path dir,
 			Path fundXml, Institution institution, String name, Integer nad, Integer subNad, boolean removedByChange) {
@@ -357,10 +361,9 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			tt.executeWithoutResult(t -> {
 				var fund2 = fundRepository.findByCode(fundCode);
 				if (fund2 != null) {
-					if (removedByChange) {
-						// nejdrive archivni popis a pomucky, potom fond
-						fundService.deleteFundRelated(fund2, isSendFindingAids());
-					}
+					// nejdrive archivni popis a pomucky, potom fond
+					// (pri odstraneni zmenou i stavem listu NAD)
+					fundService.deleteFundRelated(fund2, isSendFindingAids());
 					fund2.getApuSource().setDeleted(true);
 					fundService.updateFund(fund2, dataDir, dir, true, 0, 0);
 					// delete attachments
@@ -387,6 +390,17 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 			// vytvorim fond v databazi
 			fundService.createFund(institution, dataDir, dir, apusrcBuilder, fundCode, FUND_SOURCE, name, nad, subNad, 0, 0);
 		}
+	}
+
+	/**
+	 * Stavy listu NAD, pri kterych je fond vyrazen z evidence. Pouziva import
+	 * i reimport, aby se podminka nerozesla.
+	 *
+	 * @param state stav listu NAD (u dilciho listu stav hlavniho listu), muze byt null
+	 * @return true pokud je list presunut, znicen nebo nedohledan
+	 */
+	static boolean isRemovedByState(State state) {
+		return state == State.MOVED || state == State.DESTROYED || state == State.NOT_FOUND;
 	}
 
 	/**
@@ -445,15 +459,13 @@ public class ImportPevaFund implements FundImporter, FundProvider {
 					codeListProvider, entityDownloader, archDescRoot);
 			apuSourceBuilder.setUuid(apuSource.getUuid());
 			
-			if (ifi.getState()==State.MOVED || ifi.isRemovedByChange()) {
-				if (ifi.isRemovedByChange()) {
-					// fond odstranen zmenou, smazu archivni popis a pomucky
-					// (i pokud je fond uz smazany, mohly byt naimportovany pozdeji)
-					tt.executeWithoutResult(t -> {
-						fundRepository.findById(fund.getId())
-								.ifPresent(f -> fundService.deleteFundRelated(f, isSendFindingAids()));
-					});
-				}
+			if (isRemovedByState(ifi.getState()) || ifi.isRemovedByChange()) {
+				// fond odstranen zmenou nebo stavem, smazu archivni popis a pomucky
+				// (i pokud je fond uz smazany, mohly byt naimportovany pozdeji)
+				tt.executeWithoutResult(t -> {
+					fundRepository.findById(fund.getId())
+							.ifPresent(f -> fundService.deleteFundRelated(f, isSendFindingAids()));
+				});
 				if (apuSource.isDeleted()) {
 					// je ve stavu deleted neposilam do aron core
 					return ReimportProcessor.Result.NOCHANGES;
