@@ -131,7 +131,9 @@ neexistuje, jsou převzaty všechny dostupné záznamy.
 
 Agent si v dotazu vyžádá i záznamy, které byly v PEvA zrušeny nebo
 zneplatněny. Díky tomu se o zrušení dozví a může publikovaný záznam
-z jádra odstranit.
+z jádra odstranit. Které stavy jsou vyžádány, je uvedeno u jednotlivých
+agend (:ref:`archivní soubory <ta_peva_funds_states>`,
+:ref:`archivní pomůcky <ta_peva_findingaids_states>`).
 
 .. uml::
     :caption: Cyklus synchronizace
@@ -212,7 +214,7 @@ se jej pokouší zpracovat znovu.
     database "Databáze agenta" as DB
     participant "Jádro" as CORE
 
-    SYNC -> PEVA : listNadSheet
+    SYNC -> PEVA : listNadSheet\n(includes: DELETED, INVALID, DESTROYED, MOVED)
     PEVA --> SYNC : dávka listů NAD
     loop pro každý list NAD
       SYNC -> PEVA : getNadSheet
@@ -234,7 +236,7 @@ se jej pokouší zpracovat znovu.
         PEVA --> PROC : původce, geografický objekt
       end
       PROC -> CORE : odeslání archivního souboru
-    else archivní soubor vyřazený z evidence
+    else archivní soubor vyřazený z evidence\n(stav listu NAD nebo přepsaná změna)
       PROC -> DB : označení jako smazaný, zařazení do fronty
       PROC -> CORE : odstranění archivního souboru
     end
@@ -246,22 +248,117 @@ Archivní soubor odkazuje na své původce a místa vzniku. Pokud odkazovaný
 původce nebo geografický objekt dosud nebyl převzat, agent si jej z PEvA
 vyžádá jednotlivě (operace ``getOriginator`` a ``getGeoObject``).
 
+.. _ta_peva_funds_states:
+
+Vyžádané stavy
+---------------
+
+Agent v dotazu ``listNadSheet`` výslovně žádá (parametr ``includes``),
+aby seznam obsahoval i listy v následujících stavech:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Hodnota
+     - Význam
+   * - ``DELETED``
+     - smazané listy NAD
+   * - ``INVALID``
+     - neplatné listy NAD
+   * - ``DESTROYED``
+     - zničené listy NAD
+   * - ``MOVED``
+     - přesunuté listy NAD
+
+Vyžádání samo o sobě znamená pouze to, že agent takový list z PEvA převezme.
+Zda je archivní soubor vyřazen z evidence, se rozhoduje až při zpracování
+listu podle pravidel uvedených v následující části.
+
+.. _ta_peva_funds_removal:
+
 Vyřazení z evidence
 --------------------
 
-Vnitřní a vnější změny slouží k rozpoznání, že archivní soubor již
-v archivu není. Archivní soubor je označen jako smazaný a z jádra
-je odstraněn, pokud je list NAD ve stavu přesunuto, nebo pokud je
-k němu evidována provedená změna, kterou zaniká celý archivní soubor:
+Díky vyžádaným stavům je list, který byl v PEvA smazán, zneplatněn, zničen
+nebo přesunut, převzat stejně jako každý jiný změněný list. Při jeho
+zpracování agent vyhodnotí, zda archivní soubor v archivu ještě existuje.
+Stejné vyhodnocení proběhne i při opakovaném zpracování již uložených dat
+(reimportu).
 
- * vnější změna - úbytek delimitací celého archivního souboru, vydání
-   vlastníkovi v ČR, vydání do zahraničí,
- * vnitřní změna - zničení nebo přehodnocení, nedohledání, přesun celého
-   archivního souboru do jiného souboru.
+Archivní soubor je vyřazen, nastane-li alespoň jedna z následujících událostí.
 
-Společně s archivním souborem vyřazeným takovou změnou jsou odstraněny
-i jeho archivní popis a archivní pomůcky. Pomůcka, která se vztahuje
-i k jinému platnému archivnímu souboru, zůstává zachována.
+**Stav listu NAD**
+
+List NAD je v PEvA v jednom z těchto stavů:
+
+ * Přesunut (``MOVED``),
+ * Zničeno (``DESTROYED``),
+ * Nedohledáno (``NOT_FOUND``).
+
+**Přepsaná změna, kterou zaniká celý archivní soubor**
+
+K listu NAD je evidována vnitřní nebo vnější změna některého z typů uvedených
+v tabulce. Změna se uplatní jen tehdy, je-li přepsaná, tedy má-li v PEvA
+vyplněno datum přepsání. Změna, která přepsaná není, archivní soubor nevyřadí.
+
+.. list-table::
+   :widths: 15 15 70
+   :header-rows: 1
+
+   * - Změna
+     - Kód
+     - Název změny v PEvA
+   * - vnější
+     - ``DE_52``
+     - úbytek delimitací - celého archivního souboru
+   * - vnější
+     - ``DE_54``
+     - úbytek vydáním - celého archivního souboru vlastníkovi v ČR
+   * - vnější
+     - ``DE_55``
+     - úbytek vydáním - celého archivního souboru do zahraničí
+   * - vnitřní
+     - ``DE_12``
+     - vnitřní úbytek - celého archivního souboru [zničení, přehodnocení významu]
+   * - vnitřní
+     - ``DE_13``
+     - vnitřní úbytek - celého archivního souboru [nedohledání]
+   * - vnitřní
+     - ``DE_23``
+     - vnitřní přesun - celého archivního souboru do jiného souboru [zde úbytek]
+
+Archivní soubor naopak nevyřadí:
+
+ * změny, které se týkají jen části archivního souboru (vnitřní ``DE_11``,
+   ``DE_11a``, ``DE_11b``, ``DE_11c``, ``DE_21``, ``DE_22``, vnější ``DE_51``,
+   ``DE_53``),
+ * vnější změna ``DE_56`` (úbytek uložením celého archivního souboru mimo archiv),
+ * stav listu Částečně nedohledáno (``PARTIALLY_NOT_FOUND``),
+ * samotný příznak neplatnosti listu NAD.
+
+**Důsledky vyřazení**
+
+Vyřazený archivní soubor, který agent eviduje, je označen jako smazaný
+a z jádra je odstraněn. Společně s ním jsou označeny jako smazané a z jádra
+odstraněny také:
+
+ * archivní popis tohoto archivního souboru,
+ * archivní pomůcky, které se k němu vztahují. Pomůcka, která se vztahuje
+   ještě k jinému archivnímu souboru, jenž vyřazen není, zůstává zachována.
+
+To platí shodně pro vyřazení na základě stavu listu NAD i pro vyřazení
+přepsanou změnou.
+
+Archivní soubor vyřazený přepsanou změnou, který agent dosud neevidoval,
+se do jádra vůbec neodešle.
+
+**Dílčí listy**
+
+U dílčích listů se změny nepřebírají, a proto se u nich nevyhodnocují.
+Dílčí list přebírá stav svého hlavního listu: je vyřazen, je-li hlavní list
+ve stavu Přesunut, Zničeno nebo Nedohledáno. Vyřazení hlavního listu
+přepsanou změnou se na jeho dílčí listy nepřenáší.
 
 Souběh se systémem Elza
 ------------------------
@@ -320,7 +417,7 @@ kterému pomůcka patří.
     database "Databáze agenta" as DB
     participant "Jádro" as CORE
 
-    SYNC -> PEVA : listFindingAid
+    SYNC -> PEVA : listFindingAid\n(includes: DELETED, INVALID)
     PEVA --> SYNC : dávka archivních pomůcek
     loop pro každou pomůcku
       SYNC -> IN : pevafa-<kód archivu>_<identifikátor>.xml
@@ -343,15 +440,68 @@ kterému pomůcka patří.
       end
     end
 
-Změny a zrušení
-----------------
+.. _ta_peva_findingaids_states:
+
+Vyžádané stavy
+---------------
+
+Agent v dotazu ``listFindingAid`` výslovně žádá (parametr ``includes``),
+aby seznam obsahoval i pomůcky v následujících stavech:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Hodnota
+     - Význam
+   * - ``DELETED``
+     - smazané pomůcky
+   * - ``INVALID``
+     - neplatné pomůcky
+
+Vyžádání samo o sobě znamená pouze to, že agent takovou pomůcku z PEvA
+převezme. Zda je pomůcka vyřazena z evidence, se rozhoduje až při jejím
+zpracování podle pravidel uvedených v následující části.
+
+.. _ta_peva_findingaids_removal:
+
+Vyřazení z evidence
+--------------------
+
+Při zpracování každé převzaté pomůcky agent vyhodnotí, zda je pomůcka platná.
+
+Archivní pomůcka je vyřazena, nastane-li jedna z následujících událostí.
+
+**Neplatnost pomůcky**
+
+Pomůcka je z PEvA převzata s příznakem platnosti, který není nastaven
+na platnou (pomůcka je označena jako neplatná, nebo příznak není vyplněn).
+Jiné údaje pomůcky se pro vyřazení nevyhodnocují.
+
+Taková pomůcka je označena jako smazaná a z jádra je odstraněna. Pomůcka,
+kterou agent dosud neevidoval, se do jádra neodešle. I u neplatné pomůcky
+musí být dohledán alespoň jeden archivní soubor, ke kterému se vztahuje;
+jinak pomůcka zůstává ve vstupní složce stejně jako platná pomůcka bez
+archivního souboru.
+
+**Vyřazení archivního souboru**
+
+Pomůcka je označena jako smazaná a z jádra odstraněna také tehdy, je-li
+vyřazen archivní soubor, ke kterému se vztahuje, ať už na základě stavu
+listu NAD, nebo přepsanou změnou (viz :ref:`ta_peva_funds_removal`).
+Vztahuje-li se pomůcka k více archivním souborům, je vyřazena až ve chvíli,
+kdy jsou vyřazeny všechny.
+
+**Obnovení**
+
+Je-li pomůcka, která byla vyřazena, z PEvA znovu převzata jako platná,
+je zpracována běžným způsobem a do jádra je opět odeslána.
+
+Změny
+------
 
 Změní-li se pomůcka v PEvA, je při další synchronizaci převzata znovu
 a již existující pomůcka je aktualizována.
-
-Pomůcka, která je v PEvA označena jako neplatná, je označena jako smazaná
-a z jádra je odstraněna. Pomůcka je odstraněna také tehdy, je-li z evidence
-vyřazen archivní soubor, ke kterému se vztahuje (viz :ref:`ta_peva_funds`).
 
 Pomůcky převzaté z PEvA a pomůcky převzaté ze systému Elza jsou na sobě
 nezávislé a vzájemně se nepárují.
